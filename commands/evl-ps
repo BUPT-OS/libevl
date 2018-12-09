@@ -1,0 +1,26 @@
+#! /bin/sh
+# SPDX-License-Identifier: MIT
+
+set -- $(getopt -n $(basename $0) el "$@")
+if [ $? -ne 0 ]; then
+   echo >&2 "usage: $0 [-el]"
+   exit 1
+fi
+
+all=false
+long=false
+
+for opt
+do
+case "$opt" in
+   -e) all=true
+       shift;;
+   -l) long=true
+       shift;;
+   --) shift; break;;
+   esac
+done
+
+# TBD
+
+exit 0

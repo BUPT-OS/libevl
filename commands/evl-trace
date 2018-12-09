@@ -1,0 +1,87 @@
+#! /bin/sh
+# SPDX-License-Identifier: MIT
+
+if test \! -d $EVL_TRACEDIR; then
+   echo >&2 "no kernel support for tracing"
+   exit 2
+fi
+
+usage() {
+   echo >&2 "usage: $1 [-e [-s <buffer_size>]] [-d] [-p] [-f] [-?] [-c <cpu>]"
+}
+
+set -- $(getopt -n $(basename $0) 'es:dc:pf?' "$@")
+if [ $? -ne 0 ]; then
+   usage $0
+   exit 1
+fi
+
+enable=false
+disable=false
+print=true
+full=false
+bufsz=64
+pcpu=
+help=false
+
+for opt
+do
+case "$opt" in
+   -e) enable=true
+       disable=false
+       shift;;
+   -s) bufsz=$(eval echo $2)
+       shift;;
+   -d) enable=false
+       disable=true
+       shift;;
+   -p) print=true
+       shift;;
+   -f) full=true
+       shift;;
+   -c) pcpu=per_cpu/cpu$(eval echo $2)/
+       shift;;
+   -?) help=true
+       shift;;
+   --) shift; break;;
+   esac
+done
+
+if test x$help = xtrue; then
+   usage $0
+   exit 0
+fi
+
+cd $EVL_TRACEDIR
+
+if test x$enable = xtrue; then
+   echo nop > current_tracer
+   echo 0 > snapshot
+   echo $bufsz > ${pcpu}buffer_size_kb
+   if test x$full = xfalse; then
+       echo 1 > events/irq/enable
+       echo 1 > events/power/cpu_idle/enable
+       echo 1 > events/evenless/enable
+   else
+       echo function > current_tracer
+   fi
+   echo 1 > ${pcpu}snapshot
+   echo 1 > events/evenless/evl_timer_shot/enable
+   echo \!snapshot > events/evenless/evl_trigger/trigger
+   echo snapshot > events/evenless/evl_trigger/trigger
+   echo 1 > events/evenless/evl_trigger/enable
+   echo 1 > events/evenless/evl_latspot/enable
+   echo "tracing enabled"
+   print=false
+elif test x$disable = xtrue; then
+   echo nop > current_tracer
+   echo 0 > snapshot
+   echo "tracing disabled"
+   print=false
+fi
+
+if test x$print = xtrue; then
+   cat ${pcpu}snapshot
+fi
+
+exit 0
