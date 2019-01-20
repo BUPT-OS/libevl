@@ -114,9 +114,10 @@ int open_evl_element(const char *type,
 		return -ENOMEM;
 
 	efd = open(path, O_RDWR);
+	ret = errno;
 	free(path);
 	if (efd < 0)
-		return -errno;
+		return -ret;
 
 	return efd;
 }
