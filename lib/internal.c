@@ -114,10 +114,31 @@ int open_evl_element(const char *type,
 		return -ENOMEM;
 
 	efd = open(path, O_RDWR);
-	ret = errno;
+	if (efd < 0) {
+		ret = -errno;
+		goto fail_open;
+	}
+
+	ret = fcntl(efd, F_GETFD, 0);
+	if (ret < 0) {
+		ret = -errno;
+		goto fail;
+	}
+
+	ret = fcntl(efd, F_SETFD, ret | O_CLOEXEC);
+	if (ret) {
+		ret = -errno;
+		goto fail;
+	}
+
 	free(path);
-	if (efd < 0)
-		return -ret;
 
 	return efd;
+
+fail:
+	close(efd);
+fail_open:
+	free(path);
+
+	return ret;
 }
