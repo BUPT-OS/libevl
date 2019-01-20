@@ -1,10 +1,11 @@
 # SPDX-License-Identifier: MIT
 
-include ../scripts/config.mk
+include ../config.mk
+include ../libversion.mk
 
-DTSONAME := libevenless.so.$(LIBIVERSION)
-SOLIBNAME := libevenless-$(LIBSERIAL).so.$(LIBIVERSION)
-ARLIBNAME := libevenless-$(LIBSERIAL).a
+DTSONAME := libevenless.so.$(EVL_IVERSION)
+SOLIBNAME := libevenless-$(EVL_SERIAL).so.$(EVL_IVERSION)
+ARLIBNAME := libevenless-$(EVL_SERIAL).a
 TARGETS := $(O_DIR)/$(SOLIBNAME) $(O_DIR)/$(ARLIBNAME)
 
 SRCFILES := $(wildcard *.c arch/$(ARCH)/*.c)
@@ -46,7 +47,7 @@ $(O_DIR)/$(ARLIBNAME): $(OBJFILES)
 
 $(O_DIR)/syscall-pic.o $(O_DIR)/syscall.o: override CFLAGS := $(CFLAGS) -fomit-frame-pointer
 
-$(O_DIR)/version-pic.o $(O_DIR)/version.o: override CFLAGS := $(CFLAGS) -DLIBSERIAL=\"$(LIBSERIAL)\"
+$(O_DIR)/version-pic.o $(O_DIR)/version.o: override CFLAGS := $(CFLAGS) -DLIBSERIAL=\"$(EVL_SERIAL)\"
 version.c: $(O_DIR)/git-stamp.h
 
 $(O_DIR)/git-stamp.h: git-stamp
@@ -60,12 +61,12 @@ $(O_DIR)/git-stamp.h: git-stamp
 	    $(RM) -f $@ && touch $@;							\
 	fi; true
 
+.PHONY: git-stamp
+
 $(O_DIR)/%-pic.o: %.c
 	$(call cc-pic-cmd,$@,$(CC) $(CFLAGS) -fPIC -c -o $@ $<)
 
 $(O_DIR)/%.o: %.c
 	$(call cc-cmd,$@,$(CC) $(CFLAGS) -c -o $@ $<)
-
-.PHONY: all install clean clobber mrproper git-stamp
 
 -include $(DEPFILES)

@@ -1,4 +1,6 @@
-include ../scripts/config.mk
+# SPDX-License-Identifier: MIT
+
+include ../config.mk
 
 CMDFILES := $(wildcard *.c)
 BINARIES = $(CMDFILES:%.c=%)
@@ -21,7 +23,5 @@ clean clobber mrproper:
 
 $(O_DIR)/%: %.c
 	$(call ccld-cmd,$@,$(Q)$(CC) -o $(@) $< $(CFLAGS) $(LDFLAGS))
-
-.PHONY: all install clean clobber mrproper
 
 -include $(DEPFILES)

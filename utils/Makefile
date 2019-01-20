@@ -1,4 +1,7 @@
-include ../scripts/config.mk
+# SPDX-License-Identifier: MIT
+
+include ../config.mk
+include ../libversion.mk
 
 UTILFILES := $(wildcard *.c)
 BINARIES = $(UTILFILES:%.c=%)
@@ -13,7 +16,7 @@ UTIL_CPPFLAGS := $(BASE_CPPFLAGS)		\
 UTIL_CFLAGS := $(UTIL_CPPFLAGS) $(BASE_CFLAGS)
 override CFLAGS := $(UTIL_CFLAGS) $(CFLAGS)
 
-UTIL_LDFLAGS := $(O_DIR)/../lib/libevenless.so.$(LIBIVERSION) -lpthread -lrt
+UTIL_LDFLAGS := $(O_DIR)/../lib/libevenless.so.$(EVL_IVERSION) -lpthread -lrt
 override LDFLAGS := $(UTIL_LDFLAGS) $(LDFLAGS)
 
 all: $(TARGETS)
@@ -28,7 +31,5 @@ clean clobber mrproper:
 
 $(O_DIR)/%: %.c
 	$(call ccld-cmd,$@,$(Q)$(CC) -o $(@) $< $(CFLAGS) $(LDFLAGS))
-
-.PHONY: all install clean clobber mrproper
 
 -include $(DEPFILES)

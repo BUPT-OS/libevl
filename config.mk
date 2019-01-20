@@ -1,10 +1,7 @@
 # SPDX-License-Identifier: MIT
 
-LIBSERIAL	:= 0
-LIBIVERSION	:= 0
-
 ARCH		?= $(shell uname -m | sed	\
-	  	-e s/arm.*/arm/			\
+		-e s/arm.*/arm/			\
 		-e s/aarch64.*/arm64/ )
 CROSS_COMPILE	?=
 CC		= $(CROSS_COMPILE)gcc
@@ -85,5 +82,12 @@ ccld-cmd = $(call run-cc,CCLD,$(1),$(2))
 ld-cmd = $(call run-cmd,LD,$(notdir $(1)),$(2))
 ar-cmd = $(call run-cmd,AR,$(notdir $(1)),$(2) $(if $(Q),2>/dev/null))
 
+MAIN_GOALS := all clean clobber mrproper install
+
+$(TARGETS):
+	$(Q)$(MAKE) -C $@ O=$(O_DIR)/$@ V=$(V)
+
 $(O_DIR)/%.d: %.c
 	$(call dep-cmd,$@,@$(CC) -MM $(CFLAGS) $< | sed 's$(comma)\($*\)\.o[ :]*$(comma)$(O_DIR)/\1.o $@: $(comma)g' > $@ || rm -f $@)
+
+.PHONY: $(MAIN_GOALS) $(TARGETS)

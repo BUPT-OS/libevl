@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 
-include ../scripts/config.mk
+include ../config.mk
 
 O_UAPI = $(O_DIR)/uapi
 
@@ -29,5 +29,3 @@ install: all
 	$(Q)$(MKDIR_P) $(DESTDIR)/$(includedir)/uapi
 	$(Q)(cd $(O_UAPI) && find -L evenless \! \( -name '*~' \) -type f | $(CPIO) -Lpdum $(DESTDIR)/$(includedir)/uapi)
 	$(Q)(find evenless \! \( -name '*~' \) -type f | $(CPIO) -Lpdum $(DESTDIR)/$(includedir))
-
-.PHONY: clean clobber mrproper install
