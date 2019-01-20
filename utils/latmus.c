@@ -24,9 +24,6 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 #include <evenless/evl.h>
-#include <evenless/thread.h>
-#include <evenless/clock.h>
-#include <evenless/xbuf.h>
 #include <uapi/evenless/devices/latmus.h>
 #include <uapi/evenless/signal.h>
 
@@ -167,7 +164,7 @@ static void *sampler_thread(void *arg)
 	efd = evl_attach_self("lat-sampler:%d", getpid());
 	if (efd < 0)
 		error(1, -efd, "evl_attach_self() failed");
-	
+
 	for (;;) {
 		ret = oob_ioctl(latmus_fd, EVL_LATIOC_PULSE, &timestamp);
 		if (ret) {
@@ -321,7 +318,7 @@ static void print_series(struct latmus_measurement *meas,
 	all_sum += meas->sum_lat;
 	all_samples += meas->samples;
 	all_overruns += meas->overruns;
-	
+
 	printf("RTD|%11.3f|%11.3f|%11.3f|%8d|%6u|%11.3f|%11.3f\n",
 	       (double)meas->min_lat / 1000.0,
 	       (double)(meas->sum_lat / meas->samples) / 1000.0,
@@ -543,7 +540,7 @@ static void do_tuning(int type)
 	ret = oob_ioctl(latmus_fd, EVL_LATIOC_RUN, &result);
 	if (ret)
 		error(1, errno, "measurement failed");
-	
+
 	if (type == EVL_LAT_USER)
 		pthread_cancel(sampler);
 
@@ -700,7 +697,7 @@ int main(int argc, char *const argv[])
 		case '?':
 		default:
 			usage();
-			return EINVAL;
+			return 1;
 		}
 	}
 
@@ -751,7 +748,7 @@ int main(int argc, char *const argv[])
 	sa.sa_sigaction = sigdebug;
 	sa.sa_flags = SA_SIGINFO;
 	sigaction(SIGDEBUG, &sa, NULL);
-	
+
 	latmus_fd = open("/dev/latmus", O_RDWR);
 	if (latmus_fd < 0)
 		error(1, errno, "cannot open latmus device");

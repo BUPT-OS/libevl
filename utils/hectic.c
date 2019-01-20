@@ -25,7 +25,6 @@
 #include <getopt.h>
 #include <sys/ioctl.h>
 #include <evenless/evl.h>
-#include <evenless/thread.h>
 #include <uapi/asm/evenless/fptest.h>
 #include <uapi/evenless/devices/hectic.h>
 
@@ -732,7 +731,7 @@ static int parse_arg(struct task_params *param,
 			param->cpu = &cpus[n];
 			break;
 		}
-	
+
 	return 0;
 }
 
