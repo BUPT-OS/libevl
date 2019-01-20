@@ -15,7 +15,7 @@
 #include <memory.h>
 #include <pthread.h>
 #include <sched.h>
-#include <evenless/init.h>
+#include <evenless/evl.h>
 #include <evenless/thread.h>
 #include <linux/types.h>
 #include <uapi/evenless/factory.h>

@@ -24,7 +24,7 @@
 #include <setjmp.h>
 #include <getopt.h>
 #include <sys/ioctl.h>
-#include <evenless/init.h>
+#include <evenless/evl.h>
 #include <evenless/thread.h>
 #include <uapi/asm/evenless/fptest.h>
 #include <uapi/evenless/devices/hectic.h>

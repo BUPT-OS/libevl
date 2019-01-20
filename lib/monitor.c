@@ -17,7 +17,7 @@
 #include <stdio.h>
 #include <sched.h>
 #include <evenless/atomic.h>
-#include <evenless/init.h>
+#include <evenless/evl.h>
 #include <evenless/monitor.h>
 #include <evenless/thread.h>
 #include <evenless/syscall.h>

@@ -4,8 +4,8 @@
  * Copyright (C) 2018 Philippe Gerum  <rpm@xenomai.org>
  */
 
-#ifndef _EVENLESS_INIT_H
-#define _EVENLESS_INIT_H
+#ifndef _EVENLESS_EVL_H
+#define _EVENLESS_EVL_H
 
 #include <signal.h>
 
@@ -27,4 +27,4 @@ unsigned int evl_detect_fpu(void);
 }
 #endif
 
-#endif /* _EVENLESS_INIT_H */
+#endif /* _EVENLESS_EVL_H */

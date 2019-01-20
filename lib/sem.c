@@ -15,7 +15,7 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <evenless/atomic.h>
-#include <evenless/init.h>
+#include <evenless/evl.h>
 #include <evenless/sem.h>
 #include <evenless/thread.h>
 #include <evenless/syscall.h>

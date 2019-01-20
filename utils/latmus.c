@@ -23,7 +23,7 @@
 #include <error.h>
 #include <errno.h>
 #include <sys/ioctl.h>
-#include <evenless/init.h>
+#include <evenless/evl.h>
 #include <evenless/thread.h>
 #include <evenless/clock.h>
 #include <evenless/xbuf.h>

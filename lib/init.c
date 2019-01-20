@@ -14,7 +14,7 @@
 #include <pthread.h>
 #include <string.h>
 #include <stdio.h>
-#include <evenless/init.h>
+#include <evenless/evl.h>
 #include <evenless/syscall.h>
 #include <evenless/thread.h>
 #include <evenless/logger.h>
