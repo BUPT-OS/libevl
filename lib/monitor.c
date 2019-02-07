@@ -142,9 +142,11 @@ int evl_release_monitor(struct evl_monitor *mon)
 	return 0;
 }
 
-int evl_enter_gate(struct evl_monitor *gate)
+int evl_enter_gate_timed(struct evl_monitor *gate,
+			const struct timespec *timeout)
 {
 	struct evl_user_window *u_window;
+	struct evl_monitor_lockreq lreq;
 	struct evl_monitor_state *gst;
 	int mode, ret, cancel_type;
 	bool protect = false;
@@ -204,15 +206,24 @@ int evl_enter_gate(struct evl_monitor *gate)
 		return -EDEADLK;
 	}
 
+	lreq.timeout = *timeout;
+
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, &cancel_type);
 
 	do
-		ret = oob_ioctl(gate->active.efd, EVL_MONIOC_ENTER);
+		ret = oob_ioctl(gate->active.efd, EVL_MONIOC_ENTER, &lreq);
 	while (ret && errno == EINTR);
 
 	pthread_setcanceltype(cancel_type, NULL);
 
 	return ret ? -errno : 0;
+}
+
+int evl_enter_gate(struct evl_monitor *gate)
+{
+	struct timespec timeout = { .tv_sec = 0, .tv_nsec = 0 };
+
+	return evl_enter_gate_timed(gate, &timeout);
 }
 
 int evl_exit_gate(struct evl_monitor *gate)
@@ -348,9 +359,9 @@ static void unwait_monitor(void *data)
 	while (ret && errno == EINTR);
 }
 
-int evl_wait_event(struct evl_monitor *event,
-		   struct evl_monitor *gate,
-		   const struct timespec *timeout)
+int evl_wait_event_timed(struct evl_monitor *event,
+			struct evl_monitor *gate,
+			const struct timespec *timeout)
 {
 	struct evl_monitor_waitreq req;
 	struct unwait_data unwait;
@@ -384,6 +395,14 @@ int evl_wait_event(struct evl_monitor *event,
 	}
 
 	return ret ? -errno : req.status;
+}
+
+int evl_wait_event(struct evl_monitor *event,
+		struct evl_monitor *gate)
+{
+	struct timespec timeout = { .tv_sec = 0, .tv_nsec = 0 };
+
+	return evl_wait_event_timed(event, gate, &timeout);
 }
 
 int evl_signal_event(struct evl_monitor *event)

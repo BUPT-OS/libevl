@@ -72,11 +72,14 @@ int evl_new_event(struct evl_monitor *event,
 
 int evl_open_monitor(struct evl_monitor *mon,
 		     const char *fmt, ...);
-  
+
 int evl_release_monitor(struct evl_monitor *mon);
 
 int evl_enter_gate(struct evl_monitor *gate);
-  
+
+int evl_enter_gate_timed(struct evl_monitor *gate,
+			const struct timespec *timeout);
+
 int evl_exit_gate(struct evl_monitor *gate);
 
 int evl_set_gate_ceiling(struct evl_monitor *gate,
@@ -85,16 +88,19 @@ int evl_set_gate_ceiling(struct evl_monitor *gate,
 int evl_get_gate_ceiling(struct evl_monitor *gate);
 
 int evl_wait_event(struct evl_monitor *event,
-		   struct evl_monitor *gate,
-		   const struct timespec *timeout);
+		struct evl_monitor *gate);
+
+int evl_wait_event_timed(struct evl_monitor *event,
+			struct evl_monitor *gate,
+			const struct timespec *timeout);
 
 int evl_signal_event(struct evl_monitor *event);
-	
+
 int evl_signal_event_targeted(struct evl_monitor *event,
 			      int thrfd);
 
 int evl_broadcast_event(struct evl_monitor *event);
-	
+
 #ifdef __cplusplus
 }
 #endif
