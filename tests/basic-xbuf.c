@@ -4,6 +4,8 @@
 
 #include <sys/types.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <stdlib.h>
 #include <pthread.h>
 #include <evenless/thread.h>
 #include <evenless/xbuf.h>
@@ -42,10 +44,8 @@ int main(int argc, char *argv[])
 	tfd = evl_attach_self("basic-xbuf:%d", getpid());
 	printf("thread tfd=%d\n", tfd);
 
-	name = get_unique_name("xbuf", 0, &path);
-	xfd = evl_new_xbuf(1024, 1024, name);
-	if (xfd < 0)
-		error(1, -xfd, "evl_new_xbuf");
+	name = get_unique_name_and_path("xbuf", 0, &path);
+	__Tcall_assert(xfd, evl_new_xbuf(1024, 1024, name));
 
 	printf("xfd=%d\n", xfd);
 
@@ -58,27 +58,26 @@ int main(int argc, char *argv[])
 	ret = write(xfd, "H", 1);
 	printf("write->oob_read: %zd\n", ret);
 
-	ret = fcntl(xfd, F_SETFL, fcntl(xfd, F_GETFL)|O_NONBLOCK);
-	if (ret)
-		error(1, errno, "oob_read");
+	__Tcall_errno_assert(ret, fcntl(xfd, F_SETFL,
+			fcntl(xfd, F_GETFL)|O_NONBLOCK));
 
 	for (n = 0; n < 8; n++) {
-		ret = oob_read(xfd, buf, 1);
-		if (ret < 0)
-			error(1, errno, "oob_read");
+		__Tcall_assert(ret, oob_read(xfd, buf, 1));
 		printf("oob_read[%d]<-write: %zd => %#x\n",
 		       n, ret, *buf);
 	}
 
-	ret = pthread_create(&tid, NULL, peer, path);
-	sleep(1);
+	ret = new_thread(&tid, SCHED_OTHER, 0, peer, path);
+	if (ret < 0)
+		exit(1);
 
+	sleep(1);
 	ret = oob_write(xfd, "01", 2);
 	printf("oob_write->read: %zd\n", ret);
 	ret = oob_write(xfd, "23", 2);
 	printf("oob_write->read: %zd\n", ret);
 	ret = oob_write(xfd, "45", 2);
 	printf("oob_write->read: %zd\n", ret);
-	
+
 	return pthread_join(tid, NULL);
 }
