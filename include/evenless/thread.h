@@ -45,16 +45,18 @@ static inline int evl_is_inband(void)
 int evl_attach_self(const char *fmt, ...);
 
 int evl_detach_self(void);
-  
+
 int evl_get_self(void);
-	
+
 int evl_switch_oob(void);
 
 int evl_switch_inband(void);
 
 int evl_set_schedattr(int efd, const struct evl_sched_attrs *attrs);
-  
+
 int evl_get_schedattr(int efd, struct evl_sched_attrs *attrs);
+
+int evl_get_state(int efd, struct evl_thread_state *statebuf);
 
 #ifdef __cplusplus
 }

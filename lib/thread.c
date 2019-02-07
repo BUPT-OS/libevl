@@ -205,3 +205,15 @@ int evl_get_schedattr(int efd, struct evl_sched_attrs *attrs)
 
 	return ret ? -errno : 0;
 }
+
+int evl_get_state(int efd, struct evl_thread_state *statebuf)
+{
+	int ret;
+
+	if (evl_is_inband())
+		ret = ioctl(efd, EVL_THRIOC_GET_STATE, statebuf);
+	else
+		ret = oob_ioctl(efd, EVL_THRIOC_GET_STATE, statebuf);
+
+	return ret ? -errno : 0;
+}
