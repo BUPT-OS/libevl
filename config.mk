@@ -23,6 +23,7 @@ MKDIR_P		:= mkdir -p
 libdir		?= lib
 includedir	?= include
 bindir		?= bin
+testdir		?= tests
 
 export ARCH CROSS_COMPILE CC LD AR UAPI CFLAGS LDFLAGS DESTDIR
 
