@@ -59,16 +59,14 @@ int evl_open_sem(struct evl_sem *sem,
 
 int evl_release_sem(struct evl_sem *sem);
 
-int evl_get_sem(struct evl_sem *sem,
-		int count);
+int evl_get_sem(struct evl_sem *sem);
 
 int evl_get_sem_timed(struct evl_sem *sem,
-		int count,
 		const struct timespec *timeout);
 
-int evl_put_sem(struct evl_sem *sem, int count);
+int evl_put_sem(struct evl_sem *sem);
 
-int evl_tryget_sem(struct evl_sem *sem, int count);
+int evl_tryget_sem(struct evl_sem *sem);
 
 int evl_get_semval(struct evl_sem *sem);
 

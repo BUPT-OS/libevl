@@ -100,7 +100,7 @@ int evl_release_sem(struct evl_sem *sem)
 	return 0;
 }
 
-static int try_get(struct evl_sem_state *state, int count)
+static int try_get(struct evl_sem_state *state)
 {
 	int curval, oldval, newval;
 
@@ -110,11 +110,11 @@ static int try_get(struct evl_sem_state *state, int count)
 
 	do {
 		oldval = curval;
-		newval = oldval - count;
+		newval = oldval - 1;
 		if (newval > oldval)
 			return -EINVAL;
 		curval = atomic_cmpxchg(&state->value, oldval, newval);
-		/* Did somebody else deplete the sema4? */
+		/* Check if somebody else depleted the semaphore. */
 		if (curval <= 0)
 			return -EAGAIN;
 	} while (curval != oldval);
@@ -124,11 +124,8 @@ static int try_get(struct evl_sem_state *state, int count)
 	return 0;
 }
 
-static int check_sanity(struct evl_sem *sem, int count)
+static int check_sanity(struct evl_sem *sem)
 {
-	if (count <= 0)
-		return -EINVAL;
-
 	if (sem->magic == __SEM_UNINIT_MAGIC)
 		return evl_new_sem(sem,
 				   sem->uninit.flags,
@@ -139,8 +136,7 @@ static int check_sanity(struct evl_sem *sem, int count)
 	return sem->magic != __SEM_ACTIVE_MAGIC ? -EINVAL : 0;
 }
 
-int evl_get_sem_timed(struct evl_sem *sem, int count,
-		const struct timespec *timeout)
+int evl_get_sem_timed(struct evl_sem *sem, const struct timespec *timeout)
 {
 	struct evl_sem_waitreq req;
 	int mode, ret, cancel_type;
@@ -150,7 +146,7 @@ int evl_get_sem_timed(struct evl_sem *sem, int count,
 	if (current == EVL_NO_HANDLE)
 		return -EPERM;
 
-	ret = check_sanity(sem, count);
+	ret = check_sanity(sem);
 	if (ret)
 		return ret;
 
@@ -160,13 +156,12 @@ int evl_get_sem_timed(struct evl_sem *sem, int count,
 	 */
 	mode = evl_get_current_mode();
 	if (!(mode & (T_INBAND|T_WEAK|T_DEBUG))) {
-		ret = try_get(sem->active.state, count);
+		ret = try_get(sem->active.state);
 		if (ret != -EAGAIN)
 			return ret;
 	}
 
 	req.timeout = *timeout;
-	req.count = count;
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, &cancel_type);
 	ret = oob_ioctl(sem->active.efd, EVL_SEMIOC_GET, &req);
 	pthread_setcanceltype(cancel_type, NULL);
@@ -174,31 +169,30 @@ int evl_get_sem_timed(struct evl_sem *sem, int count,
 	return ret ? -errno : 0;
 }
 
-int evl_get_sem(struct evl_sem *sem, int count)
+int evl_get_sem(struct evl_sem *sem)
 {
 	struct timespec timeout = { .tv_sec = 0, .tv_nsec = 0 };
 
-	return evl_get_sem_timed(sem, count, &timeout);
+	return evl_get_sem_timed(sem, &timeout);
 }
 
-int evl_tryget_sem(struct evl_sem *sem, int count)
+int evl_tryget_sem(struct evl_sem *sem)
 {
 	int ret;
 
-	ret = check_sanity(sem, count);
+	ret = check_sanity(sem);
 	if (ret)
 		return ret;
 
-	return try_get(sem->active.state, count);
+	return try_get(sem->active.state);
 }
 
-int evl_put_sem(struct evl_sem *sem, int count)
+int evl_put_sem(struct evl_sem *sem)
 {
 	int curval, oldval, newval, ret;
 	struct evl_sem_state *state;
-	__s32 val;
 
-	ret = check_sanity(sem, count);
+	ret = check_sanity(sem);
 	if (ret)
 		return ret;
 
@@ -206,12 +200,11 @@ int evl_put_sem(struct evl_sem *sem, int count)
 	curval = atomic_read(&state->value);
 	if (curval < 0) {
 	slow_path:
-		val = count;
 		if (evl_get_current())
-			ret = oob_ioctl(sem->active.efd, EVL_SEMIOC_PUT, &val);
+			ret = oob_ioctl(sem->active.efd, EVL_SEMIOC_PUT);
 		else
 			/* In-band threads may post pended sema4s. */
-			ret = ioctl(sem->active.efd, EVL_SEMIOC_PUT, &val);
+			ret = ioctl(sem->active.efd, EVL_SEMIOC_PUT);
 		return ret ? -errno : 0;
 	}
 
@@ -220,7 +213,7 @@ int evl_put_sem(struct evl_sem *sem, int count)
 
 	do {
 		oldval = curval;
-		newval = oldval + count;
+		newval = oldval + 1;
 		if (newval < oldval)
 			return -EINVAL;
 		curval = atomic_cmpxchg(&state->value, oldval, newval);
