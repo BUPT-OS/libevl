@@ -139,7 +139,7 @@ static int check_sanity(struct evl_sem *sem, int count)
 	return sem->magic != __SEM_ACTIVE_MAGIC ? -EINVAL : 0;
 }
 
-int evl_get_sem(struct evl_sem *sem, int count,
+int evl_get_sem_timed(struct evl_sem *sem, int count,
 		const struct timespec *timeout)
 {
 	struct evl_sem_waitreq req;
@@ -172,6 +172,13 @@ int evl_get_sem(struct evl_sem *sem, int count,
 	pthread_setcanceltype(cancel_type, NULL);
 
 	return ret ? -errno : 0;
+}
+
+int evl_get_sem(struct evl_sem *sem, int count)
+{
+	struct timespec timeout = { .tv_sec = 0, .tv_nsec = 0 };
+
+	return evl_get_sem_timed(sem, count, &timeout);
 }
 
 int evl_tryget_sem(struct evl_sem *sem, int count)
@@ -225,28 +232,6 @@ int evl_put_sem(struct evl_sem *sem, int count)
 	smp_mb();
 
 	return 0;
-}
-
-int evl_broadcast_sem(struct evl_sem *sem)
-{
-	struct evl_sem_state *state;
-	int curval, ret;
-
-	ret = check_sanity(sem, 1);
-	if (ret)
-		return ret;
-
-	state = sem->active.state;
-	curval = atomic_read(&state->value);
-	if (curval >= 0)
-		return 0;	/* Nobody waits. */
-
-	if (evl_get_current())
-		ret = oob_ioctl(sem->active.efd, EVL_SEMIOC_BCAST);
-	else
-		ret = ioctl(sem->active.efd, EVL_SEMIOC_BCAST);
-
-	return ret ? -errno : 0;
 }
 
 int evl_get_semval(struct evl_sem *sem)
