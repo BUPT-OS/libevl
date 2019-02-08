@@ -65,7 +65,7 @@ int evl_open_sem(struct evl_sem *sem, const char *fmt, ...)
 	va_list ap;
 
 	va_start(ap, fmt);
-	efd = open_evl_element("semaphore", fmt, ap);
+	efd = open_evl_element_vargs("semaphore", fmt, ap);
 	va_end(ap);
 	if (efd < 0)
 		return efd;

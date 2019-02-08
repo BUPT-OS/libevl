@@ -52,9 +52,11 @@ int create_evl_element(const char *type,
 		       void *attrs,
 		       struct evl_element_ids *eids);
 
+int open_evl_element_vargs(const char *type,
+			const char *fmt, va_list ap);
+
 int open_evl_element(const char *type,
-		     const char *path,
-		     va_list ap);
+		     const char *path, ...);
 
 extern int (*arch_clock_gettime)(clockid_t clk_id,
 				 struct timespec *tp);

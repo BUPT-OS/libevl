@@ -106,7 +106,7 @@ int evl_open_monitor(struct evl_monitor *mon, const char *fmt, ...)
 	va_list ap;
 
 	va_start(ap, fmt);
-	efd = open_evl_element("monitor", fmt, ap);
+	efd = open_evl_element_vargs("monitor", fmt, ap);
 	va_end(ap);
 	if (efd < 0)
 		return efd;

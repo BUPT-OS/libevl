@@ -98,8 +98,8 @@ out_factory:
 	return ret;
 }
 
-int open_evl_element(const char *type,
-		     const char *fmt, va_list ap)
+int open_evl_element_vargs(const char *type,
+		const char *fmt, va_list ap)
 {
 	char *path, *name;
 	int efd, ret;
@@ -141,4 +141,16 @@ fail_open:
 	free(path);
 
 	return ret;
+}
+
+int open_evl_element(const char *type, const char *fmt, ...)
+{
+	va_list ap;
+	int efd;
+
+	va_start(ap, fmt);
+	efd = open_evl_element_vargs(type, fmt, ap);
+	va_end(ap);
+
+	return efd;
 }
