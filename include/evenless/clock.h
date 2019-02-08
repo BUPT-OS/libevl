@@ -38,8 +38,10 @@ int evl_get_clock_resolution(int efd, struct timespec *tp);
 
 int evl_adjust_clock(int efd, struct timex *tx);
 
-int evl_delay(int efd, const struct timespec *timeout,
-	      struct timespec *remain);
+int evl_sleep(int efd, const struct timespec *timeout,
+	struct timespec *remain);
+
+int evl_udelay(unsigned int usecs);
 
 #ifdef __cplusplus
 }

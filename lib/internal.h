@@ -47,6 +47,8 @@ struct evl_element_ids;
 
 int arch_evl_init(void);
 
+int attach_evl_clocks(void);
+
 int create_evl_element(const char *type,
 		       const char *name,
 		       void *attrs,

@@ -79,6 +79,10 @@ static inline int generic_init(void)
 		goto fail;
 	}
 
+	ret = attach_evl_clocks();
+	if (ret)
+		goto fail;
+
 	shmem = mmap(NULL, core_info.shm_size, PROT_READ|PROT_WRITE,
 		     MAP_SHARED, ctlfd, 0);
 	if (shmem == MAP_FAILED) {
