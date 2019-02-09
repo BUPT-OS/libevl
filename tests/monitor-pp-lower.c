@@ -15,8 +15,7 @@
 #include "helpers.h"
 
 #define LOW_PRIO	1
-#define MEDIUM_PRIO	2
-#define HIGH_PRIO	3
+#define HIGH_PRIO	2
 
 static bool check_priority(int tfd, int prio)
 {
@@ -36,7 +35,7 @@ int main(int argc, char *argv[])
 	int tfd, gfd, ret;
 	char *name;
 
-	param.sched_priority = MEDIUM_PRIO;
+	param.sched_priority = HIGH_PRIO;
 	__Texpr_assert(pthread_setschedparam(pthread_self(),
 				SCHED_FIFO, &param) == 0);
 
@@ -50,9 +49,9 @@ int main(int argc, char *argv[])
 	__Tcall_assert(ret, evl_enter_gate(&gate));
 	/* Commit PP, no priority change expected. */
 	__Tcall_assert(ret, evl_udelay(1000));
-	__Texpr_assert(check_priority(tfd, MEDIUM_PRIO));
+	__Texpr_assert(check_priority(tfd, HIGH_PRIO));
 	__Tcall_assert(ret, evl_exit_gate(&gate));
-	__Texpr_assert(check_priority(tfd, MEDIUM_PRIO));
+	__Texpr_assert(check_priority(tfd, HIGH_PRIO));
 
 	evl_release_monitor(&gate);
 
