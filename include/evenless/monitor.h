@@ -80,6 +80,8 @@ int evl_enter_gate(struct evl_monitor *gate);
 int evl_enter_gate_timed(struct evl_monitor *gate,
 			const struct timespec *timeout);
 
+int evl_tryenter_gate(struct evl_monitor *gate);
+
 int evl_exit_gate(struct evl_monitor *gate);
 
 int evl_set_gate_ceiling(struct evl_monitor *gate,

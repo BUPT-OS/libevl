@@ -142,15 +142,13 @@ int evl_release_monitor(struct evl_monitor *mon)
 	return 0;
 }
 
-int evl_enter_gate_timed(struct evl_monitor *gate,
-			const struct timespec *timeout)
+static int try_enter_gate(struct evl_monitor *gate)
 {
 	struct evl_user_window *u_window;
-	struct evl_monitor_lockreq lreq;
 	struct evl_monitor_state *gst;
-	int mode, ret, cancel_type;
 	bool protect = false;
 	fundle_t current;
+	int mode, ret;
 
 	current = evl_get_current();
 	if (current == EVL_NO_HANDLE)
@@ -206,6 +204,19 @@ int evl_enter_gate_timed(struct evl_monitor *gate,
 		return -EDEADLK;
 	}
 
+	return -ENODATA;
+}
+
+int evl_enter_gate_timed(struct evl_monitor *gate,
+			const struct timespec *timeout)
+{
+	struct evl_monitor_lockreq lreq;
+	int ret, cancel_type;
+
+	ret = try_enter_gate(gate);
+	if (ret != -ENODATA)
+		return ret;
+
 	lreq.timeout = *timeout;
 
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, &cancel_type);
@@ -224,6 +235,21 @@ int evl_enter_gate(struct evl_monitor *gate)
 	struct timespec timeout = { .tv_sec = 0, .tv_nsec = 0 };
 
 	return evl_enter_gate_timed(gate, &timeout);
+}
+
+int evl_tryenter_gate(struct evl_monitor *gate)
+{
+	int ret;
+
+	ret = try_enter_gate(gate);
+	if (ret != -ENODATA)
+		return ret;
+
+	do
+		ret = oob_ioctl(gate->active.efd, EVL_MONIOC_TRYENTER);
+	while (ret && errno == EINTR);
+
+	return ret ? -errno : 0;
 }
 
 int evl_exit_gate(struct evl_monitor *gate)
