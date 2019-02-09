@@ -34,7 +34,7 @@ int evl_new_sem(struct evl_sem *sem,
 	char *name;
 
 	if (evl_shared_memory == NULL)
-		return -EAGAIN;
+		return -ENXIO;
 
 	va_start(ap, fmt);
 	ret = vasprintf(&name, fmt, ap);
