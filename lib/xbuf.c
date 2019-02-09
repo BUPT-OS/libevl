@@ -24,7 +24,7 @@ int evl_new_xbuf(size_t i_bufsz, size_t o_bufsz,
 	va_end(ap);
 	if (ret < 0)
 		return -ENOMEM;
-	
+
 	attrs.i_bufsz = i_bufsz;
 	attrs.o_bufsz = o_bufsz;
 	efd = create_evl_element("xbuf", name, &attrs, NULL);
