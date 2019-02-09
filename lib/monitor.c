@@ -36,7 +36,7 @@ static int do_monitor_init(struct evl_monitor *mon,
 	char *name;
 
 	if (evl_shared_memory == NULL)
-		return -EAGAIN;
+		return -ENXIO;
 
 	/*
 	 * We align on the in-band SCHED_FIFO priority range. Although
