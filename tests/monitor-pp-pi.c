@@ -74,11 +74,10 @@ int main(int argc, char *argv[])
 	__Tcall_assert(tfd, evl_attach_self("monitor-pp-pi:%d", getpid()));
 
 	name = get_unique_name("monitor", 0);
-	__Tcall_assert(gfd, evl_new_gate(&c.gate, EVL_MONITOR_PI,
-				EVL_CLOCK_MONOTONIC, 0, name));
+	__Tcall_assert(gfd, evl_new_gate(&c.gate, EVL_CLOCK_MONOTONIC, name));
 
 	name = get_unique_name("monitor", 1);
-	__Tcall_assert(gfd, evl_new_gate(&gate_pp, EVL_MONITOR_PP,
+	__Tcall_assert(gfd, evl_new_gate_ceiling(&gate_pp,
 				EVL_CLOCK_MONOTONIC, MEDIUM_PRIO, name));
 
 	name = get_unique_name("semaphore", 0);

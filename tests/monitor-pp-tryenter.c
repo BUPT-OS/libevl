@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 	__Tcall_assert(tfd, evl_attach_self("monitor-pp-tryenter:%d", getpid()));
 
 	name = get_unique_name("monitor", 0);
-	__Tcall_assert(gfd, evl_new_gate(&gate, EVL_MONITOR_PP,
+	__Tcall_assert(gfd, evl_new_gate_ceiling(&gate,
 				EVL_CLOCK_MONOTONIC, HIGH_PRIO, name));
 
 	/* Taking the fast locking path requires running OOB. */

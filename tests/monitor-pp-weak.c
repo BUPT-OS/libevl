@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 	__Tcall_assert(ret, evl_set_schedattr(tfd, &attrs));
 
 	name = get_unique_name("monitor", 0);
-	__Tcall_assert(gfd, evl_new_gate(&gate, EVL_MONITOR_PP,
+	__Tcall_assert(gfd, evl_new_gate_ceiling(&gate,
 				EVL_CLOCK_MONOTONIC, HIGH_PRIO, name));
 
 	__Tcall_assert(ret, evl_enter_gate(&gate));

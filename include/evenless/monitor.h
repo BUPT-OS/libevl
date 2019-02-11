@@ -38,10 +38,20 @@ struct evl_monitor {
 #define __MONITOR_UNINIT_MAGIC  0xfe11fe11
 #define __MONITOR_DEAD_MAGIC	0
 
-#define EVL_GATE_INITIALIZER(__name, __clock, __ceiling)  {		\
+#define EVL_GATE_INITIALIZER(__name, __clock)  {			\
 		.magic = __MONITOR_UNINIT_MAGIC,			\
 		.uninit = {						\
-			.type = (__ceiling) ? EVL_MONITOR_PP : EVL_MONITOR_PI, \
+			.type = EVL_MONITOR_PI,				\
+			.name = (__name),				\
+			.clockfd = (__clockfd),				\
+			.ceiling = 0,					\
+		}							\
+	}
+
+#define EVL_GATE_CEILING_INITIALIZER(__name, __clock, __ceiling)  {	\
+		.magic = __MONITOR_UNINIT_MAGIC,			\
+		.uninit = {						\
+			.type = EVL_MONITOR_PP,				\
 			.name = (__name),				\
 			.clockfd = (__clockfd),				\
 			.ceiling = (__ceiling),				\
@@ -54,6 +64,7 @@ struct evl_monitor {
 			.type = EVL_MONITOR_EV,				\
 			.name = (__name),				\
 			.clockfd = (__clockfd),				\
+			.ceiling = 0,					\
 		}							\
 	}
 
@@ -62,9 +73,11 @@ extern "C" {
 #endif
 
 int evl_new_gate(struct evl_monitor *gate,
-		 int type, int clockfd,
-		 unsigned int ceiling,
-		 const char *fmt, ...);
+		 int clockfd, const char *fmt, ...);
+
+int evl_new_gate_ceiling(struct evl_monitor *gate,
+			int clockfd, unsigned int ceiling,
+			const char *fmt, ...);
 
 int evl_new_event(struct evl_monitor *event,
 		   int clockfd,

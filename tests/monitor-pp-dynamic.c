@@ -43,9 +43,8 @@ int main(int argc, char *argv[])
 	__Tcall_assert(tfd, evl_attach_self("monitor-pp-dynamic:%d", getpid()));
 
 	name = get_unique_name("monitor", 0);
-	__Tcall_assert(gfd, evl_new_gate(&gate, EVL_MONITOR_PP,
-				EVL_CLOCK_MONOTONIC, LOW_PRIO, name));
-
+	__Tcall_assert(gfd, evl_new_gate_ceiling(&gate, EVL_CLOCK_MONOTONIC,
+					LOW_PRIO, name));
 	__Tcall_assert(ret, evl_enter_gate(&gate));
 	/* Commit PP boost, no priority change expected. */
 	__Tcall_assert(ret, evl_udelay(1000));

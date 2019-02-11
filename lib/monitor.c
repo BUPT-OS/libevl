@@ -26,9 +26,9 @@
 #include <uapi/evenless/mutex.h>
 #include "internal.h"
 
-static int do_monitor_init(struct evl_monitor *mon,
-			   int type, int clockfd, unsigned int ceiling,
-			   const char *fmt, va_list ap)
+static int init_monitor_vargs(struct evl_monitor *mon,
+			int type, int clockfd, unsigned int ceiling,
+			const char *fmt, va_list ap)
 {
 	struct evl_monitor_attrs attrs;
 	struct evl_element_ids eids;
@@ -72,15 +72,42 @@ static int do_monitor_init(struct evl_monitor *mon,
 	return 0;
 }
 
-int evl_new_gate(struct evl_monitor *gate,
-		 int type, int clockfd, unsigned int ceiling,
+static int init_monitor(struct evl_monitor *mon,
+			int type, int clockfd, unsigned int ceiling,
+			const char *fmt, ...)
+{
+	va_list ap;
+	int ret;
+
+	va_start(ap, fmt);
+	ret = init_monitor_vargs(mon, type, clockfd, ceiling, fmt, ap);
+	va_end(ap);
+
+	return ret;
+}
+
+int evl_new_gate(struct evl_monitor *gate, int clockfd,
 		 const char *fmt, ...)
 {
 	va_list ap;
 	int ret;
 
 	va_start(ap, fmt);
-	ret = do_monitor_init(gate, type, clockfd, ceiling, fmt, ap);
+	ret = init_monitor_vargs(gate, EVL_MONITOR_PI, clockfd, 0, fmt, ap);
+	va_end(ap);
+
+	return ret;
+}
+
+int evl_new_gate_ceiling(struct evl_monitor *gate, int clockfd,
+			unsigned int ceiling,
+			const char *fmt, ...)
+{
+	va_list ap;
+	int ret;
+
+	va_start(ap, fmt);
+	ret = init_monitor_vargs(gate, EVL_MONITOR_PP, clockfd, ceiling, fmt, ap);
 	va_end(ap);
 
 	return ret;
@@ -93,7 +120,7 @@ int evl_new_event(struct evl_monitor *event,
 	int ret;
 
 	va_start(ap, fmt);
-	ret = do_monitor_init(event, EVL_MONITOR_EV, clockfd, 0, fmt, ap);
+	ret = init_monitor_vargs(event, EVL_MONITOR_EV, clockfd, 0, fmt, ap);
 	va_end(ap);
 
 	return ret;
@@ -156,7 +183,7 @@ static int try_enter_gate(struct evl_monitor *gate)
 
 	if (gate->magic == __MONITOR_UNINIT_MAGIC &&
 	    gate->uninit.type != EVL_MONITOR_EV) {
-		ret = evl_new_gate(gate,
+		ret = init_monitor(gate,
 				   gate->uninit.type,
 				   gate->uninit.clockfd,
 				   gate->uninit.ceiling,

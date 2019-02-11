@@ -60,8 +60,7 @@ static void test_steal(bool do_steal)
 	char *name;
 
 	name = get_unique_name("monitor", 0);
-	__Tcall_assert(gfd, evl_new_gate(&c.gate, EVL_MONITOR_PI,
-				EVL_CLOCK_MONOTONIC, 0, name));
+	__Tcall_assert(gfd, evl_new_gate(&c.gate, EVL_CLOCK_MONOTONIC, name));
 
 	name = get_unique_name("semaphore", 0);
 	__Tcall_assert(sfd, evl_new_sem(&c.start, 0, EVL_CLOCK_MONOTONIC,
