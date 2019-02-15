@@ -103,7 +103,7 @@ fail:
 int evl_sigshadow_handler(int sig, siginfo_t *si, void *ctxt)
 {
 	if (si->si_code == SI_QUEUE &&
-	    sigshadow_action(si->si_int) == SIGSHADOW_ACTION_HOME) {
+	    sigshadow_action(si->si_int) == SIGEVL_ACTION_HOME) {
 		oob_ioctl(evl_ctlfd, EVL_CTLIOC_SWITCH_OOB);
 		return 1;
 	}
@@ -178,17 +178,17 @@ static void install_signal_handlers(void)
 	struct sigaction sa;
 
 	sigemptyset(&mask);
-	sigaddset(&mask, SIGSHADOW);
+	sigaddset(&mask, SIGEVL);
 
 	sa.sa_flags = SA_SIGINFO | SA_RESTART;
 	sa.sa_sigaction = sigshadow_handler;
 	sigemptyset(&sa.sa_mask);
 	pthread_sigmask(SIG_BLOCK, &mask, &omask);
 
-	sigaction(SIGSHADOW, &sa, &orig_sigshadow);
+	sigaction(SIGEVL, &sa, &orig_sigshadow);
 
 	if (!(orig_sigshadow.sa_flags & SA_NODEFER))
-		sigaddset(&orig_sigshadow.sa_mask, SIGSHADOW);
+		sigaddset(&orig_sigshadow.sa_mask, SIGEVL);
 
 	pthread_sigmask(SIG_SETMASK, &omask, NULL);
 
