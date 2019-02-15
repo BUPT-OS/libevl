@@ -111,8 +111,6 @@ static int try_get(struct evl_sem_state *state)
 	do {
 		oldval = curval;
 		newval = oldval - 1;
-		if (newval > oldval)
-			return -EINVAL;
 		curval = atomic_cmpxchg(&state->value, oldval, newval);
 		/* Check if somebody else depleted the semaphore. */
 		if (curval <= 0)
@@ -214,8 +212,6 @@ int evl_put_sem(struct evl_sem *sem)
 	do {
 		oldval = curval;
 		newval = oldval + 1;
-		if (newval < oldval)
-			return -EINVAL;
 		curval = atomic_cmpxchg(&state->value, oldval, newval);
 		/* Check if somebody sneaked in the wait queue. */
 		if (curval < 0)
