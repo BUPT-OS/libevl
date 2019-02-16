@@ -14,9 +14,8 @@
 #include <evenless/poller.h>
 #include "internal.h"
 
-int evl_new_poller(int clockfd, const char *fmt, ...)
+int evl_new_poller(const char *fmt, ...)
 {
-	struct evl_poller_attrs attrs;
 	int ret, efd;
 	va_list ap;
 	char *name;
@@ -27,8 +26,7 @@ int evl_new_poller(int clockfd, const char *fmt, ...)
 	if (ret < 0)
 		return -ENOMEM;
 
-	attrs.clockfd = clockfd;
-	efd = create_evl_element("poller", name, &attrs, NULL);
+	efd = create_evl_element("poller", name, NULL, NULL);
 	free(name);
 
 	return efd;

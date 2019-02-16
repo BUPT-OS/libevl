@@ -15,8 +15,7 @@
 extern "C" {
 #endif
 
-int evl_new_poller(int clockfd,
-		const char *fmt, ...);
+int evl_new_poller(const char *fmt, ...);
 
 int evl_add_pollset(int efd, int newfd,
 		unsigned int events);
