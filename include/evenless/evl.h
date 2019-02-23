@@ -10,7 +10,6 @@
 #include <signal.h>
 #include <evenless/clock.h>
 #include <evenless/logger.h>
-#include <evenless/mapper.h>
 #include <evenless/monitor.h>
 #include <evenless/sem.h>
 #include <evenless/syscall.h>
