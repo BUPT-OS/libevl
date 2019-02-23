@@ -17,6 +17,7 @@
 #include <evenless/thread.h>
 #include <evenless/xbuf.h>
 #include <evenless/poll.h>
+#include <evenless/proxy.h>
 
 #define __EVL__  0	/* API revision */
 
