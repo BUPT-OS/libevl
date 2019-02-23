@@ -29,9 +29,9 @@ override LDFLAGS := $(LDFLAGS) -lpthread -lrt
 all: $(TARGETS)
 
 install: all
-	$(INSTALL) -D $(O_DIR)/$(SOLIBNAME) $(DESTDIR)/$(libdir)/$(SOLIBNAME)
-	$(LN_S) $(SOLIBNAME) $(DESTDIR)/$(libdir)/$(DTSONAME)
-	$(INSTALL) -D $(O_DIR)/$(ARLIBNAME) $(DESTDIR)/$(libdir)/$(ARLIBNAME)
+	$(call inst-cmd,$(SOLIBNAME),$(INSTALL) -D $(O_DIR)/$(SOLIBNAME) $(DESTDIR)/$(libdir)/$(SOLIBNAME))
+	@$(LN_S) $(SOLIBNAME) $(DESTDIR)/$(libdir)/$(DTSONAME)
+	$(call inst-cmd,$(ARLIBNAME),$(INSTALL) -D $(O_DIR)/$(ARLIBNAME) $(DESTDIR)/$(libdir)/$(ARLIBNAME))
 
 clean clobber mrproper:
 	$(Q)$(RM) -f $(O_DIR)/git-stamp.h $(PIC_OBJFILES) $(OBJFILES) \
