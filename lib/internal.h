@@ -60,6 +60,8 @@ int open_evl_element_vargs(const char *type,
 int open_evl_element(const char *type,
 		     const char *path, ...);
 
+int create_evl_file(const char *type);
+
 extern int (*arch_clock_gettime)(clockid_t clk_id,
 				 struct timespec *tp);
 

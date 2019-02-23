@@ -154,3 +154,42 @@ int open_evl_element(const char *type, const char *fmt, ...)
 
 	return efd;
 }
+
+int create_evl_file(const char *type)
+{
+	char *devname;
+	int fd, ret;
+
+	ret = asprintf(&devname, "/dev/evenless/%s", type);
+	if (ret < 0)
+		return -ENOMEM;
+
+	fd = open(devname, O_RDWR);
+	if (fd < 0) {
+		ret = -errno;
+		goto fail;
+	}
+
+	ret = fcntl(fd, F_GETFD, 0);
+	if (ret < 0) {
+		ret = -errno;
+		goto fail_setfd;
+	}
+
+	ret = fcntl(fd, F_SETFD, ret | O_CLOEXEC);
+	if (ret) {
+		ret = -errno;
+		goto fail_setfd;
+	}
+
+	free(devname);
+
+	return fd;
+
+fail_setfd:
+	close(fd);
+fail:
+	free(devname);
+
+	return ret;
+}
