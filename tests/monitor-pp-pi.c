@@ -19,7 +19,7 @@
 #define HIGH_PRIO	3
 
 struct test_context {
-	struct evl_monitor lock;
+	struct evl_lock lock;
 	struct evl_sem start;
 	struct evl_sem sem;
 };
@@ -58,8 +58,8 @@ static bool check_priority(int tfd, int prio)
 
 int main(int argc, char *argv[])
 {
-	struct evl_monitor lock_pp;
 	struct sched_param param;
+	struct evl_lock lock_pp;
 	int tfd, gfd, sfd, ret;
 	struct test_context c;
 	pthread_t contender;

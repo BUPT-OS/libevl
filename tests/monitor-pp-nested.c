@@ -31,7 +31,7 @@ static bool check_priority(int tfd, int prio)
 
 int main(int argc, char *argv[])
 {
-	struct evl_monitor lock_medium, lock_high;
+	struct evl_lock lock_medium, lock_high;
 	struct sched_param param;
 	int tfd, gfd, ret;
 	char *name;

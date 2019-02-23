@@ -18,7 +18,7 @@
 #define HIGH_PRIO	2
 
 struct test_context {
-	struct evl_monitor lock;
+	struct evl_lock lock;
 	struct evl_sem start;
 	struct evl_sem sem;
 };

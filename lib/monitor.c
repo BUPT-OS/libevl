@@ -130,20 +130,21 @@ static int close_monitor(struct evl_monitor *mon)
 	return 0;
 }
 
-int evl_new_lock(struct evl_monitor *lock, int clockfd,
+int evl_new_lock(struct evl_lock *lock, int clockfd,
 		const char *fmt, ...)
 {
 	va_list ap;
 	int ret;
 
 	va_start(ap, fmt);
-	ret = init_monitor_vargs(lock, EVL_MONITOR_PI, clockfd, 0, fmt, ap);
+	ret = init_monitor_vargs(&lock->__lock, EVL_MONITOR_PI,
+				clockfd, 0, fmt, ap);
 	va_end(ap);
 
 	return ret;
 }
 
-int evl_new_lock_ceiling(struct evl_monitor *lock, int clockfd,
+int evl_new_lock_ceiling(struct evl_lock *lock, int clockfd,
 			unsigned int ceiling,
 			const char *fmt, ...)
 {
@@ -151,41 +152,46 @@ int evl_new_lock_ceiling(struct evl_monitor *lock, int clockfd,
 	int ret;
 
 	va_start(ap, fmt);
-	ret = init_monitor_vargs(lock, EVL_MONITOR_PP, clockfd, ceiling, fmt, ap);
+	ret = init_monitor_vargs(&lock->__lock, EVL_MONITOR_PP,
+				clockfd, ceiling, fmt, ap);
 	va_end(ap);
 
 	return ret;
 }
 
-int evl_open_lock(struct evl_monitor *lock, const char *fmt, ...)
+int evl_open_lock(struct evl_lock *lock, const char *fmt, ...)
 {
+	struct evl_monitor *_lock = &lock->__lock;
 	va_list ap;
 	int efd;
 
 	va_start(ap, fmt);
-	efd = open_monitor(lock, fmt, ap);
+	efd = open_monitor(_lock, fmt, ap);
 	va_end(ap);
 
 	if (efd < 0)
 		return efd;
 
-	if (lock->active.type == EVL_MONITOR_EV)
+	if (_lock->active.type == EVL_MONITOR_EV)
 		return -EINVAL;
 
 	return efd;
 }
 
-int evl_close_lock(struct evl_monitor *lock)
+int evl_close_lock(struct evl_lock *lock)
 {
-	if (lock->active.type != EVL_MONITOR_PI &&
-		lock->active.type != EVL_MONITOR_PP)
+	struct evl_monitor *_lock = &lock->__lock;
+
+	if (_lock->active.type != EVL_MONITOR_PI &&
+		_lock->active.type != EVL_MONITOR_PP)
 		return -EINVAL;
 
-	return close_monitor(lock);
+	return close_monitor(_lock);
 }
 
-static int try_lock(struct evl_monitor *lock)
+static int try_lock(struct evl_lock *lock)
 {
+	struct evl_monitor *_lock = &lock->__lock;
 	struct evl_user_window *u_window;
 	struct evl_monitor_state *gst;
 	bool protect = false;
@@ -196,19 +202,19 @@ static int try_lock(struct evl_monitor *lock)
 	if (current == EVL_NO_HANDLE)
 		return -EPERM;
 
-	if (lock->magic == __MONITOR_UNINIT_MAGIC &&
-	    lock->uninit.type != EVL_MONITOR_EV) {
-		ret = init_monitor(lock,
-				   lock->uninit.type,
-				   lock->uninit.clockfd,
-				   lock->uninit.ceiling,
-				   lock->uninit.name);
+	if (_lock->magic == __MONITOR_UNINIT_MAGIC &&
+	    _lock->uninit.type != EVL_MONITOR_EV) {
+		ret = init_monitor(_lock,
+				   _lock->uninit.type,
+				   _lock->uninit.clockfd,
+				   _lock->uninit.ceiling,
+				   _lock->uninit.name);
 		if (ret)
 			return ret;
-	} else if (lock->magic != __MONITOR_ACTIVE_MAGIC)
+	} else if (_lock->magic != __MONITOR_ACTIVE_MAGIC)
 		return -EINVAL;
 
-	gst = lock->active.state;
+	gst = _lock->active.state;
 
 	/*
 	 * Threads running in-band and/or enabling some debug features
@@ -216,7 +222,7 @@ static int try_lock(struct evl_monitor *lock)
 	 */
 	mode = evl_get_current_mode();
 	if (!(mode & (T_INBAND|T_WEAK|T_DEBUG))) {
-		if (lock->active.type == EVL_MONITOR_PP) {
+		if (_lock->active.type == EVL_MONITOR_PP) {
 			u_window = evl_get_current_window();
 			/*
 			 * Can't nest lazy ceiling requests, have to
@@ -224,7 +230,7 @@ static int try_lock(struct evl_monitor *lock)
 			 */
 			if (u_window->pp_pending != EVL_NO_HANDLE)
 				goto slow_path;
-			u_window->pp_pending = lock->active.fundle;
+			u_window->pp_pending = _lock->active.fundle;
 			protect = true;
 		}
 		ret = evl_fast_lock_mutex(&gst->u.gate.owner, current);
@@ -249,9 +255,10 @@ static int try_lock(struct evl_monitor *lock)
 	return -ENODATA;
 }
 
-int evl_timedlock(struct evl_monitor *lock,
+int evl_timedlock(struct evl_lock *lock,
 		const struct timespec *timeout)
 {
+	struct evl_monitor *_lock = &lock->__lock;
 	struct evl_monitor_lockreq lreq;
 	int ret, cancel_type;
 
@@ -264,7 +271,7 @@ int evl_timedlock(struct evl_monitor *lock,
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, &cancel_type);
 
 	do
-		ret = oob_ioctl(lock->active.efd, EVL_MONIOC_ENTER, &lreq);
+		ret = oob_ioctl(_lock->active.efd, EVL_MONIOC_ENTER, &lreq);
 	while (ret && errno == EINTR);
 
 	pthread_setcanceltype(cancel_type, NULL);
@@ -272,15 +279,16 @@ int evl_timedlock(struct evl_monitor *lock,
 	return ret ? -errno : 0;
 }
 
-int evl_lock(struct evl_monitor *lock)
+int evl_lock(struct evl_lock *lock)
 {
 	struct timespec timeout = { .tv_sec = 0, .tv_nsec = 0 };
 
 	return evl_timedlock(lock, &timeout);
 }
 
-int evl_trylock(struct evl_monitor *lock)
+int evl_trylock(struct evl_lock *lock)
 {
+	struct evl_monitor *_lock = &lock->__lock;
 	int ret;
 
 	ret = try_lock(lock);
@@ -288,23 +296,24 @@ int evl_trylock(struct evl_monitor *lock)
 		return ret;
 
 	do
-		ret = oob_ioctl(lock->active.efd, EVL_MONIOC_TRYENTER);
+		ret = oob_ioctl(_lock->active.efd, EVL_MONIOC_TRYENTER);
 	while (ret && errno == EINTR);
 
 	return ret ? -errno : 0;
 }
 
-int evl_unlock(struct evl_monitor *lock)
+int evl_unlock(struct evl_lock *lock)
 {
+	struct evl_monitor *_lock = &lock->__lock;
 	struct evl_user_window *u_window;
 	struct evl_monitor_state *gst;
 	fundle_t current;
 	int ret, mode;
 
-	if (lock->magic != __MONITOR_ACTIVE_MAGIC)
+	if (_lock->magic != __MONITOR_ACTIVE_MAGIC)
 		return -EINVAL;
 
-	gst = lock->active.state;
+	gst = _lock->active.state;
 	current = evl_get_current();
 	if (!evl_is_mutex_owner(&gst->u.gate.owner, current))
 		return -EPERM;
@@ -318,7 +327,7 @@ int evl_unlock(struct evl_monitor *lock)
 		goto slow_path;
 
 	if (evl_fast_unlock_mutex(&gst->u.gate.owner, current)) {
-		if (lock->active.type == EVL_MONITOR_PP) {
+		if (_lock->active.type == EVL_MONITOR_PP) {
 			u_window = evl_get_current_window();
 			u_window->pp_pending = EVL_NO_HANDLE;
 		}
@@ -331,14 +340,15 @@ int evl_unlock(struct evl_monitor *lock)
 	 * thread. Need to ask the kernel for proper release.
 	 */
 slow_path:
-	ret = oob_ioctl(lock->active.efd, EVL_MONIOC_EXIT);
+	ret = oob_ioctl(_lock->active.efd, EVL_MONIOC_EXIT);
 
 	return ret ? -errno : 0;
 }
 
-int evl_set_lock_ceiling(struct evl_monitor *lock,
+int evl_set_lock_ceiling(struct evl_lock *lock,
 			 unsigned int ceiling)
 {
+	struct evl_monitor *_lock = &lock->__lock;
 	int ret;
 
 	if (ceiling == 0)
@@ -348,36 +358,38 @@ int evl_set_lock_ceiling(struct evl_monitor *lock,
 	if (ret < 0 || ceiling > ret)
 		return -EINVAL;
 
-	if (lock->magic == __MONITOR_UNINIT_MAGIC) {
-		if (lock->uninit.type != EVL_MONITOR_PP)
+	if (_lock->magic == __MONITOR_UNINIT_MAGIC) {
+		if (_lock->uninit.type != EVL_MONITOR_PP)
 			return -EINVAL;
-		lock->uninit.ceiling = ceiling;
+		_lock->uninit.ceiling = ceiling;
 		return 0;
 	}
 
-	if (lock->magic != __MONITOR_ACTIVE_MAGIC ||
-	    lock->active.type != EVL_MONITOR_PP)
+	if (_lock->magic != __MONITOR_ACTIVE_MAGIC ||
+	    _lock->active.type != EVL_MONITOR_PP)
 		return -EINVAL;
 
-	lock->active.state->u.gate.ceiling = ceiling;
+	_lock->active.state->u.gate.ceiling = ceiling;
 
 	return 0;
 }
 
-int evl_get_lock_ceiling(struct evl_monitor *lock)
+int evl_get_lock_ceiling(struct evl_lock *lock)
 {
-	if (lock->magic == __MONITOR_UNINIT_MAGIC) {
-		if (lock->uninit.type != EVL_MONITOR_PP)
+	struct evl_monitor *_lock = &lock->__lock;
+
+	if (_lock->magic == __MONITOR_UNINIT_MAGIC) {
+		if (_lock->uninit.type != EVL_MONITOR_PP)
 			return -EINVAL;
 
-		return lock->uninit.ceiling;
+		return _lock->uninit.ceiling;
 	}
 
-	if (lock->magic != __MONITOR_ACTIVE_MAGIC ||
-	    lock->active.type != EVL_MONITOR_PP)
+	if (_lock->magic != __MONITOR_ACTIVE_MAGIC ||
+	    _lock->active.type != EVL_MONITOR_PP)
 		return -EINVAL;
 
-	return lock->active.state->u.gate.ceiling;
+	return _lock->active.state->u.gate.ceiling;
 }
 
 int evl_new_event(struct evl_monitor *event,
@@ -467,7 +479,7 @@ static void unwait_monitor(void *data)
 }
 
 int evl_timedwait(struct evl_monitor *event,
-		struct evl_monitor *lock,
+		struct evl_lock *lock,
 		const struct timespec *timeout)
 {
 	struct evl_monitor_waitreq req;
@@ -478,10 +490,10 @@ int evl_timedwait(struct evl_monitor *event,
 	if (ret)
 		return ret;
 
-	req.gatefd = lock->active.efd;
+	req.gatefd = lock->__lock.active.efd;
 	req.timeout = *timeout;
 	req.status = -EINVAL;
-	unwait.ureq.gatefd = lock->active.efd;
+	unwait.ureq.gatefd = req.gatefd;
 	unwait.efd = event->active.efd;
 
 	pthread_cleanup_push(unwait_monitor, &unwait);
@@ -504,7 +516,7 @@ int evl_timedwait(struct evl_monitor *event,
 	return ret ? -errno : req.status;
 }
 
-int evl_wait(struct evl_monitor *event, struct evl_monitor *lock)
+int evl_wait(struct evl_monitor *event, struct evl_lock *lock)
 {
 	struct timespec timeout = { .tv_sec = 0, .tv_nsec = 0 };
 
