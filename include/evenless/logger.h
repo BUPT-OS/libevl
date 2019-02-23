@@ -15,14 +15,11 @@
 extern "C" {
 #endif
 
-int evl_new_logger(int dstfd, size_t logsz,
-		   const char *fmt, ...);
+int evl_new_logger(int dstfd, size_t logsz);
 
-ssize_t evl_write_logger(int efd,
-			 const void *buf, size_t len);
+ssize_t evl_write_logger(int fd, const void *buf, size_t len);
 
-int evl_printf_logger(int efd,
-		      const char *fmt, ...);
+int evl_printf_logger(int fd, const char *fmt, ...);
 
 #ifdef __cplusplus
 }

@@ -4,6 +4,8 @@
  * Copyright (C) 2018 Philippe Gerum  <rpm@xenomai.org>
  */
 
+#include <sys/types.h>
+#include <sys/ioctl.h>
 #include <stdarg.h>
 #include <errno.h>
 #include <unistd.h>
@@ -13,36 +15,36 @@
 #include <evenless/syscall.h>
 #include "internal.h"
 
-int evl_new_logger(int dstfd, size_t logsz, const char *fmt, ...)
+int evl_new_logger(int dstfd, size_t logsz)
 {
 	struct evl_logger_attrs attrs;
-	int ret, efd;
-	va_list ap;
-	char *name;
+	int fd, ret;
 
-	va_start(ap, fmt);
-	ret = vasprintf(&name, fmt, ap);
-	va_end(ap);
-	if (ret < 0)
-		return -ENOMEM;
+	fd = create_evl_file("logger");
+	if (fd < 0)
+		return fd;
 
 	attrs.fd = dstfd;
 	attrs.logsz = logsz;
-	efd = create_evl_element("logger", name, &attrs, NULL);
-	free(name);
+	ret = ioctl(fd, EVL_LOGIOC_CONFIG, &attrs);
+	if (ret) {
+		ret = -errno;
+		close(fd);
+		return ret;
+	}
 
-	return efd;
+	return fd;
 }
 
-ssize_t evl_write_logger(int efd, const void *buf, size_t len)
+ssize_t evl_write_logger(int fd, const void *buf, size_t len)
 {
 	if (evl_is_inband())
-		return write(efd, buf, len);
+		return write(fd, buf, len);
 
-	return oob_write(efd, buf, len);
+	return oob_write(fd, buf, len);
 }
 
-int evl_printf_logger(int efd, const char *fmt, ...)
+int evl_printf_logger(int fd, const char *fmt, ...)
 {
 	ssize_t len = EVL_PRINTBUF_SIZE;
 	char *buf = evl_logging_buf;
@@ -52,5 +54,5 @@ int evl_printf_logger(int efd, const char *fmt, ...)
 	len = vsnprintf(buf, len, fmt, ap);
 	va_end(ap);
 
-	return evl_write_logger(efd, buf, len);
+	return evl_write_logger(fd, buf, len);
 }
