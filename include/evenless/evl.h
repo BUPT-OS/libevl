@@ -9,7 +9,6 @@
 
 #include <signal.h>
 #include <evenless/clock.h>
-#include <evenless/logger.h>
 #include <evenless/monitor.h>
 #include <evenless/sem.h>
 #include <evenless/syscall.h>
@@ -17,6 +16,7 @@
 #include <evenless/xbuf.h>
 #include <evenless/poll.h>
 #include <evenless/proxy.h>
+#include <evenless/utils.h>
 
 #define __EVL__  0	/* API revision */
 

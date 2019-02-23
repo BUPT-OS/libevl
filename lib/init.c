@@ -17,7 +17,6 @@
 #include <evenless/evl.h>
 #include <evenless/syscall.h>
 #include <evenless/thread.h>
-#include <evenless/logger.h>
 #include <linux/types.h>
 #include <uapi/evenless/control.h>
 #include <uapi/evenless/signal.h>

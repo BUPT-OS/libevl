@@ -1,40 +1,16 @@
 /*
  * SPDX-License-Identifier: MIT
  *
- * Copyright (C) 2018 Philippe Gerum  <rpm@xenomai.org>
+ * Copyright (C) 2019 Philippe Gerum  <rpm@xenomai.org>
  */
 
 #include <sys/types.h>
-#include <sys/ioctl.h>
 #include <stdarg.h>
-#include <errno.h>
 #include <unistd.h>
-#include <stdlib.h>
 #include <stdio.h>
-#include <evenless/logger.h>
 #include <evenless/syscall.h>
+#include <evenless/utils.h>
 #include "internal.h"
-
-int evl_new_logger(int dstfd, size_t logsz)
-{
-	struct evl_logger_attrs attrs;
-	int fd, ret;
-
-	fd = create_evl_file("logger");
-	if (fd < 0)
-		return fd;
-
-	attrs.fd = dstfd;
-	attrs.logsz = logsz;
-	ret = ioctl(fd, EVL_LOGIOC_CONFIG, &attrs);
-	if (ret) {
-		ret = -errno;
-		close(fd);
-		return ret;
-	}
-
-	return fd;
-}
 
 ssize_t evl_log(int fd, const void *buf, size_t len)
 {
