@@ -392,69 +392,75 @@ int evl_get_lock_ceiling(struct evl_lock *lock)
 	return _lock->active.state->u.gate.ceiling;
 }
 
-int evl_new_event(struct evl_monitor *event,
+int evl_new_event(struct evl_event *event,
 		  int clockfd, const char *fmt, ...)
 {
+	struct evl_monitor *_event = &event->__event;
 	va_list ap;
 	int ret;
 
 	va_start(ap, fmt);
-	ret = init_monitor_vargs(event, EVL_MONITOR_EV, clockfd, 0, fmt, ap);
+	ret = init_monitor_vargs(_event, EVL_MONITOR_EV,
+				clockfd, 0, fmt, ap);
 	va_end(ap);
 
 	return ret;
 }
 
-int evl_open_event(struct evl_monitor *event, const char *fmt, ...)
+int evl_open_event(struct evl_event *event, const char *fmt, ...)
 {
+	struct evl_monitor *_event = &event->__event;
 	va_list ap;
 	int efd;
 
 	va_start(ap, fmt);
-	efd = open_monitor(event, fmt, ap);
+	efd = open_monitor(_event, fmt, ap);
 	va_end(ap);
 
 	if (efd < 0)
 		return efd;
 
-	if (event->active.type != EVL_MONITOR_EV)
+	if (_event->active.type != EVL_MONITOR_EV)
 		return -EINVAL;
 
 	return efd;
 }
 
-int evl_close_event(struct evl_monitor *event)
+int evl_close_event(struct evl_event *event)
 {
-	if (event->active.type != EVL_MONITOR_EV)
+	struct evl_monitor *_event = &event->__event;
+
+	if (_event->active.type != EVL_MONITOR_EV)
 		return -EINVAL;
 
-	return close_monitor(event);
+	return close_monitor(_event);
 }
 
-static int check_event_sanity(struct evl_monitor *event)
+static int check_event_sanity(struct evl_event *event)
 {
+	struct evl_monitor *_event = &event->__event;
 	int ret;
 
-	if (event->magic == __MONITOR_UNINIT_MAGIC &&
-	    event->uninit.type == EVL_MONITOR_EV) {
-		ret = evl_new_event(event,
-				    event->uninit.clockfd,
-				    event->uninit.name);
+	if (_event->magic == __MONITOR_UNINIT_MAGIC &&
+	    _event->uninit.type == EVL_MONITOR_EV) {
+		ret = init_monitor(_event, EVL_MONITOR_EV,
+				_event->uninit.clockfd, 0,
+				_event->uninit.name);
 		if (ret)
 			return ret;
-	} else if (event->magic != __MONITOR_ACTIVE_MAGIC)
+	} else if (_event->magic != __MONITOR_ACTIVE_MAGIC)
 		return -EINVAL;
 
-	if (event->active.type != EVL_MONITOR_EV)
+	if (_event->active.type != EVL_MONITOR_EV)
 		return -EINVAL;
 
 	return 0;
 }
 
 static struct evl_monitor_state *
-get_lock_state(struct evl_monitor *event)
+get_lock_state(struct evl_event *event)
 {
-	struct evl_monitor_state *est = event->active.state;
+	struct evl_monitor_state *est = event->__event.active.state;
 
 	if (est->u.gate_offset == EVL_MONITOR_NOGATE)
 		return NULL;	/* Nobody waits on @event */
@@ -478,10 +484,11 @@ static void unwait_monitor(void *data)
 	while (ret && errno == EINTR);
 }
 
-int evl_timedwait(struct evl_monitor *event,
+int evl_timedwait(struct evl_event *event,
 		struct evl_lock *lock,
 		const struct timespec *timeout)
 {
+	struct evl_monitor *_event = &event->__event;
 	struct evl_monitor_waitreq req;
 	struct unwait_data unwait;
 	int ret, old_type;
@@ -494,11 +501,11 @@ int evl_timedwait(struct evl_monitor *event,
 	req.timeout = *timeout;
 	req.status = -EINVAL;
 	unwait.ureq.gatefd = req.gatefd;
-	unwait.efd = event->active.efd;
+	unwait.efd = _event->active.efd;
 
 	pthread_cleanup_push(unwait_monitor, &unwait);
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, &old_type);
-	ret = oob_ioctl(event->active.efd, EVL_MONIOC_WAIT, &req);
+	ret = oob_ioctl(_event->active.efd, EVL_MONIOC_WAIT, &req);
 	pthread_setcanceltype(old_type, NULL);
 	pthread_cleanup_pop(0);
 
@@ -516,14 +523,14 @@ int evl_timedwait(struct evl_monitor *event,
 	return ret ? -errno : req.status;
 }
 
-int evl_wait(struct evl_monitor *event, struct evl_lock *lock)
+int evl_wait(struct evl_event *event, struct evl_lock *lock)
 {
 	struct timespec timeout = { .tv_sec = 0, .tv_nsec = 0 };
 
 	return evl_timedwait(event, lock, &timeout);
 }
 
-int evl_signal(struct evl_monitor *event)
+int evl_signal(struct evl_event *event)
 {
 	struct evl_monitor_state *est, *gst;
 	int ret;
@@ -535,14 +542,14 @@ int evl_signal(struct evl_monitor *event)
 	gst = get_lock_state(event);
 	if (gst) {
 		gst->flags |= EVL_MONITOR_SIGNALED;
-		est = event->active.state;
+		est = event->__event.active.state;
 		est->flags |= EVL_MONITOR_SIGNALED;
 	}
 
 	return 0;
 }
 
-int evl_signal_thread(struct evl_monitor *event, int thrfd)
+int evl_signal_thread(struct evl_event *event, int thrfd)
 {
 	struct evl_monitor_state *gst;
 	__u32 efd;
@@ -555,13 +562,13 @@ int evl_signal_thread(struct evl_monitor *event, int thrfd)
 	gst = get_lock_state(event);
 	if (gst) {
 		gst->flags |= EVL_MONITOR_SIGNALED;
-		efd = event->active.efd;
+		efd = event->__event.active.efd;
 	}
 
 	return oob_ioctl(thrfd, EVL_THRIOC_SIGNAL, &efd) ? -errno : 0;
 }
 
-int evl_broadcast(struct evl_monitor *event)
+int evl_broadcast(struct evl_event *event)
 {
 	struct evl_monitor_state *est, *gst;
 	int ret;
@@ -573,7 +580,7 @@ int evl_broadcast(struct evl_monitor *event)
 	gst = get_lock_state(event);
 	if (gst) {
 		gst->flags |= EVL_MONITOR_SIGNALED;
-		est = event->active.state;
+		est = event->__event.active.state;
 		est->flags |= EVL_MONITOR_SIGNALED|EVL_MONITOR_BROADCAST;
 	}
 

@@ -38,6 +38,10 @@ struct evl_lock {
 	struct evl_monitor __lock;
 };
 
+struct evl_event {
+	struct evl_monitor __event;
+};
+
 #define __MONITOR_ACTIVE_MAGIC  0xab12ab12
 #define __MONITOR_UNINIT_MAGIC  0xfe11fe11
 #define __MONITOR_DEAD_MAGIC	0
@@ -66,13 +70,15 @@ struct evl_lock {
 		}							\
 	}
 
-#define EVL_EVENT_INITIALIZER(__name, __clockfd)  {			\
-		.magic = __MONITOR_UNINIT_MAGIC,			\
-		.uninit = {						\
-			.type = EVL_MONITOR_EV,				\
-			.name = (__name),				\
-			.clockfd = (__clockfd),				\
-			.ceiling = 0,					\
+#define EVL_EVENT_INITIALIZER(__name, __clock)  {			\
+		.__event = {						\
+			.magic = __MONITOR_UNINIT_MAGIC,		\
+			.uninit = {					\
+				.type = EVL_MONITOR_EV,			\
+				.name = (__name),			\
+				.clockfd = (__clock),			\
+				.ceiling = 0,				\
+			}						\
 		}							\
 	}
 
@@ -106,28 +112,28 @@ int evl_get_lock_ceiling(struct evl_lock *lock);
 
 int evl_close_lock(struct evl_lock *lock);
 
-int evl_new_event(struct evl_monitor *event,
+int evl_new_event(struct evl_event *event,
 		   int clockfd,
 		   const char *fmt, ...);
 
-int evl_open_event(struct evl_monitor *event,
+int evl_open_event(struct evl_event *event,
 		const char *fmt, ...);
 
-int evl_wait(struct evl_monitor *event,
+int evl_wait(struct evl_event *event,
 	struct evl_lock *lock);
 
-int evl_timedwait(struct evl_monitor *event,
+int evl_timedwait(struct evl_event *event,
 		struct evl_lock *lock,
 		const struct timespec *timeout);
 
-int evl_signal(struct evl_monitor *event);
+int evl_signal(struct evl_event *event);
 
-int evl_signal_thread(struct evl_monitor *event,
+int evl_signal_thread(struct evl_event *event,
 		int thrfd);
 
-int evl_broadcast(struct evl_monitor *event);
+int evl_broadcast(struct evl_event *event);
 
-int evl_close_event(struct evl_monitor *event);
+int evl_close_event(struct evl_event *event);
 
 #ifdef __cplusplus
 }
