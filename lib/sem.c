@@ -82,7 +82,7 @@ int evl_open_sem(struct evl_sem *sem, const char *fmt, ...)
 	return 0;
 }
 
-int evl_release_sem(struct evl_sem *sem)
+int evl_close_sem(struct evl_sem *sem)
 {
 	int ret;
 
@@ -134,7 +134,7 @@ static int check_sanity(struct evl_sem *sem)
 	return sem->magic != __SEM_ACTIVE_MAGIC ? -EINVAL : 0;
 }
 
-int evl_get_sem_timed(struct evl_sem *sem, const struct timespec *timeout)
+int evl_timedget(struct evl_sem *sem, const struct timespec *timeout)
 {
 	struct evl_sem_waitreq req;
 	int mode, ret, cancel_type;
@@ -167,14 +167,14 @@ int evl_get_sem_timed(struct evl_sem *sem, const struct timespec *timeout)
 	return ret ? -errno : 0;
 }
 
-int evl_get_sem(struct evl_sem *sem)
+int evl_get(struct evl_sem *sem)
 {
 	struct timespec timeout = { .tv_sec = 0, .tv_nsec = 0 };
 
-	return evl_get_sem_timed(sem, &timeout);
+	return evl_timedget(sem, &timeout);
 }
 
-int evl_tryget_sem(struct evl_sem *sem)
+int evl_tryget(struct evl_sem *sem)
 {
 	int ret;
 
@@ -185,7 +185,7 @@ int evl_tryget_sem(struct evl_sem *sem)
 	return try_get(sem->active.state);
 }
 
-int evl_put_sem(struct evl_sem *sem)
+int evl_put(struct evl_sem *sem)
 {
 	int curval, oldval, newval, ret;
 	struct evl_sem_state *state;
@@ -223,7 +223,7 @@ int evl_put_sem(struct evl_sem *sem)
 	return 0;
 }
 
-int evl_get_semval(struct evl_sem *sem)
+int evl_getval(struct evl_sem *sem)
 {
 	if (sem->magic != __SEM_ACTIVE_MAGIC)
 		return -EINVAL;

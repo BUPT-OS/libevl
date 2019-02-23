@@ -37,7 +37,7 @@ static void *victim(void *arg)
 	 */
 	close(tfd);
 
-	if (!__Tcall(ret, evl_get_sem(&p->start)))
+	if (!__Tcall(ret, evl_get(&p->start)))
 		return (void *)(long)ret;
 
 	if (!__Tcall(ret, evl_lock(&p->lock)))
@@ -73,7 +73,7 @@ static void test_steal(bool do_steal)
 
 	__Tcall_assert(ret, evl_lock(&c.lock));
 
-	__Tcall_assert(ret, evl_put_sem(&c.start));
+	__Tcall_assert(ret, evl_put(&c.start));
 
 	/*
 	 * Wait for the victim to block on the lock. Sleep for 200ms
@@ -101,7 +101,7 @@ static void test_steal(bool do_steal)
 	__Texpr_assert(pthread_join(contender, &status) == 0);
 	__Texpr_assert(status == NULL);
 
-	evl_release_sem(&c.start);
+	evl_close_sem(&c.start);
 	evl_close_lock(&c.lock);
 }
 

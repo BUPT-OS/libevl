@@ -24,10 +24,10 @@ static void *sem_contend(void *arg)
 	int ret, tfd;
 
 	__Tcall_assert(tfd, evl_attach_self("sem-unblock-contend:%d", getpid()));
-	__Tcall_assert(ret, evl_put_sem(&p->start));
-	__Fcall_assert(ret, evl_get_sem(&p->sem));
+	__Tcall_assert(ret, evl_put(&p->start));
+	__Fcall_assert(ret, evl_get(&p->sem));
 	__Texpr_assert(ret == -EIDRM);
-	__Fcall_assert(ret, evl_get_sem(&p->sem));
+	__Fcall_assert(ret, evl_get(&p->sem));
 	__Texpr_assert(ret == -EBADF);
 
 	return NULL;
@@ -52,11 +52,11 @@ int main(int argc, char *argv[])
 	if (ret < 0)
 		exit(1);
 
-	__Tcall_assert(ret, evl_get_sem(&c.start));
-	__Tcall_assert(ret, evl_release_sem(&c.sem));
+	__Tcall_assert(ret, evl_get(&c.start));
+	__Tcall_assert(ret, evl_close_sem(&c.sem));
 	pthread_join(contender, NULL);
 
-	evl_release_sem(&c.start);
+	evl_close_sem(&c.start);
 
 	return 0;
 }
