@@ -11,7 +11,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <evenless/mapper.h>
+#include <evenless/proxy.h>
 
 static inline int do_memfd_create(const char *name, int flags)
 {
@@ -25,16 +25,16 @@ int main(int argc, char *argv[])
 	void *p;
 
 	if (argc > 1) {
-		ret = chdir("/dev/evenless/mapper");
+		ret = chdir("/dev/evenless/proxy");
 		(void)ret;
 		efd = open(argv[1], O_RDWR);
 		if (efd < 0)
-			error(1, errno, "mapfd open %s", argv[1]);
+			error(1, errno, "%s open %s", argv[0], argv[1]);
 		p = mmap(NULL, 1024, PROT_READ|PROT_WRITE,
 			 MAP_SHARED, efd, 0);
 		if (p == MAP_FAILED)
 			error(1, errno, "mmap child");
-		printf("mapfd child reading: %s\n", (const char *)p);
+		printf("%s child reading: %s\n", argv[0], (const char *)p);
 		return 0;
 	}
 
@@ -53,10 +53,10 @@ int main(int argc, char *argv[])
 
 	strcpy(p, "mapfd-test");
 
-	ret = asprintf(&name, "mapper:%d", getpid());
+	ret = asprintf(&name, "proxy:%d", getpid());
 	(void)ret;
-	efd = evl_new_mapper(memfd, "%s", name);
-	printf("mapper has efd=%d\n", efd);
+	efd = evl_new_proxy(memfd, 0, "%s", name);
+	printf("file proxy has efd=%d\n", efd);
 
 	switch (fork()) {
 	case 0:
