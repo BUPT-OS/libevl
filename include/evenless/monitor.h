@@ -38,7 +38,7 @@ struct evl_monitor {
 #define __MONITOR_UNINIT_MAGIC  0xfe11fe11
 #define __MONITOR_DEAD_MAGIC	0
 
-#define EVL_GATE_INITIALIZER(__name, __clock)  {			\
+#define EVL_LOCK_INITIALIZER(__name, __clock)  {			\
 		.magic = __MONITOR_UNINIT_MAGIC,			\
 		.uninit = {						\
 			.type = EVL_MONITOR_PI,				\
@@ -48,7 +48,7 @@ struct evl_monitor {
 		}							\
 	}
 
-#define EVL_GATE_CEILING_INITIALIZER(__name, __clock, __ceiling)  {	\
+#define EVL_LOCK_CEILING_INITIALIZER(__name, __clock, __ceiling)  {	\
 		.magic = __MONITOR_UNINIT_MAGIC,			\
 		.uninit = {						\
 			.type = EVL_MONITOR_PP,				\
@@ -72,49 +72,54 @@ struct evl_monitor {
 extern "C" {
 #endif
 
-int evl_new_gate(struct evl_monitor *gate,
-		 int clockfd, const char *fmt, ...);
+int evl_new_lock(struct evl_monitor *lock,
+		int clockfd, const char *fmt, ...);
 
-int evl_new_gate_ceiling(struct evl_monitor *gate,
+int evl_new_lock_ceiling(struct evl_monitor *lock,
 			int clockfd, unsigned int ceiling,
 			const char *fmt, ...);
+
+int evl_open_lock(struct evl_monitor *lock,
+		const char *fmt, ...);
+
+int evl_lock(struct evl_monitor *lock);
+
+int evl_timedlock(struct evl_monitor *lock,
+		const struct timespec *timeout);
+
+int evl_trylock(struct evl_monitor *lock);
+
+int evl_unlock(struct evl_monitor *lock);
+
+int evl_set_lock_ceiling(struct evl_monitor *lock,
+			unsigned int ceiling);
+
+int evl_get_lock_ceiling(struct evl_monitor *lock);
+
+int evl_close_lock(struct evl_monitor *lock);
 
 int evl_new_event(struct evl_monitor *event,
 		   int clockfd,
 		   const char *fmt, ...);
 
-int evl_open_monitor(struct evl_monitor *mon,
-		     const char *fmt, ...);
+int evl_open_event(struct evl_monitor *event,
+		const char *fmt, ...);
 
-int evl_release_monitor(struct evl_monitor *mon);
+int evl_wait(struct evl_monitor *event,
+	struct evl_monitor *lock);
 
-int evl_enter_gate(struct evl_monitor *gate);
+int evl_timedwait(struct evl_monitor *event,
+		struct evl_monitor *lock,
+		const struct timespec *timeout);
 
-int evl_enter_gate_timed(struct evl_monitor *gate,
-			const struct timespec *timeout);
+int evl_signal(struct evl_monitor *event);
 
-int evl_tryenter_gate(struct evl_monitor *gate);
+int evl_signal_thread(struct evl_monitor *event,
+		int thrfd);
 
-int evl_exit_gate(struct evl_monitor *gate);
+int evl_broadcast(struct evl_monitor *event);
 
-int evl_set_gate_ceiling(struct evl_monitor *gate,
-			 unsigned int ceiling);
-
-int evl_get_gate_ceiling(struct evl_monitor *gate);
-
-int evl_wait_event(struct evl_monitor *event,
-		struct evl_monitor *gate);
-
-int evl_wait_event_timed(struct evl_monitor *event,
-			struct evl_monitor *gate,
-			const struct timespec *timeout);
-
-int evl_signal_event(struct evl_monitor *event);
-
-int evl_signal_event_targeted(struct evl_monitor *event,
-			      int thrfd);
-
-int evl_broadcast_event(struct evl_monitor *event);
+int evl_close_event(struct evl_monitor *event);
 
 #ifdef __cplusplus
 }

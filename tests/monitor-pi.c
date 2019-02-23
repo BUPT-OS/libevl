@@ -18,7 +18,7 @@
 #define HIGH_PRIO	2
 
 struct test_context {
-	struct evl_monitor gate;
+	struct evl_monitor lock;
 	struct evl_sem start;
 	struct evl_sem sem;
 };
@@ -37,7 +37,7 @@ static void *pi_contend_timeout(void *arg)
 
 	__Tcall_assert(ret, evl_put_sem(&p->sem));
 
-	if (__Fcall(ret, evl_enter_gate_timed(&p->gate, &timeout)) &&
+	if (__Fcall(ret, evl_timedlock(&p->lock, &timeout)) &&
 		__Texpr(ret == -ETIMEDOUT))
 		return (void *)1;
 
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
 	__Tcall_assert(tfd, evl_attach_self("monitor-pi:%d", getpid()));
 
 	name = get_unique_name("monitor", 0);
-	__Tcall_assert(gfd, evl_new_gate(&c.gate, EVL_CLOCK_MONOTONIC, name));
+	__Tcall_assert(gfd, evl_new_lock(&c.lock, EVL_CLOCK_MONOTONIC, name));
 
 	name = get_unique_name("semaphore", 0);
 	__Tcall_assert(sfd, evl_new_sem(&c.sem, 0, EVL_CLOCK_MONOTONIC,
@@ -87,18 +87,18 @@ int main(int argc, char *argv[])
 	if (ret < 0)
 		exit(1);
 
-	__Tcall_assert(ret, evl_enter_gate(&c.gate));
+	__Tcall_assert(ret, evl_lock(&c.lock));
 	__Tcall_assert(ret, evl_put_sem(&c.start));
 	__Tcall_assert(ret, evl_get_sem(&c.sem));
 	__Texpr_assert(check_priority(tfd, HIGH_PRIO));
 	__Texpr_assert(pthread_join(contender, &status) == 0);
-	__Tcall_assert(ret, evl_exit_gate(&c.gate));
+	__Tcall_assert(ret, evl_unlock(&c.lock));
 	__Texpr_assert(check_priority(tfd, LOW_PRIO));
 	__Fexpr_assert(status == NULL);
 
 	evl_release_sem(&c.start);
 	evl_release_sem(&c.sem);
-	evl_release_monitor(&c.gate);
+	evl_close_lock(&c.lock);
 
 	return 0;
 }

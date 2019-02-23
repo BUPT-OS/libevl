@@ -31,7 +31,7 @@ static bool check_priority(int tfd, int policy, int prio)
 int main(int argc, char *argv[])
 {
 	struct evl_sched_attrs attrs;
-	struct evl_monitor gate;
+	struct evl_monitor lock;
 	int tfd, gfd, ret;
 	char *name;
 
@@ -42,17 +42,17 @@ int main(int argc, char *argv[])
 	__Tcall_assert(ret, evl_set_schedattr(tfd, &attrs));
 
 	name = get_unique_name("monitor", 0);
-	__Tcall_assert(gfd, evl_new_gate_ceiling(&gate,
+	__Tcall_assert(gfd, evl_new_lock_ceiling(&lock,
 				EVL_CLOCK_MONOTONIC, HIGH_PRIO, name));
 
-	__Tcall_assert(ret, evl_enter_gate(&gate));
+	__Tcall_assert(ret, evl_lock(&lock));
 	/* Commit PP, we should have inherited SCHED_FIFO, HIGH_PRIO. */
 	__Tcall_assert(ret, evl_udelay(1000));
 	__Texpr_assert(check_priority(tfd, SCHED_FIFO, HIGH_PRIO));
-	__Tcall_assert(ret, evl_exit_gate(&gate));
+	__Tcall_assert(ret, evl_unlock(&lock));
 	__Texpr_assert(check_priority(tfd, SCHED_WEAK, LOW_PRIO));
 
-	evl_release_monitor(&gate);
+	evl_close_lock(&lock);
 
 	return 0;
 }
