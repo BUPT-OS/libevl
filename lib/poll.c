@@ -11,10 +11,10 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <evenless/syscall.h>
-#include <evenless/poller.h>
+#include <evenless/poll.h>
 #include "internal.h"
 
-int evl_new_poller(const char *fmt, ...)
+int evl_new_poll(const char *fmt, ...)
 {
 	int ret, efd;
 	va_list ap;
@@ -45,23 +45,23 @@ static int update_pollset(int efd, int op, int fd, unsigned int events)
 	return ret ? -errno : 0;
 }
 
-int evl_add_pollset(int efd, int fd, unsigned int events)
+int evl_add_pollfd(int efd, int fd, unsigned int events)
 {
 	return update_pollset(efd, EVL_POLLER_CTLADD, fd, events);
 }
 
-int evl_del_pollset(int efd, int fd)
+int evl_del_pollfd(int efd, int fd)
 {
 	return update_pollset(efd, EVL_POLLER_CTLDEL, fd, 0);
 }
 
-int evl_mod_pollset(int efd, int fd, unsigned int events)
+int evl_mod_pollfd(int efd, int fd, unsigned int events)
 {
 	return update_pollset(efd, EVL_POLLER_CTLMOD, fd, events);
 }
 
-static int do_poll_wait(int efd, struct evl_poll_event *pollset,
-			int nrset, struct timespec *timeout)
+static int do_poll(int efd, struct evl_poll_event *pollset,
+		int nrset, struct timespec *timeout)
 {
 	struct evl_poller_waitreq wreq;
 	int ret;
@@ -76,15 +76,15 @@ static int do_poll_wait(int efd, struct evl_poll_event *pollset,
 	return wreq.nrset;
 }
 
-int evl_wait_poller_timed(int efd, struct evl_poll_event *pollset,
-			int nrset, struct timespec *timeout)
+int evl_timedpoll(int efd, struct evl_poll_event *pollset,
+		int nrset, struct timespec *timeout)
 {
-	return do_poll_wait(efd, pollset, nrset, timeout);
+	return do_poll(efd, pollset, nrset, timeout);
 }
 
-int evl_wait_poller(int efd, struct evl_poll_event *pollset, int nrset)
+int evl_poll(int efd, struct evl_poll_event *pollset, int nrset)
 {
 	struct timespec timeout = { .tv_sec = 0, .tv_nsec = 0 };
 
-	return do_poll_wait(efd, pollset, nrset, &timeout);
+	return do_poll(efd, pollset, nrset, &timeout);
 }

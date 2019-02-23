@@ -10,7 +10,7 @@
 #include <pthread.h>
 #include <evenless/thread.h>
 #include <evenless/clock.h>
-#include <evenless/poller.h>
+#include <evenless/poll.h>
 #include <evenless/evl.h>
 #include "helpers.h"
 
@@ -28,27 +28,27 @@ int main(int argc, char *argv[])
 	 * nesting, only cycles.
 	 */
 	name = get_unique_name("poller", 0);
-	__Tcall_assert(pfd1, evl_new_poller(name));
-	__Fcall_assert(ret, evl_add_pollset(pfd1, pfd1, POLLIN));
+	__Tcall_assert(pfd1, evl_new_poll(name));
+	__Fcall_assert(ret, evl_add_pollfd(pfd1, pfd1, POLLIN));
 	__Texpr_assert(ret == -EINVAL);
 
 	name = get_unique_name("poller", 1);
-	__Tcall_assert(pfd2, evl_new_poller(name));
-	__Tcall_assert(ret, evl_add_pollset(pfd1, pfd2, POLLIN));
+	__Tcall_assert(pfd2, evl_new_poll(name));
+	__Tcall_assert(ret, evl_add_pollfd(pfd1, pfd2, POLLIN));
 
 	name = get_unique_name("poller", 2);
-	__Tcall_assert(pfd3, evl_new_poller(name));
-	__Tcall_assert(ret, evl_add_pollset(pfd2, pfd3, POLLIN));
+	__Tcall_assert(pfd3, evl_new_poll(name));
+	__Tcall_assert(ret, evl_add_pollfd(pfd2, pfd3, POLLIN));
 
 	name = get_unique_name("poller", 3);
-	__Tcall_assert(pfd4, evl_new_poller(name));
-	__Tcall_assert(ret, evl_add_pollset(pfd3, pfd4, POLLIN));
+	__Tcall_assert(pfd4, evl_new_poll(name));
+	__Tcall_assert(ret, evl_add_pollfd(pfd3, pfd4, POLLIN));
 
 	name = get_unique_name("poller", 4);
-	__Tcall_assert(pfd5, evl_new_poller(name));
-	__Tcall_assert(ret, evl_add_pollset(pfd4, pfd5, POLLIN));
+	__Tcall_assert(pfd5, evl_new_poll(name));
+	__Tcall_assert(ret, evl_add_pollfd(pfd4, pfd5, POLLIN));
 
-	__Fcall_assert(ret, evl_add_pollset(pfd5, pfd1, POLLIN));
+	__Fcall_assert(ret, evl_add_pollfd(pfd5, pfd1, POLLIN));
 	__Texpr_assert(ret == -EINVAL);
 
 	close(pfd5);

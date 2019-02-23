@@ -16,7 +16,7 @@
 #include <evenless/syscall.h>
 #include <evenless/thread.h>
 #include <evenless/xbuf.h>
-#include <evenless/poller.h>
+#include <evenless/poll.h>
 
 #define __EVL__  0	/* API revision */
 

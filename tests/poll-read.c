@@ -11,7 +11,7 @@
 #include <evenless/thread.h>
 #include <evenless/xbuf.h>
 #include <evenless/clock.h>
-#include <evenless/poller.h>
+#include <evenless/poll.h>
 #include "helpers.h"
 
 static const char *msg[] = {
@@ -86,11 +86,11 @@ int main(int argc, char *argv[])
 		exit(1);
 
 	name = get_unique_name("poller", 0);
-	__Tcall_assert(pfd, evl_new_poller(name));
-	__Tcall_assert(ret, evl_add_pollset(pfd, xfd, POLLIN));
+	__Tcall_assert(pfd, evl_new_poll(name));
+	__Tcall_assert(ret, evl_add_pollfd(pfd, xfd, POLLIN));
 
 	for (n = 0; n < sizeof(msg) / sizeof(msg[0]) - 1; n++) {
-		__Tcall_assert(ret, evl_wait_poller(pfd, &pollset, 1));
+		__Tcall_assert(ret, evl_poll(pfd, &pollset, 1));
 		__Texpr_assert(ret == 1);
 		__Texpr_assert(pollset.events == POLLIN);
 		__Texpr_assert(pollset.fd == xfd);
