@@ -36,7 +36,7 @@ int evl_new_logger(int dstfd, size_t logsz)
 	return fd;
 }
 
-ssize_t evl_write_logger(int fd, const void *buf, size_t len)
+ssize_t evl_log(int fd, const void *buf, size_t len)
 {
 	if (evl_is_inband())
 		return write(fd, buf, len);
@@ -44,7 +44,7 @@ ssize_t evl_write_logger(int fd, const void *buf, size_t len)
 	return oob_write(fd, buf, len);
 }
 
-int evl_printf_logger(int fd, const char *fmt, ...)
+int evl_printf(int fd, const char *fmt, ...)
 {
 	ssize_t len = EVL_PRINTBUF_SIZE;
 	char *buf = evl_logging_buf;
@@ -54,5 +54,5 @@ int evl_printf_logger(int fd, const char *fmt, ...)
 	len = vsnprintf(buf, len, fmt, ap);
 	va_end(ap);
 
-	return evl_write_logger(fd, buf, len);
+	return evl_log(fd, buf, len);
 }

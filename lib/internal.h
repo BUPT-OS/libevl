@@ -13,8 +13,7 @@
 #include <uapi/evenless/types.h>
 
 /*
- * Length of per-thread print formatting buffer used by
- * evl_printf_logger().
+ * Length of per-thread print formatting buffer used by evl_printf().
  */
 #define EVL_PRINTBUF_SIZE  1024
 
