@@ -9,7 +9,8 @@
 
 #include <signal.h>
 #include <evenless/clock.h>
-#include <evenless/monitor.h>
+#include <evenless/lock.h>
+#include <evenless/event.h>
 #include <evenless/sem.h>
 #include <evenless/syscall.h>
 #include <evenless/thread.h>

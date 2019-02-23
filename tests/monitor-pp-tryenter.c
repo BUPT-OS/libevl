@@ -9,7 +9,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <evenless/thread.h>
-#include <evenless/monitor.h>
+#include <evenless/lock.h>
 #include <evenless/clock.h>
 #include <evenless/sem.h>
 #include "helpers.h"
