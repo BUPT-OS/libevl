@@ -9,13 +9,13 @@
 
 #include <sys/types.h>
 #include <linux/types.h>
-#include <uapi/evenless/poller.h>
+#include <uapi/evenless/poll.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int evl_new_poll(const char *fmt, ...);
+int evl_new_poll(void);
 
 int evl_add_pollfd(int efd, int newfd,
 		unsigned int events);

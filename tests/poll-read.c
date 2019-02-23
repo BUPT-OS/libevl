@@ -85,8 +85,7 @@ int main(int argc, char *argv[])
 	if (ret < 0)
 		exit(1);
 
-	name = get_unique_name("poller", 0);
-	__Tcall_assert(pfd, evl_new_poll(name));
+	__Tcall_assert(pfd, evl_new_poll());
 	__Tcall_assert(ret, evl_add_pollfd(pfd, xfd, POLLIN));
 
 	for (n = 0; n < sizeof(msg) / sizeof(msg[0]) - 1; n++) {

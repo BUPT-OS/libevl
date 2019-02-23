@@ -6,7 +6,6 @@
 
 #include <sys/types.h>
 #include <sys/ioctl.h>
-#include <stdarg.h>
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -14,27 +13,14 @@
 #include <evenless/poll.h>
 #include "internal.h"
 
-int evl_new_poll(const char *fmt, ...)
+int evl_new_poll(void)
 {
-	int ret, efd;
-	va_list ap;
-	char *name;
-
-	va_start(ap, fmt);
-	ret = vasprintf(&name, fmt, ap);
-	va_end(ap);
-	if (ret < 0)
-		return -ENOMEM;
-
-	efd = create_evl_element("poller", name, NULL, NULL);
-	free(name);
-
-	return efd;
+	return create_evl_file("poll");
 }
 
 static int update_pollset(int efd, int op, int fd, unsigned int events)
 {
-	struct evl_poller_ctlreq creq;
+	struct evl_poll_ctlreq creq;
 	int ret;
 
 	creq.action = op;
@@ -47,23 +33,23 @@ static int update_pollset(int efd, int op, int fd, unsigned int events)
 
 int evl_add_pollfd(int efd, int fd, unsigned int events)
 {
-	return update_pollset(efd, EVL_POLLER_CTLADD, fd, events);
+	return update_pollset(efd, EVL_POLL_CTLADD, fd, events);
 }
 
 int evl_del_pollfd(int efd, int fd)
 {
-	return update_pollset(efd, EVL_POLLER_CTLDEL, fd, 0);
+	return update_pollset(efd, EVL_POLL_CTLDEL, fd, 0);
 }
 
 int evl_mod_pollfd(int efd, int fd, unsigned int events)
 {
-	return update_pollset(efd, EVL_POLLER_CTLMOD, fd, events);
+	return update_pollset(efd, EVL_POLL_CTLMOD, fd, events);
 }
 
 static int do_poll(int efd, struct evl_poll_event *pollset,
 		int nrset, struct timespec *timeout)
 {
-	struct evl_poller_waitreq wreq;
+	struct evl_poll_waitreq wreq;
 	int ret;
 
 	wreq.timeout = *timeout;

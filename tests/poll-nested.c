@@ -17,7 +17,6 @@
 int main(int argc, char *argv[])
 {
 	int tfd, pfd1, pfd2, pfd3, pfd4, pfd5;
-	char *name;
 	int ret;
 
 	/* We need to be attached for calling evl_add_pollset(). */
@@ -27,25 +26,20 @@ int main(int argc, char *argv[])
 	 * FIXME: in this creation sequence, we can't detect too deep
 	 * nesting, only cycles.
 	 */
-	name = get_unique_name("poller", 0);
-	__Tcall_assert(pfd1, evl_new_poll(name));
+	__Tcall_assert(pfd1, evl_new_poll());
 	__Fcall_assert(ret, evl_add_pollfd(pfd1, pfd1, POLLIN));
 	__Texpr_assert(ret == -EINVAL);
 
-	name = get_unique_name("poller", 1);
-	__Tcall_assert(pfd2, evl_new_poll(name));
+	__Tcall_assert(pfd2, evl_new_poll());
 	__Tcall_assert(ret, evl_add_pollfd(pfd1, pfd2, POLLIN));
 
-	name = get_unique_name("poller", 2);
-	__Tcall_assert(pfd3, evl_new_poll(name));
+	__Tcall_assert(pfd3, evl_new_poll());
 	__Tcall_assert(ret, evl_add_pollfd(pfd2, pfd3, POLLIN));
 
-	name = get_unique_name("poller", 3);
-	__Tcall_assert(pfd4, evl_new_poll(name));
+	__Tcall_assert(pfd4, evl_new_poll());
 	__Tcall_assert(ret, evl_add_pollfd(pfd3, pfd4, POLLIN));
 
-	name = get_unique_name("poller", 4);
-	__Tcall_assert(pfd5, evl_new_poll(name));
+	__Tcall_assert(pfd5, evl_new_poll());
 	__Tcall_assert(ret, evl_add_pollfd(pfd4, pfd5, POLLIN));
 
 	__Fcall_assert(ret, evl_add_pollfd(pfd5, pfd1, POLLIN));
