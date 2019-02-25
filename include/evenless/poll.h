@@ -8,6 +8,7 @@
 #define _EVENLESS_POLL_H
 
 #include <sys/types.h>
+#include <sys/poll.h>
 #include <linux/types.h>
 #include <uapi/evenless/poll.h>
 
