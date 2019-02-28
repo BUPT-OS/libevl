@@ -53,7 +53,7 @@ kernel sources featuring the EVL core is located at
 utilities directly to a staging directory at
 /nfsroot/<machine>/usr/evenless as follows:
 
-$ mkdir /tmp/build-hikey && cd /tmp/build-hikey
+$ mkdir /tmp/build-imx6q && cd /tmp/build-imx6q
 $ make -C ~/git/evenless O=$PWD ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- UAPI=~/git/linux-evenless DESTDIR=/nfsroot/imx6q/usr/evenless install
 
 or,
