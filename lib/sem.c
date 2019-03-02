@@ -23,12 +23,11 @@
 #include <uapi/evenless/factory.h>
 #include "internal.h"
 
-int evl_new_sem(struct evl_sem *sem,
-		int flags, int clockfd, int initval,
+int evl_new_sem(struct evl_sem *sem, int clockfd, int initval,
 		const char *fmt, ...)
 {
+	struct evl_monitor_attrs attrs;
 	struct evl_element_ids eids;
-	struct evl_sem_attrs attrs;
 	int efd, ret;
 	va_list ap;
 	char *name;
@@ -42,10 +41,10 @@ int evl_new_sem(struct evl_sem *sem,
 	if (ret < 0)
 		return -ENOMEM;
 
+	attrs.type = EVL_MONITOR_EV;
 	attrs.clockfd = clockfd;
-	attrs.flags = flags;
 	attrs.initval = initval;
-	efd = create_evl_element("semaphore", name, &attrs, &eids);
+	efd = create_evl_element("monitor", name, &attrs, &eids);
 	free(name);
 	if (efd < 0)
 		return efd;
@@ -60,17 +59,18 @@ int evl_new_sem(struct evl_sem *sem,
 
 int evl_open_sem(struct evl_sem *sem, const char *fmt, ...)
 {
+	struct evl_monitor_binding bind;
 	struct evl_element_ids eids;
 	int ret, efd;
 	va_list ap;
 
 	va_start(ap, fmt);
-	efd = open_evl_element_vargs("semaphore", fmt, ap);
+	efd = open_evl_element_vargs("monitor", fmt, ap);
 	va_end(ap);
 	if (efd < 0)
 		return efd;
 
-	ret = ioctl(efd, EVL_SEMIOC_BIND, &eids);
+	ret = ioctl(efd, EVL_MONIOC_BIND, &bind);
 	if (ret)
 		return -errno;
 
@@ -100,33 +100,10 @@ int evl_close_sem(struct evl_sem *sem)
 	return 0;
 }
 
-static int try_get(struct evl_sem_state *state)
-{
-	int curval, oldval, newval;
-
-	curval = atomic_read(&state->value);
-	if (curval <= 0)
-		return -EAGAIN;
-
-	do {
-		oldval = curval;
-		newval = oldval - 1;
-		curval = atomic_cmpxchg(&state->value, oldval, newval);
-		/* Check if somebody else depleted the semaphore. */
-		if (curval <= 0)
-			return -EAGAIN;
-	} while (curval != oldval);
-
-	smp_mb();
-
-	return 0;
-}
-
 static int check_sanity(struct evl_sem *sem)
 {
 	if (sem->magic == __SEM_UNINIT_MAGIC)
 		return evl_new_sem(sem,
-				   sem->uninit.flags,
 				   sem->uninit.clockfd,
 				   sem->uninit.initval,
 				   sem->uninit.name);
@@ -134,9 +111,41 @@ static int check_sanity(struct evl_sem *sem)
 	return sem->magic != __SEM_ACTIVE_MAGIC ? -EINVAL : 0;
 }
 
+/*
+ * CAUTION: we assume that the implementation of atomic_cmpxchg()
+ * which currently relies on GCC's __sync_val_compare_and_swap()
+ * built-in does issue proper full memory barrier on successful swap,
+ * so we should not have to emit them manually.
+ */
+static int try_get(struct evl_monitor_state *state)
+{
+	int val, prev, next;
+
+	val = atomic_read(&state->u.event.value);
+	if (val <= 0)
+		return -EAGAIN;
+
+	do {
+		prev = val;
+		next = prev - 1;
+		val = atomic_cmpxchg(&state->u.event.value, prev, next);
+		/*
+		 * If the semaphore's value was strictly positive and
+		 * we end up with a negative one after a swap attempt,
+		 * then cmpxchg must have failed, and the non-blocking
+		 * P operation failed.
+		 */
+		if (val <= 0)
+			return -EAGAIN;
+	} while (val != prev);
+
+	return 0;
+}
+
 int evl_timedget(struct evl_sem *sem, const struct timespec *timeout)
 {
-	struct evl_sem_waitreq req;
+	struct evl_monitor_state *state;
+	struct evl_monitor_waitreq req;
 	int mode, ret, cancel_type;
 	fundle_t current;
 
@@ -152,19 +161,23 @@ int evl_timedget(struct evl_sem *sem, const struct timespec *timeout)
 	 * Threads running in-band and/or enabling some debug features
 	 * must go through the slow syscall path.
 	 */
+	state = sem->active.state;
 	mode = evl_get_current_mode();
 	if (!(mode & (T_INBAND|T_WEAK|T_DEBUG))) {
-		ret = try_get(sem->active.state);
+		ret = try_get(state);
 		if (ret != -EAGAIN)
 			return ret;
 	}
 
+	req.gatefd = -1;
 	req.timeout = *timeout;
+	req.status = -EINVAL;
+
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, &cancel_type);
-	ret = oob_ioctl(sem->active.efd, EVL_SEMIOC_GET, &req);
+	ret = oob_ioctl(sem->active.efd, EVL_MONIOC_WAIT, &req);
 	pthread_setcanceltype(cancel_type, NULL);
 
-	return ret ? -errno : 0;
+	return ret ? -errno : req.status;
 }
 
 int evl_get(struct evl_sem *sem)
@@ -187,38 +200,33 @@ int evl_tryget(struct evl_sem *sem)
 
 int evl_put(struct evl_sem *sem)
 {
-	int curval, oldval, newval, ret;
-	struct evl_sem_state *state;
+	struct evl_monitor_state *state;
+	int val, prev, next, ret;
 
 	ret = check_sanity(sem);
 	if (ret)
 		return ret;
 
 	state = sem->active.state;
-	curval = atomic_read(&state->value);
-	if (curval < 0) {
+	val = atomic_read(&state->u.event.value);
+	if (val < 0) {
 	slow_path:
 		if (evl_get_current())
-			ret = oob_ioctl(sem->active.efd, EVL_SEMIOC_PUT);
+			ret = oob_ioctl(sem->active.efd, EVL_MONIOC_SIGNAL);
 		else
 			/* In-band threads may post pended sema4s. */
-			ret = ioctl(sem->active.efd, EVL_SEMIOC_PUT);
+			ret = ioctl(sem->active.efd, EVL_MONIOC_SIGNAL);
 		return ret ? -errno : 0;
 	}
 
-	if (state->flags & EVL_SEM_PULSE)
-		return 0;
-
 	do {
-		oldval = curval;
-		newval = oldval + 1;
-		curval = atomic_cmpxchg(&state->value, oldval, newval);
+		prev = val;
+		next = prev + 1;
+		val = atomic_cmpxchg(&state->u.event.value, prev, next);
 		/* Check if somebody sneaked in the wait queue. */
-		if (curval < 0)
+		if (val < 0)
 			goto slow_path;
-	} while (curval != oldval);
-
-	smp_mb();
+	} while (val != prev);
 
 	return 0;
 }
@@ -228,5 +236,5 @@ int evl_getval(struct evl_sem *sem)
 	if (sem->magic != __SEM_ACTIVE_MAGIC)
 		return -EINVAL;
 
-	return atomic_read(&sem->active.state->value);
+	return atomic_read(&sem->active.state->u.event.value);
 }

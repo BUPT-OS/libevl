@@ -59,7 +59,7 @@ static int init_monitor_vargs(struct evl_monitor *mon,
 
 	attrs.type = type;
 	attrs.clockfd = clockfd;
-	attrs.ceiling = ceiling;
+	attrs.initval = ceiling;
 	efd = create_evl_element("monitor", name, &attrs, &eids);
 	free(name);
 	if (efd < 0)
@@ -464,10 +464,10 @@ get_lock_state(struct evl_event *event)
 {
 	struct evl_monitor_state *est = event->__event.active.state;
 
-	if (est->u.gate_offset == EVL_MONITOR_NOGATE)
+	if (est->u.event.gate_offset == EVL_MONITOR_NOGATE)
 		return NULL;	/* Nobody waits on @event */
 
-	return evl_shared_memory + est->u.gate_offset;
+	return evl_shared_memory + est->u.event.gate_offset;
 }
 
 struct unwait_data {

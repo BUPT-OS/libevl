@@ -11,7 +11,7 @@
 #include <evenless/atomic.h>
 #include <linux/types.h>
 #include <uapi/evenless/types.h>
-#include <uapi/evenless/sem.h>
+#include <uapi/evenless/monitor.h>
 
 struct evl_thread;
 
@@ -20,13 +20,12 @@ struct evl_sem {
 	union {
 		struct {
 			fundle_t fundle;
-			struct evl_sem_state *state;
+			struct evl_monitor_state *state;
 			int efd;
 		} active;
 		struct {
 			const char *name;
 			int clockfd;
-			int flags;
 			int initval;
 		} uninit;
 	};
@@ -36,14 +35,13 @@ struct evl_sem {
 #define __SEM_UNINIT_MAGIC	0xed15ed15
 #define __SEM_DEAD_MAGIC	0
 
-#define EVL_SEM_INITIALIZER(__name, __clockfd, __flags, __initval)  {	\
-		.magic = __SEM_UNINIT_MAGIC,				\
-			.uninit = {					\
-			.name = (__name),				\
-			.flags = (__flags),				\
-			.clockfd = (__clockfd),				\
-			.initval = (__initval),				\
-		}							\
+#define EVL_SEM_INITIALIZER(__name, __clockfd, __initval)  {	\
+		.magic = __SEM_UNINIT_MAGIC,			\
+			.uninit = {				\
+			.name = (__name),			\
+			.clockfd = (__clockfd),			\
+			.initval = (__initval),			\
+		}						\
 	}
 
 #ifdef __cplusplus
@@ -51,7 +49,7 @@ extern "C" {
 #endif
 
 int evl_new_sem(struct evl_sem *sem,
-		int flags, int clockfd, int initval,
+		int clockfd, int initval,
 		const char *fmt, ...);
 
 int evl_open_sem(struct evl_sem *sem,

@@ -80,13 +80,11 @@ int main(int argc, char *argv[])
 	__Tcall_assert(gfd, evl_new_lock_ceiling(&lock_pp,
 				EVL_CLOCK_MONOTONIC, MEDIUM_PRIO, name));
 
-	name = get_unique_name("semaphore", 0);
-	__Tcall_assert(sfd, evl_new_sem(&c.sem, 0, EVL_CLOCK_MONOTONIC,
-						0, name));
+	name = get_unique_name("monitor", 2);
+	__Tcall_assert(sfd, evl_new_sem(&c.sem, EVL_CLOCK_MONOTONIC, 0, name));
 
-	name = get_unique_name("semaphore", 1);
-	__Tcall_assert(sfd, evl_new_sem(&c.start, 0, EVL_CLOCK_MONOTONIC,
-						0, name));
+	name = get_unique_name("monitor", 3);
+	__Tcall_assert(sfd, evl_new_sem(&c.start, EVL_CLOCK_MONOTONIC, 0, name));
 
 	ret = new_thread(&contender, SCHED_FIFO, HIGH_PRIO,
 			pi_contend_timeout, &c);
