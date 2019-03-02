@@ -56,9 +56,14 @@ static inline int generic_init(void)
 	int ctlfd, ret;
 	void *shmem;
 
+	/*
+	 * Failing to open the control device with ENOENT is a clear
+	 * sign that we have no EVL core in there. Return with
+	 * -ENOSYS to give a clear hint about this.
+	 */
 	ctlfd = open("/dev/evenless/control", O_RDWR);
 	if (ctlfd < 0)
-		return -errno;
+		return errno == -ENOENT ? -ENOSYS : -errno;
 
 	ret = fcntl(ctlfd, F_GETFD, 0);
 	if (ret < 0) {
