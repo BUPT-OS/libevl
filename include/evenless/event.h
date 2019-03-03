@@ -37,10 +37,10 @@ int evl_open_event(struct evl_event *event,
 		const char *fmt, ...);
 
 int evl_wait(struct evl_event *event,
-	struct evl_lock *lock);
+	struct evl_mutex *mutex);
 
 int evl_timedwait(struct evl_event *event,
-		struct evl_lock *lock,
+		struct evl_mutex *mutex,
 		const struct timespec *timeout);
 
 int evl_signal(struct evl_event *event);

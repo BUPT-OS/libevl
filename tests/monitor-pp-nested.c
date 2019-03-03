@@ -9,7 +9,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <evenless/thread.h>
-#include <evenless/lock.h>
+#include <evenless/mutex.h>
 #include <evenless/clock.h>
 #include <evenless/sem.h>
 #include "helpers.h"
@@ -31,7 +31,7 @@ static bool check_priority(int tfd, int prio)
 
 int main(int argc, char *argv[])
 {
-	struct evl_lock lock_medium, lock_high;
+	struct evl_mutex lock_medium, lock_high;
 	struct sched_param param;
 	int tfd, gfd, ret;
 	char *name;
@@ -44,11 +44,11 @@ int main(int argc, char *argv[])
 	__Tcall_assert(tfd, evl_attach_self("monitor-pp-nested:%d", getpid()));
 
 	name = get_unique_name("monitor", 0);
-	__Tcall_assert(gfd, evl_new_lock_ceiling(&lock_medium,
+	__Tcall_assert(gfd, evl_new_mutex_ceiling(&lock_medium,
 				EVL_CLOCK_MONOTONIC, MEDIUM_PRIO, name));
 
 	name = get_unique_name("monitor", 1);
-	__Tcall_assert(gfd, evl_new_lock_ceiling(&lock_high,
+	__Tcall_assert(gfd, evl_new_mutex_ceiling(&lock_high,
 				EVL_CLOCK_MONOTONIC, HIGH_PRIO, name));
 
 	__Tcall_assert(ret, evl_lock(&lock_medium));
@@ -64,8 +64,8 @@ int main(int argc, char *argv[])
 	__Tcall_assert(ret, evl_unlock(&lock_medium));
 	__Texpr_assert(check_priority(tfd, LOW_PRIO));
 
-	evl_close_lock(&lock_high);
-	evl_close_lock(&lock_medium);
+	evl_close_mutex(&lock_high);
+	evl_close_mutex(&lock_medium);
 
 	return 0;
 }

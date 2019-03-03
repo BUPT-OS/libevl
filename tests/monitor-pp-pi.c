@@ -9,7 +9,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <evenless/thread.h>
-#include <evenless/lock.h>
+#include <evenless/mutex.h>
 #include <evenless/clock.h>
 #include <evenless/sem.h>
 #include "helpers.h"
@@ -19,7 +19,7 @@
 #define HIGH_PRIO	3
 
 struct test_context {
-	struct evl_lock lock;
+	struct evl_mutex lock;
 	struct evl_sem start;
 	struct evl_sem sem;
 };
@@ -59,7 +59,7 @@ static bool check_priority(int tfd, int prio)
 int main(int argc, char *argv[])
 {
 	struct sched_param param;
-	struct evl_lock lock_pp;
+	struct evl_mutex lock_pp;
 	int tfd, gfd, sfd, ret;
 	struct test_context c;
 	pthread_t contender;
@@ -74,10 +74,10 @@ int main(int argc, char *argv[])
 	__Tcall_assert(tfd, evl_attach_self("monitor-pp-pi:%d", getpid()));
 
 	name = get_unique_name("monitor", 0);
-	__Tcall_assert(gfd, evl_new_lock(&c.lock, EVL_CLOCK_MONOTONIC, name));
+	__Tcall_assert(gfd, evl_new_mutex(&c.lock, EVL_CLOCK_MONOTONIC, name));
 
 	name = get_unique_name("monitor", 1);
-	__Tcall_assert(gfd, evl_new_lock_ceiling(&lock_pp,
+	__Tcall_assert(gfd, evl_new_mutex_ceiling(&lock_pp,
 				EVL_CLOCK_MONOTONIC, MEDIUM_PRIO, name));
 
 	name = get_unique_name("monitor", 2);
@@ -107,8 +107,8 @@ int main(int argc, char *argv[])
 
 	evl_close_sem(&c.start);
 	evl_close_sem(&c.sem);
-	evl_close_lock(&c.lock);
-	evl_close_lock(&lock_pp);
+	evl_close_mutex(&c.lock);
+	evl_close_mutex(&lock_pp);
 
 	return 0;
 }

@@ -9,7 +9,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <evenless/thread.h>
-#include <evenless/lock.h>
+#include <evenless/mutex.h>
 #include <evenless/clock.h>
 #include <evenless/sem.h>
 #include "helpers.h"
@@ -31,7 +31,7 @@ static bool check_priority(int tfd, int policy, int prio)
 int main(int argc, char *argv[])
 {
 	struct evl_sched_attrs attrs;
-	struct evl_lock lock;
+	struct evl_mutex lock;
 	int tfd, gfd, ret;
 	char *name;
 
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 	__Tcall_assert(ret, evl_set_schedattr(tfd, &attrs));
 
 	name = get_unique_name("monitor", 0);
-	__Tcall_assert(gfd, evl_new_lock_ceiling(&lock,
+	__Tcall_assert(gfd, evl_new_mutex_ceiling(&lock,
 				EVL_CLOCK_MONOTONIC, HIGH_PRIO, name));
 
 	__Tcall_assert(ret, evl_lock(&lock));
@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 	__Tcall_assert(ret, evl_unlock(&lock));
 	__Texpr_assert(check_priority(tfd, SCHED_WEAK, LOW_PRIO));
 
-	evl_close_lock(&lock);
+	evl_close_mutex(&lock);
 
 	return 0;
 }

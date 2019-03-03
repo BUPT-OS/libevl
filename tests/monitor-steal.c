@@ -9,7 +9,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <evenless/thread.h>
-#include <evenless/lock.h>
+#include <evenless/mutex.h>
 #include <evenless/clock.h>
 #include <evenless/sem.h>
 #include "helpers.h"
@@ -18,7 +18,7 @@
 #define HIGH_PRIO	2
 
 struct test_context {
-	struct evl_lock lock;
+	struct evl_mutex lock;
 	struct evl_sem start;
 	bool acquired;
 };
@@ -60,7 +60,7 @@ static void test_steal(bool do_steal)
 	char *name;
 
 	name = get_unique_name("monitor", 0);
-	__Tcall_assert(gfd, evl_new_lock(&c.lock, EVL_CLOCK_MONOTONIC, name));
+	__Tcall_assert(gfd, evl_new_mutex(&c.lock, EVL_CLOCK_MONOTONIC, name));
 
 	name = get_unique_name("monitor", 1);
 	__Tcall_assert(sfd, evl_new_sem(&c.start, EVL_CLOCK_MONOTONIC, 0, name));
@@ -101,7 +101,7 @@ static void test_steal(bool do_steal)
 	__Texpr_assert(status == NULL);
 
 	evl_close_sem(&c.start);
-	evl_close_lock(&c.lock);
+	evl_close_mutex(&c.lock);
 }
 
 int main(int argc, char *argv[])

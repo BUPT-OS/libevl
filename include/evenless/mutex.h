@@ -4,17 +4,17 @@
  * Copyright (C) 2019 Philippe Gerum  <rpm@xenomai.org>
  */
 
-#ifndef _EVENLESS_LOCK_H
-#define _EVENLESS_LOCK_H
+#ifndef _EVENLESS_MUTEX_H
+#define _EVENLESS_MUTEX_H
 
 #include <evenless/monitor.h>
 
-struct evl_lock {
-	struct evl_monitor __lock;
+struct evl_mutex {
+	struct evl_monitor __mutex;
 };
 
-#define EVL_LOCK_INITIALIZER(__name, __clock)  {			\
-		.__lock = {						\
+#define EVL_MUTEX_INITIALIZER(__name, __clock)  {			\
+		.__mutex = {						\
 			.magic = __MONITOR_UNINIT_MAGIC,		\
 			.uninit = {					\
 				.type = EVL_MONITOR_PI,			\
@@ -25,8 +25,8 @@ struct evl_lock {
 		}							\
 	}
 
-#define EVL_LOCK_CEILING_INITIALIZER(__name, __clock, __ceiling)  {	\
-		.__lock = {						\
+#define EVL_MUTEX_CEILING_INITIALIZER(__name, __clock, __ceiling)  {	\
+		.__mutex = {						\
 			.magic = __MONITOR_UNINIT_MAGIC,		\
 			.uninit = {					\
 				.type = EVL_MONITOR_PP,			\
@@ -41,34 +41,34 @@ struct evl_lock {
 extern "C" {
 #endif
 
-int evl_new_lock(struct evl_lock *lock,
+int evl_new_mutex(struct evl_mutex *mutex,
 		int clockfd, const char *fmt, ...);
 
-int evl_new_lock_ceiling(struct evl_lock *lock,
+int evl_new_mutex_ceiling(struct evl_mutex *mutex,
 			int clockfd, unsigned int ceiling,
 			const char *fmt, ...);
 
-int evl_open_lock(struct evl_lock *lock,
+int evl_open_mutex(struct evl_mutex *mutex,
 		const char *fmt, ...);
 
-int evl_lock(struct evl_lock *lock);
+int evl_lock(struct evl_mutex *mutex);
 
-int evl_timedlock(struct evl_lock *lock,
+int evl_timedlock(struct evl_mutex *mutex,
 		const struct timespec *timeout);
 
-int evl_trylock(struct evl_lock *lock);
+int evl_trylock(struct evl_mutex *mutex);
 
-int evl_unlock(struct evl_lock *lock);
+int evl_unlock(struct evl_mutex *mutex);
 
-int evl_set_lock_ceiling(struct evl_lock *lock,
+int evl_set_mutex_ceiling(struct evl_mutex *mutex,
 			unsigned int ceiling);
 
-int evl_get_lock_ceiling(struct evl_lock *lock);
+int evl_get_mutex_ceiling(struct evl_mutex *mutex);
 
-int evl_close_lock(struct evl_lock *lock);
+int evl_close_mutex(struct evl_mutex *mutex);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _EVENLESS_LOCK_H */
+#endif /* _EVENLESS_MUTEX_H */
