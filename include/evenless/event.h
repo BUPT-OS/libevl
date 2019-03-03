@@ -13,16 +13,18 @@ struct evl_event {
 	struct evl_monitor __event;
 };
 
-#define EVL_EVENT_INITIALIZER(__name, __clock)  {			\
-		.__event = {						\
-			.magic = __MONITOR_UNINIT_MAGIC,		\
-			.uninit = {					\
-				.type = EVL_MONITOR_EV,			\
-				.name = (__name),			\
-				.clockfd = (__clock),			\
-				.ceiling = 0,				\
-			}						\
-		}							\
+#define __EVENT_UNINIT_MAGIC	0x01770177
+
+#define EVL_EVENT_INITIALIZER(__name, __clock)  {		\
+		.__event = {					\
+			.magic = __EVENT_UNINIT_MAGIC,		\
+			.uninit = {				\
+				.type = EVL_MONITOR_EV,		\
+				.name = (__name),		\
+				.clockfd = (__clock),		\
+				.ceiling = 0,			\
+			}					\
+		}						\
 	}
 
 #ifdef __cplusplus

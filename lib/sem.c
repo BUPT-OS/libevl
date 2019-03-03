@@ -23,6 +23,9 @@
 #include <uapi/evenless/factory.h>
 #include "internal.h"
 
+#define __SEM_ACTIVE_MAGIC	0xcb13cb13
+#define __SEM_DEAD_MAGIC	0
+
 int evl_new_sem(struct evl_sem *sem, int clockfd, int initval,
 		const char *fmt, ...)
 {

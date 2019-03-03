@@ -13,21 +13,23 @@ struct evl_mutex {
 	struct evl_monitor __mutex;
 };
 
-#define EVL_MUTEX_INITIALIZER(__name, __clock)  {			\
-		.__mutex = {						\
-			.magic = __MONITOR_UNINIT_MAGIC,		\
-			.uninit = {					\
-				.type = EVL_MONITOR_PI,			\
-				.name = (__name),			\
-				.clockfd = (__clock),			\
-				.ceiling = 0,				\
-			}						\
-		}							\
+#define __MUTEX_UNINIT_MAGIC	0xfe11fe11
+
+#define EVL_MUTEX_INITIALIZER(__name, __clock)  {		\
+		.__mutex = {					\
+			.magic = __MUTEX_UNINIT_MAGIC,		\
+			.uninit = {				\
+				.type = EVL_MONITOR_PI,		\
+				.name = (__name),		\
+				.clockfd = (__clock),		\
+				.ceiling = 0,			\
+			}					\
+		}						\
 	}
 
 #define EVL_MUTEX_CEILING_INITIALIZER(__name, __clock, __ceiling)  {	\
 		.__mutex = {						\
-			.magic = __MONITOR_UNINIT_MAGIC,		\
+			.magic = __MUTEX_UNINIT_MAGIC,			\
 			.uninit = {					\
 				.type = EVL_MONITOR_PP,			\
 				.name = (__name),			\

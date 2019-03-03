@@ -31,9 +31,7 @@ struct evl_sem {
 	};
 };
 
-#define __SEM_ACTIVE_MAGIC	0xcb13cb13
 #define __SEM_UNINIT_MAGIC	0xed15ed15
-#define __SEM_DEAD_MAGIC	0
 
 #define EVL_SEM_INITIALIZER(__name, __clockfd, __initval)  {	\
 		.magic = __SEM_UNINIT_MAGIC,			\

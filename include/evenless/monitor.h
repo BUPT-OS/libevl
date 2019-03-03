@@ -31,8 +31,4 @@ struct evl_monitor {
 	};
 };
 
-#define __MONITOR_ACTIVE_MAGIC  0xab12ab12
-#define __MONITOR_UNINIT_MAGIC  0xfe11fe11
-#define __MONITOR_DEAD_MAGIC	0
-
 #endif /* _EVENLESS_MONITOR_H */
