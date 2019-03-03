@@ -15,7 +15,7 @@
 #include <uapi/evenless/clock.h>
 #include "internal.h"
 
-static int mono_efd, real_efd;
+int evl_mono_clockfd, evl_real_clockfd;
 
 #define do_call(__efd, __args...)				\
 	({							\
@@ -32,8 +32,8 @@ int evl_set_clock(int efd, const struct timespec *tp)
 	int ret;
 
 	switch (efd) {
-	case -CLOCK_MONOTONIC:
-	case -CLOCK_REALTIME:
+	case EVL_CLOCK_MONOTONIC:
+	case EVL_CLOCK_REALTIME:
 		ret = clock_settime(-efd, tp);
 		if (ret)
 			return -errno;
@@ -50,8 +50,8 @@ int evl_get_clock_resolution(int efd, struct timespec *tp)
 	int ret;
 
 	switch (efd) {
-	case -CLOCK_MONOTONIC:
-	case -CLOCK_REALTIME:
+	case EVL_CLOCK_MONOTONIC:
+	case EVL_CLOCK_REALTIME:
 		ret = clock_getres(-efd, tp);
 		if (ret)
 			return -errno;
@@ -76,10 +76,10 @@ int evl_sleep(int efd, const struct timespec *timeout,
 		.remain = remain,
 	};
 
-	if (efd == -CLOCK_MONOTONIC)
-		efd = mono_efd;
-	else if (efd == -CLOCK_REALTIME)
-		efd = real_efd;
+	if (efd == EVL_CLOCK_MONOTONIC)
+		efd = evl_mono_clockfd;
+	else if (efd == EVL_CLOCK_REALTIME)
+		efd = evl_real_clockfd;
 
 	return oob_ioctl(efd, EVL_CLKIOC_SLEEP, &req) ? -errno : 0;
 }
@@ -107,19 +107,19 @@ int evl_udelay(unsigned int usecs)
 	evl_read_clock(EVL_CLOCK_MONOTONIC, &now);
 	timespec_add_ns(&next, &now, usecs * 1000);
 
-	return evl_sleep(mono_efd, &next, NULL);
+	return evl_sleep(evl_mono_clockfd, &next, NULL);
 }
 
 int attach_evl_clocks(void)
 {
-	mono_efd = open_evl_element("clock", "monotonic");
-	if (mono_efd < 0)
-		return mono_efd;
+	evl_mono_clockfd = open_evl_element("clock", "monotonic");
+	if (evl_mono_clockfd < 0)
+		return evl_mono_clockfd;
 
-	real_efd = open_evl_element("clock", "realtime");
-	if (real_efd < 0) {
-		close(mono_efd);
-		return real_efd;
+	evl_real_clockfd = open_evl_element("clock", "realtime");
+	if (evl_real_clockfd < 0) {
+		close(evl_mono_clockfd);
+		return evl_real_clockfd;
 	}
 
 	return 0;

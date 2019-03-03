@@ -6,30 +6,23 @@
 
 #include <sys/types.h>
 #include <sys/ioctl.h>
-#include <stdio.h>
-#include <stdarg.h>
 #include <errno.h>
-#include <stdlib.h>
 #include <evenless/syscall.h>
 #include <evenless/timer.h>
 #include "internal.h"
 
-int evl_new_timer(int clockfd, const char *fmt, ...)
+int evl_new_timer(int clockfd)
 {
-	struct evl_timerfd_attrs attrs;
 	int ret, efd;
-	va_list ap;
-	char *name;
 
-	va_start(ap, fmt);
-	ret = vasprintf(&name, fmt, ap);
-	va_end(ap);
-	if (ret < 0)
-		return -ENOMEM;
+	if (clockfd == EVL_CLOCK_MONOTONIC)
+		clockfd = evl_mono_clockfd;
+	else if (clockfd == EVL_CLOCK_REALTIME)
+		clockfd = evl_real_clockfd;
 
-	attrs.clockfd = clockfd;
-	efd = create_evl_element("timer", name, &attrs, NULL);
-	free(name);
+	ret = ioctl(clockfd, EVL_CLKIOC_NEW_TIMER, &efd);
+	if (ret)
+		return -errno;
 
 	return efd;
 }

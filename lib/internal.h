@@ -68,4 +68,8 @@ extern void *evl_shared_memory;
 
 extern int evl_ctlfd;
 
+extern int evl_mono_clockfd;
+
+extern int evl_real_clockfd;
+
 #endif /* _LIB_EVENLESS_INTERNAL_H */

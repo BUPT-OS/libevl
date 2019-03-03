@@ -9,13 +9,13 @@
 
 #include <time.h>
 #include <linux/types.h>
-#include <uapi/evenless/timerfd.h>
+#include <uapi/evenless/clock.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int evl_new_timer(int clockfd, const char *fmt, ...);
+int evl_new_timer(int clockfd);
 
 int evl_set_timer(int efd,
 		struct itimerspec *value,
