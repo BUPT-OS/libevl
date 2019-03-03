@@ -283,12 +283,12 @@ const char *context_labels[] = {
 	[EVL_LAT_USER] = "user",
 };
 
-static void print_series(struct latmus_measurement *meas,
-			 unsigned int round)
+static void log_results(struct latmus_measurement *meas,
+			unsigned int round)
 {
 	time_t now, dt;
 
-	if (data_lines && (round % data_lines) == 0) {
+	if (verbosity > 0 && data_lines && (round % data_lines) == 0) {
 		time(&now);
 		dt = now - start_time - 1; /* -1s warmup time */
 		printf("RTT|  %.2ld:%.2ld:%.2ld  "
@@ -319,24 +319,25 @@ static void print_series(struct latmus_measurement *meas,
 	all_samples += meas->samples;
 	all_overruns += meas->overruns;
 
-	printf("RTD|%11.3f|%11.3f|%11.3f|%8d|%6u|%11.3f|%11.3f\n",
-	       (double)meas->min_lat / 1000.0,
-	       (double)(meas->sum_lat / meas->samples) / 1000.0,
-	       (double)meas->max_lat / 1000.0,
-	       all_overruns,
-	       all_switches,
-	       (double)all_minlat / 1000.0,
-	       (double)all_maxlat / 1000.0);
+	if (verbosity > 0)
+		printf("RTD|%11.3f|%11.3f|%11.3f|%8d|%6u|%11.3f|%11.3f\n",
+			(double)meas->min_lat / 1000.0,
+			(double)(meas->sum_lat / meas->samples) / 1000.0,
+			(double)meas->max_lat / 1000.0,
+			all_overruns,
+			all_switches,
+			(double)all_minlat / 1000.0,
+			(double)all_maxlat / 1000.0);
 }
 
-static void *display_thread(void *arg)
+static void *logger_thread(void *arg)
 {
 	struct latmus_measurement meas;
 	ssize_t ret, round = 0;
 
-	printf("warming up...\n");
-
-	if (!verbosity)
+	if (verbosity > 0)
+		fprintf(stderr, "warming up...\n");
+	else
 		fprintf(stderr, "running quietly for %ld seconds\n",
 			timeout);
 
@@ -344,13 +345,13 @@ static void *display_thread(void *arg)
 		ret = read(lat_xfd, &meas, sizeof(meas));
 		if (ret != sizeof(meas))
 			break;
-		print_series(&meas, round++);
+		log_results(&meas, round++);
 	}
 
 	return NULL;
 }
 
-static void create_display(pthread_t *tid)
+static void create_logger(pthread_t *tid)
 {
 	struct sched_param param;
 	pthread_attr_t attr;
@@ -363,10 +364,10 @@ static void create_display(pthread_t *tid)
 	param.sched_priority = 0;
 	pthread_attr_setschedparam(&attr, &param);
 	pthread_attr_setstacksize(&attr, EVL_STACK_DEFAULT);
-	ret = pthread_create(tid, &attr, display_thread, NULL);
+	ret = pthread_create(tid, &attr, logger_thread, NULL);
 	pthread_attr_destroy(&attr);
 	if (ret)
-		error(1, ret, "display thread");
+		error(1, ret, "logger thread");
 }
 
 static void *measurement_thread(void *arg)
@@ -423,7 +424,7 @@ static void dump_gnuplot(time_t duration)
 
 static void do_measurement(int type)
 {
-	pthread_t sampler, display;
+	pthread_t sampler, logger;
 	struct latmus_setup setup;
 	pthread_attr_t attr;
 	pthread_t waiter;
@@ -438,12 +439,11 @@ static void do_measurement(int type)
 			error(1, ENOMEM, "cannot get memory");
 	}
 
-	if (verbosity) {
-		lat_xfd = evl_new_xbuf(1024, 0, "lat-data:%d", getpid());
-		if (lat_xfd < 0)
-			error(1, -lat_xfd, "cannot create xbuf");
-		create_display(&display);
-	}
+	lat_xfd = evl_new_xbuf(1024, 0, "lat-data:%d", getpid());
+	if (lat_xfd < 0)
+		error(1, -lat_xfd, "cannot create xbuf");
+
+	create_logger(&logger);
 
 	memset(&setup, 0, sizeof(setup));
 	setup.type = type;
@@ -504,7 +504,7 @@ static void do_measurement(int type)
 		pthread_cancel(sampler);
 
 	if (verbosity)
-		pthread_cancel(display);
+		pthread_cancel(logger);
 }
 
 static void do_tuning(int type)
