@@ -16,7 +16,7 @@ UTIL_CPPFLAGS := $(BASE_CPPFLAGS)		\
 UTIL_CFLAGS := $(UTIL_CPPFLAGS) $(BASE_CFLAGS)
 override CFLAGS := $(UTIL_CFLAGS) $(CFLAGS)
 
-UTIL_LDFLAGS := $(O_DIR)/../lib/libevenless.so.$(EVL_IVERSION) -lpthread -lrt
+UTIL_LDFLAGS := $(O_DIR)/../lib/libevl.so.$(EVL_IVERSION) -lpthread -lrt
 override LDFLAGS := $(UTIL_LDFLAGS) $(LDFLAGS)
 
 all: $(TARGETS)

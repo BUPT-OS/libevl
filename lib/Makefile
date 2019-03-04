@@ -3,9 +3,9 @@
 include ../config.mk
 include ../libversion.mk
 
-DTSONAME := libevenless.so.$(EVL_IVERSION)
-SOLIBNAME := libevenless-$(EVL_SERIAL).so.$(EVL_IVERSION)
-ARLIBNAME := libevenless-$(EVL_SERIAL).a
+DTSONAME := libevl.so.$(EVL_IVERSION)
+SOLIBNAME := libevl-$(EVL_SERIAL).so.$(EVL_IVERSION)
+ARLIBNAME := libevl-$(EVL_SERIAL).a
 TARGETS := $(O_DIR)/$(SOLIBNAME) $(O_DIR)/$(ARLIBNAME)
 
 SRCFILES := $(wildcard *.c arch/$(ARCH)/*.c)

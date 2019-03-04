@@ -13,7 +13,7 @@
 #include <uapi/evenless/thread.h>
 #include <uapi/evenless/sched.h>
 
-/* Enable dlopen() on libevenless.so. */
+/* Enable dlopen() on libevl.so. */
 #define EVL_TLS_MODEL	"global-dynamic"
 
 #define EVL_STACK_DEFAULT			\

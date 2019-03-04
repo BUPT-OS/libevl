@@ -18,7 +18,7 @@ TEST_CPPFLAGS := $(BASE_CPPFLAGS)	\
 TEST_CFLAGS := $(TEST_CPPFLAGS) $(BASE_CFLAGS)
 override CFLAGS := $(TEST_CFLAGS) $(CFLAGS)
 
-TEST_LDFLAGS := $(O_DIR)/../lib/libevenless.so.$(EVL_IVERSION) -lpthread -lrt
+TEST_LDFLAGS := $(O_DIR)/../lib/libevl.so.$(EVL_IVERSION) -lpthread -lrt
 override LDFLAGS := $(TEST_LDFLAGS) $(LDFLAGS)
 
 all: $(TARGETS)
