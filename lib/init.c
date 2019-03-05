@@ -32,7 +32,7 @@ static struct sigaction orig_sigshadow,	orig_sigdebug;
 
 static struct evl_core_info core_info;
 
-int evl_ctlfd = -1;
+static int evl_ctlfd = -1;
 
 void *evl_shared_memory = NULL;
 
@@ -108,7 +108,7 @@ int evl_sigshadow_handler(int sig, siginfo_t *si, void *ctxt)
 {
 	if (si->si_code == SI_QUEUE &&
 	    sigshadow_action(si->si_int) == SIGEVL_ACTION_HOME) {
-		oob_ioctl(evl_ctlfd, EVL_CTLIOC_SWITCH_OOB);
+		oob_ioctl(evl_efd, EVL_THRIOC_SWITCH_OOB);
 		return 1;
 	}
 

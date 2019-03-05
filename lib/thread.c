@@ -137,10 +137,10 @@ int evl_detach_self(void)
 {
 	int ret;
 
-	if (evl_efd < 0)
+	if (evl_current == EVL_NO_HANDLE)
 		return -EPERM;
 
-	ret = ioctl(evl_ctlfd, EVL_CTLIOC_DETACH_SELF);
+	ret = ioctl(evl_efd, EVL_THRIOC_DETACH_SELF);
 	if (ret)
 		return -errno;
 
@@ -165,7 +165,7 @@ int evl_switch_oob(void)
 	if (!evl_is_inband())
 		return 0;
 
-	ret = ioctl(evl_ctlfd, EVL_CTLIOC_SWITCH_OOB);
+	ret = ioctl(evl_efd, EVL_THRIOC_SWITCH_OOB);
 
 	return ret ? -errno : 0;
 }
@@ -177,7 +177,10 @@ int evl_switch_inband(void)
 	if (evl_is_inband())
 		return 0;
 
-	ret = ioctl(evl_ctlfd, EVL_CTLIOC_SWITCH_INBAND);
+	if (evl_current == EVL_NO_HANDLE)
+		return -EPERM;
+
+	ret = ioctl(evl_efd, EVL_THRIOC_SWITCH_INBAND);
 
 	return ret ? -errno : 0;
 }
