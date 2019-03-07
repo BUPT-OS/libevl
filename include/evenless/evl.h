@@ -10,7 +10,7 @@
 #include <signal.h>
 #include <evenless/clock.h>
 #include <evenless/mutex.h>
-#include <evenless/event.h>
+#include <evenless/condvar.h>
 #include <evenless/sem.h>
 #include <evenless/syscall.h>
 #include <evenless/thread.h>

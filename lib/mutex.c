@@ -315,7 +315,7 @@ int evl_unlock(struct evl_mutex *mutex)
 	if (!evl_is_mutex_owner(&gst->u.gate.owner, current))
 		return -EPERM;
 
-	/* Do we have waiters on a signaled event we are gating? */
+	/* Do we have waiters on a signaled condvar we are gating? */
 	if (gst->flags & EVL_MONITOR_SIGNALED)
 		goto slow_path;
 
