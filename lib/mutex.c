@@ -168,6 +168,9 @@ int evl_close_mutex(struct evl_mutex *mutex)
 {
 	int efd;
 
+	if (mutex->magic == __MUTEX_UNINIT_MAGIC)
+		return 0;
+
 	if (mutex->magic != __MUTEX_ACTIVE_MAGIC)
 		return -EINVAL;
 
