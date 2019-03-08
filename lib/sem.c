@@ -89,6 +89,9 @@ int evl_close_sem(struct evl_sem *sem)
 {
 	int ret;
 
+	if (sem->magic == __SEM_UNINIT_MAGIC)
+		return 0;
+
 	if (sem->magic != __SEM_ACTIVE_MAGIC)
 		return -EINVAL;
 
