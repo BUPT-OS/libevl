@@ -16,9 +16,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <sched.h>
-#include <evenless/atomic.h>
 #include <evenless/evl.h>
-#include <evenless/monitor.h>
 #include <evenless/mutex.h>
 #include <evenless/condvar.h>
 #include <evenless/thread.h>
@@ -31,9 +29,8 @@
 #define __CONDVAR_ACTIVE_MAGIC	0xef55ef55
 #define __CONDVAR_DEAD_MAGIC	0
 
-static int init_condvar_vargs(struct evl_monitor *mon,
-			int clockfd, unsigned int ceiling,
-			const char *fmt, va_list ap)
+static int init_condvar_vargs(struct evl_condvar *cv,
+			int clockfd, const char *fmt, va_list ap)
 {
 	struct evl_monitor_attrs attrs;
 	struct evl_element_ids eids;
@@ -49,36 +46,34 @@ static int init_condvar_vargs(struct evl_monitor *mon,
 
 	attrs.type = EVL_MONITOR_EV;
 	attrs.clockfd = clockfd;
-	attrs.initval = ceiling;
+	attrs.initval = 0;
 	efd = create_evl_element("monitor", name, &attrs, &eids);
 	free(name);
 	if (efd < 0)
 		return efd;
 
-	mon->active.state = evl_shared_memory + eids.state_offset;
-	mon->active.fundle = eids.fundle;
-	mon->active.type = EVL_MONITOR_EV;
-	mon->active.efd = efd;
-	mon->magic = __CONDVAR_ACTIVE_MAGIC;
+	cv->active.state = evl_shared_memory + eids.state_offset;
+	cv->active.fundle = eids.fundle;
+	cv->active.efd = efd;
+	cv->magic = __CONDVAR_ACTIVE_MAGIC;
 
 	return 0;
 }
 
-static int init_condvar(struct evl_monitor *mon,
-			int clockfd, unsigned int ceiling,
-			const char *fmt, ...)
+static int init_condvar(struct evl_condvar *cv,
+			int clockfd, const char *fmt, ...)
 {
 	va_list ap;
 	int ret;
 
 	va_start(ap, fmt);
-	ret = init_condvar_vargs(mon, clockfd, ceiling, fmt, ap);
+	ret = init_condvar_vargs(cv, clockfd, fmt, ap);
 	va_end(ap);
 
 	return ret;
 }
 
-static int open_condvar_vargs(struct evl_monitor *mon,
+static int open_condvar_vargs(struct evl_condvar *cv,
 			const char *fmt, va_list ap)
 {
 	struct evl_monitor_binding bind;
@@ -99,11 +94,10 @@ static int open_condvar_vargs(struct evl_monitor *mon,
 		goto fail;
 	}
 
-	mon->active.state = evl_shared_memory + bind.eids.state_offset;
-	mon->active.fundle = bind.eids.fundle;
-	mon->active.type = EVL_MONITOR_EV;
-	mon->active.efd = efd;
-	mon->magic = __CONDVAR_ACTIVE_MAGIC;
+	cv->active.state = evl_shared_memory + bind.eids.state_offset;
+	cv->active.fundle = bind.eids.fundle;
+	cv->active.efd = efd;
+	cv->magic = __CONDVAR_ACTIVE_MAGIC;
 
 	return 0;
 fail:
@@ -112,81 +106,70 @@ fail:
 	return ret;
 }
 
-int evl_new_condvar(struct evl_condvar *condvar,
+int evl_new_condvar(struct evl_condvar *cv,
 		int clockfd, const char *fmt, ...)
 {
-	struct evl_monitor *_condvar = &condvar->__condvar;
 	va_list ap;
 	int ret;
 
 	va_start(ap, fmt);
-	ret = init_condvar_vargs(_condvar, clockfd, 0, fmt, ap);
+	ret = init_condvar_vargs(cv, clockfd, fmt, ap);
 	va_end(ap);
 
 	return ret;
 }
 
-int evl_open_condvar(struct evl_condvar *condvar, const char *fmt, ...)
+int evl_open_condvar(struct evl_condvar *cv, const char *fmt, ...)
 {
-	struct evl_monitor *_condvar = &condvar->__condvar;
 	va_list ap;
 	int efd;
 
 	va_start(ap, fmt);
-	efd = open_condvar_vargs(_condvar, fmt, ap);
+	efd = open_condvar_vargs(cv, fmt, ap);
 	va_end(ap);
 
 	return efd;
 }
 
-int evl_close_condvar(struct evl_condvar *condvar)
+int evl_close_condvar(struct evl_condvar *cv)
 {
-	struct evl_monitor *mon = &condvar->__condvar;
 	int efd;
 
-	if (mon->magic != __CONDVAR_ACTIVE_MAGIC)
+	if (cv->magic != __CONDVAR_ACTIVE_MAGIC)
 		return -EINVAL;
 
-	efd = mon->active.efd;
-	mon->active.efd = -1;
+	efd = cv->active.efd;
+	cv->active.efd = -1;
 	compiler_barrier();
 	close(efd);
 
-	mon->active.fundle = EVL_NO_HANDLE;
-	mon->active.state = NULL;
-	mon->magic = __CONDVAR_DEAD_MAGIC;
+	cv->active.fundle = EVL_NO_HANDLE;
+	cv->active.state = NULL;
+	cv->magic = __CONDVAR_DEAD_MAGIC;
 
 	return 0;
 }
 
-static int check_condvar_sanity(struct evl_condvar *condvar)
+static int check_condvar_sanity(struct evl_condvar *cv)
 {
-	struct evl_monitor *_condvar = &condvar->__condvar;
 	int ret;
 
-	if (_condvar->magic == __CONDVAR_UNINIT_MAGIC &&
-		_condvar->uninit.type == EVL_MONITOR_EV) {
-		ret = init_condvar(_condvar,
-				_condvar->uninit.clockfd, 0,
-				_condvar->uninit.name);
+	if (cv->magic == __CONDVAR_UNINIT_MAGIC) {
+		ret = init_condvar(cv, cv->uninit.clockfd, cv->uninit.name);
 		if (ret)
 			return ret;
-	} else if (_condvar->magic != __CONDVAR_ACTIVE_MAGIC)
-		return -EINVAL;
-
-	if (_condvar->active.type != EVL_MONITOR_EV)
+	} else if (cv->magic != __CONDVAR_ACTIVE_MAGIC)
 		return -EINVAL;
 
 	return 0;
 }
 
-static struct evl_monitor_state *
-get_lock_state(struct evl_condvar *condvar)
+static struct evl_monitor_state *get_lock_state(struct evl_condvar *cv)
 {
-	struct evl_monitor_state *est = condvar->__condvar.active.state;
+	struct evl_monitor_state *est = cv->active.state;
 
 	if (est->u.event.gate_offset == EVL_MONITOR_NOGATE)
-		return NULL;	/* Nobody waits on @condvar */
+		return NULL;	/* Nobody waits on @cv */
 
 	return evl_shared_memory + est->u.event.gate_offset;
 }
@@ -207,28 +190,27 @@ static void unwait_condvar(void *data)
 	while (ret && errno == EINTR);
 }
 
-int evl_timedwait(struct evl_condvar *condvar,
+int evl_timedwait(struct evl_condvar *cv,
 		struct evl_mutex *mutex,
 		const struct timespec *timeout)
 {
-	struct evl_monitor *_condvar = &condvar->__condvar;
 	struct evl_monitor_waitreq req;
 	struct unwait_data unwait;
 	int ret, old_type;
 
-	ret = check_condvar_sanity(condvar);
+	ret = check_condvar_sanity(cv);
 	if (ret)
 		return ret;
 
-	req.gatefd = mutex->__mutex.active.efd;
+	req.gatefd = mutex->active.efd;
 	req.timeout = *timeout;
 	req.status = -EINVAL;
 	unwait.ureq.gatefd = req.gatefd;
-	unwait.efd = _condvar->active.efd;
+	unwait.efd = cv->active.efd;
 
 	pthread_cleanup_push(unwait_condvar, &unwait);
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, &old_type);
-	ret = oob_ioctl(_condvar->active.efd, EVL_MONIOC_WAIT, &req);
+	ret = oob_ioctl(cv->active.efd, EVL_MONIOC_WAIT, &req);
 	pthread_setcanceltype(old_type, NULL);
 	pthread_cleanup_pop(0);
 
@@ -246,64 +228,64 @@ int evl_timedwait(struct evl_condvar *condvar,
 	return ret ? -errno : req.status;
 }
 
-int evl_wait(struct evl_condvar *condvar, struct evl_mutex *mutex)
+int evl_wait(struct evl_condvar *cv, struct evl_mutex *mutex)
 {
 	struct timespec timeout = { .tv_sec = 0, .tv_nsec = 0 };
 
-	return evl_timedwait(condvar, mutex, &timeout);
+	return evl_timedwait(cv, mutex, &timeout);
 }
 
-int evl_signal(struct evl_condvar *condvar)
+int evl_signal(struct evl_condvar *cv)
 {
 	struct evl_monitor_state *est, *gst;
 	int ret;
 
-	ret = check_condvar_sanity(condvar);
+	ret = check_condvar_sanity(cv);
 	if (ret)
 		return ret;
 
-	gst = get_lock_state(condvar);
+	gst = get_lock_state(cv);
 	if (gst) {
 		gst->flags |= EVL_MONITOR_SIGNALED;
-		est = condvar->__condvar.active.state;
+		est = cv->active.state;
 		est->flags |= EVL_MONITOR_SIGNALED;
 	}
 
 	return 0;
 }
 
-int evl_signal_thread(struct evl_condvar *condvar, int thrfd)
+int evl_signal_thread(struct evl_condvar *cv, int thrfd)
 {
 	struct evl_monitor_state *gst;
 	__u32 efd;
 	int ret;
 
-	ret = check_condvar_sanity(condvar);
+	ret = check_condvar_sanity(cv);
 	if (ret)
 		return ret;
 
-	gst = get_lock_state(condvar);
+	gst = get_lock_state(cv);
 	if (gst) {
 		gst->flags |= EVL_MONITOR_SIGNALED;
-		efd = condvar->__condvar.active.efd;
+		efd = cv->active.efd;
 	}
 
 	return oob_ioctl(thrfd, EVL_THRIOC_SIGNAL, &efd) ? -errno : 0;
 }
 
-int evl_broadcast(struct evl_condvar *condvar)
+int evl_broadcast(struct evl_condvar *cv)
 {
 	struct evl_monitor_state *est, *gst;
 	int ret;
 
-	ret = check_condvar_sanity(condvar);
+	ret = check_condvar_sanity(cv);
 	if (ret)
 		return ret;
 
-	gst = get_lock_state(condvar);
+	gst = get_lock_state(cv);
 	if (gst) {
 		gst->flags |= EVL_MONITOR_SIGNALED;
-		est = condvar->__condvar.active.state;
+		est = cv->active.state;
 		est->flags |= EVL_MONITOR_SIGNALED|EVL_MONITOR_BROADCAST;
 	}
 

@@ -7,52 +7,63 @@
 #ifndef _EVENLESS_CONDVAR_H
 #define _EVENLESS_CONDVAR_H
 
-#include <evenless/monitor.h>
+#include <time.h>
+#include <linux/types.h>
+#include <evenless/atomic.h>
+#include <uapi/evenless/types.h>
+#include <uapi/evenless/monitor.h>
 
 struct evl_condvar {
-	struct evl_monitor __condvar;
+	unsigned int magic;
+	union {
+		struct {
+			fundle_t fundle;
+			struct evl_monitor_state *state;
+			int efd;
+		} active;
+		struct {
+			const char *name;
+			int clockfd;
+		} uninit;
+	};
 };
 
 #define __CONDVAR_UNINIT_MAGIC	0x01770177
 
-#define EVL_CONDVAR_INITIALIZER(__name, __clock)  {		\
-		.__condvar = {					\
-			.magic = __CONDVAR_UNINIT_MAGIC,	\
-			.uninit = {				\
-				.type = EVL_MONITOR_EV,		\
-				.name = (__name),		\
-				.clockfd = (__clock),		\
-				.ceiling = 0,			\
-			}					\
-		}						\
+#define EVL_CONDVAR_INITIALIZER(__name, __clock)  {	\
+		.magic = __CONDVAR_UNINIT_MAGIC,	\
+		.uninit = {				\
+			.name = (__name),		\
+			.clockfd = (__clock),		\
+		}					\
 	}
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int evl_new_condvar(struct evl_condvar *condvar,
+int evl_new_condvar(struct evl_condvar *cv,
 		int clockfd,
 		const char *fmt, ...);
 
-int evl_open_condvar(struct evl_condvar *condvar,
+int evl_open_condvar(struct evl_condvar *cv,
 		const char *fmt, ...);
 
-int evl_wait(struct evl_condvar *condvar,
+int evl_wait(struct evl_condvar *cv,
 	struct evl_mutex *mutex);
 
-int evl_timedwait(struct evl_condvar *condvar,
+int evl_timedwait(struct evl_condvar *cv,
 		struct evl_mutex *mutex,
 		const struct timespec *timeout);
 
-int evl_signal(struct evl_condvar *condvar);
+int evl_signal(struct evl_condvar *cv);
 
-int evl_signal_thread(struct evl_condvar *condvar,
+int evl_signal_thread(struct evl_condvar *cv,
 		int thrfd);
 
-int evl_broadcast(struct evl_condvar *condvar);
+int evl_broadcast(struct evl_condvar *cv);
 
-int evl_close_condvar(struct evl_condvar *condvar);
+int evl_close_condvar(struct evl_condvar *cv);
 
 #ifdef __cplusplus
 }

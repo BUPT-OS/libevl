@@ -29,7 +29,7 @@
 #define __MUTEX_ACTIVE_MAGIC	0xab12ab12
 #define __MUTEX_DEAD_MAGIC	0
 
-static int init_mutex_vargs(struct evl_monitor *mon,
+static int init_mutex_vargs(struct evl_mutex *mutex,
 			int type, int clockfd, unsigned int ceiling,
 			const char *fmt, va_list ap)
 {
@@ -66,16 +66,16 @@ static int init_mutex_vargs(struct evl_monitor *mon,
 	if (efd < 0)
 		return efd;
 
-	mon->active.state = evl_shared_memory + eids.state_offset;
-	mon->active.fundle = eids.fundle;
-	mon->active.type = type;
-	mon->active.efd = efd;
-	mon->magic = __MUTEX_ACTIVE_MAGIC;
+	mutex->active.state = evl_shared_memory + eids.state_offset;
+	mutex->active.fundle = eids.fundle;
+	mutex->active.type = type;
+	mutex->active.efd = efd;
+	mutex->magic = __MUTEX_ACTIVE_MAGIC;
 
 	return 0;
 }
 
-static int init_mutex(struct evl_monitor *mon,
+static int init_mutex(struct evl_mutex *mutex,
 			int type, int clockfd, unsigned int ceiling,
 			const char *fmt, ...)
 {
@@ -83,13 +83,13 @@ static int init_mutex(struct evl_monitor *mon,
 	int ret;
 
 	va_start(ap, fmt);
-	ret = init_mutex_vargs(mon, type, clockfd, ceiling, fmt, ap);
+	ret = init_mutex_vargs(mutex, type, clockfd, ceiling, fmt, ap);
 	va_end(ap);
 
 	return ret;
 }
 
-static int open_mutex_vargs(struct evl_monitor *mon,
+static int open_mutex_vargs(struct evl_mutex *mutex,
 			const char *fmt, va_list ap)
 {
 	struct evl_monitor_binding bind;
@@ -110,11 +110,11 @@ static int open_mutex_vargs(struct evl_monitor *mon,
 		goto fail;
 	}
 
-	mon->active.state = evl_shared_memory + bind.eids.state_offset;
-	mon->active.fundle = bind.eids.fundle;
-	mon->active.type = bind.type;
-	mon->active.efd = efd;
-	mon->magic = __MUTEX_ACTIVE_MAGIC;
+	mutex->active.state = evl_shared_memory + bind.eids.state_offset;
+	mutex->active.fundle = bind.eids.fundle;
+	mutex->active.type = bind.type;
+	mutex->active.efd = efd;
+	mutex->magic = __MUTEX_ACTIVE_MAGIC;
 
 	return 0;
 fail:
@@ -130,7 +130,7 @@ int evl_new_mutex(struct evl_mutex *mutex, int clockfd,
 	int ret;
 
 	va_start(ap, fmt);
-	ret = init_mutex_vargs(&mutex->__mutex, EVL_MONITOR_PI,
+	ret = init_mutex_vargs(mutex, EVL_MONITOR_PI,
 			clockfd, 0, fmt, ap);
 	va_end(ap);
 
@@ -145,7 +145,7 @@ int evl_new_mutex_ceiling(struct evl_mutex *mutex, int clockfd,
 	int ret;
 
 	va_start(ap, fmt);
-	ret = init_mutex_vargs(&mutex->__mutex, EVL_MONITOR_PP,
+	ret = init_mutex_vargs(mutex, EVL_MONITOR_PP,
 			clockfd, ceiling, fmt, ap);
 	va_end(ap);
 
@@ -154,12 +154,11 @@ int evl_new_mutex_ceiling(struct evl_mutex *mutex, int clockfd,
 
 int evl_open_mutex(struct evl_mutex *mutex, const char *fmt, ...)
 {
-	struct evl_monitor *_mutex = &mutex->__mutex;
 	va_list ap;
 	int efd;
 
 	va_start(ap, fmt);
-	efd = open_mutex_vargs(_mutex, fmt, ap);
+	efd = open_mutex_vargs(mutex, fmt, ap);
 	va_end(ap);
 
 	return efd;
@@ -167,27 +166,25 @@ int evl_open_mutex(struct evl_mutex *mutex, const char *fmt, ...)
 
 int evl_close_mutex(struct evl_mutex *mutex)
 {
-	struct evl_monitor *mon = &mutex->__mutex;
 	int efd;
 
-	if (mon->magic != __MUTEX_ACTIVE_MAGIC)
+	if (mutex->magic != __MUTEX_ACTIVE_MAGIC)
 		return -EINVAL;
 
-	efd = mon->active.efd;
-	mon->active.efd = -1;
+	efd = mutex->active.efd;
+	mutex->active.efd = -1;
 	compiler_barrier();
 	close(efd);
 
-	mon->active.fundle = EVL_NO_HANDLE;
-	mon->active.state = NULL;
-	mon->magic = __MUTEX_DEAD_MAGIC;
+	mutex->active.fundle = EVL_NO_HANDLE;
+	mutex->active.state = NULL;
+	mutex->magic = __MUTEX_DEAD_MAGIC;
 
 	return 0;
 }
 
 static int try_lock(struct evl_mutex *mutex)
 {
-	struct evl_monitor *_mutex = &mutex->__mutex;
 	struct evl_user_window *u_window;
 	struct evl_monitor_state *gst;
 	bool protect = false;
@@ -198,20 +195,20 @@ static int try_lock(struct evl_mutex *mutex)
 	if (current == EVL_NO_HANDLE)
 		return -EPERM;
 
-	if (_mutex->magic == __MUTEX_UNINIT_MAGIC &&
-		(_mutex->uninit.type == EVL_MONITOR_PI ||
-			_mutex->uninit.type == EVL_MONITOR_PP)) {
-		ret = init_mutex(_mutex,
-				_mutex->uninit.type,
-				_mutex->uninit.clockfd,
-				_mutex->uninit.ceiling,
-				_mutex->uninit.name);
+	if (mutex->magic == __MUTEX_UNINIT_MAGIC &&
+		(mutex->uninit.type == EVL_MONITOR_PI ||
+			mutex->uninit.type == EVL_MONITOR_PP)) {
+		ret = init_mutex(mutex,
+				mutex->uninit.type,
+				mutex->uninit.clockfd,
+				mutex->uninit.ceiling,
+				mutex->uninit.name);
 		if (ret)
 			return ret;
-	} else if (_mutex->magic != __MUTEX_ACTIVE_MAGIC)
+	} else if (mutex->magic != __MUTEX_ACTIVE_MAGIC)
 		return -EINVAL;
 
-	gst = _mutex->active.state;
+	gst = mutex->active.state;
 
 	/*
 	 * Threads running in-band and/or enabling some debug features
@@ -219,7 +216,7 @@ static int try_lock(struct evl_mutex *mutex)
 	 */
 	mode = evl_get_current_mode();
 	if (!(mode & (T_INBAND|T_WEAK|T_DEBUG))) {
-		if (_mutex->active.type == EVL_MONITOR_PP) {
+		if (mutex->active.type == EVL_MONITOR_PP) {
 			u_window = evl_get_current_window();
 			/*
 			 * Can't nest lazy ceiling requests, have to
@@ -227,7 +224,7 @@ static int try_lock(struct evl_mutex *mutex)
 			 */
 			if (u_window->pp_pending != EVL_NO_HANDLE)
 				goto slow_path;
-			u_window->pp_pending = _mutex->active.fundle;
+			u_window->pp_pending = mutex->active.fundle;
 			protect = true;
 		}
 		ret = evl_fast_lock_mutex(&gst->u.gate.owner, current);
@@ -255,7 +252,6 @@ static int try_lock(struct evl_mutex *mutex)
 int evl_timedlock(struct evl_mutex *mutex,
 		const struct timespec *timeout)
 {
-	struct evl_monitor *_mutex = &mutex->__mutex;
 	struct evl_monitor_lockreq lreq;
 	int ret, cancel_type;
 
@@ -268,7 +264,7 @@ int evl_timedlock(struct evl_mutex *mutex,
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, &cancel_type);
 
 	do
-		ret = oob_ioctl(_mutex->active.efd, EVL_MONIOC_ENTER, &lreq);
+		ret = oob_ioctl(mutex->active.efd, EVL_MONIOC_ENTER, &lreq);
 	while (ret && errno == EINTR);
 
 	pthread_setcanceltype(cancel_type, NULL);
@@ -285,7 +281,6 @@ int evl_lock(struct evl_mutex *mutex)
 
 int evl_trylock(struct evl_mutex *mutex)
 {
-	struct evl_monitor *_mutex = &mutex->__mutex;
 	int ret;
 
 	ret = try_lock(mutex);
@@ -293,7 +288,7 @@ int evl_trylock(struct evl_mutex *mutex)
 		return ret;
 
 	do
-		ret = oob_ioctl(_mutex->active.efd, EVL_MONIOC_TRYENTER);
+		ret = oob_ioctl(mutex->active.efd, EVL_MONIOC_TRYENTER);
 	while (ret && errno == EINTR);
 
 	return ret ? -errno : 0;
@@ -301,16 +296,15 @@ int evl_trylock(struct evl_mutex *mutex)
 
 int evl_unlock(struct evl_mutex *mutex)
 {
-	struct evl_monitor *_mutex = &mutex->__mutex;
 	struct evl_user_window *u_window;
 	struct evl_monitor_state *gst;
 	fundle_t current;
 	int ret, mode;
 
-	if (_mutex->magic != __MUTEX_ACTIVE_MAGIC)
+	if (mutex->magic != __MUTEX_ACTIVE_MAGIC)
 		return -EINVAL;
 
-	gst = _mutex->active.state;
+	gst = mutex->active.state;
 	current = evl_get_current();
 	if (!evl_is_mutex_owner(&gst->u.gate.owner, current))
 		return -EPERM;
@@ -324,7 +318,7 @@ int evl_unlock(struct evl_mutex *mutex)
 		goto slow_path;
 
 	if (evl_fast_unlock_mutex(&gst->u.gate.owner, current)) {
-		if (_mutex->active.type == EVL_MONITOR_PP) {
+		if (mutex->active.type == EVL_MONITOR_PP) {
 			u_window = evl_get_current_window();
 			u_window->pp_pending = EVL_NO_HANDLE;
 		}
@@ -337,7 +331,7 @@ int evl_unlock(struct evl_mutex *mutex)
 	 * thread. Need to ask the kernel for proper release.
 	 */
 slow_path:
-	ret = oob_ioctl(_mutex->active.efd, EVL_MONIOC_EXIT);
+	ret = oob_ioctl(mutex->active.efd, EVL_MONIOC_EXIT);
 
 	return ret ? -errno : 0;
 }
@@ -345,7 +339,6 @@ slow_path:
 int evl_set_mutex_ceiling(struct evl_mutex *mutex,
 			unsigned int ceiling)
 {
-	struct evl_monitor *_mutex = &mutex->__mutex;
 	int ret;
 
 	if (ceiling == 0)
@@ -355,36 +348,34 @@ int evl_set_mutex_ceiling(struct evl_mutex *mutex,
 	if (ret < 0 || ceiling > ret)
 		return -EINVAL;
 
-	if (_mutex->magic == __MUTEX_UNINIT_MAGIC) {
-		if (_mutex->uninit.type != EVL_MONITOR_PP)
+	if (mutex->magic == __MUTEX_UNINIT_MAGIC) {
+		if (mutex->uninit.type != EVL_MONITOR_PP)
 			return -EINVAL;
-		_mutex->uninit.ceiling = ceiling;
+		mutex->uninit.ceiling = ceiling;
 		return 0;
 	}
 
-	if (_mutex->magic != __MUTEX_ACTIVE_MAGIC ||
-		_mutex->active.type != EVL_MONITOR_PP)
+	if (mutex->magic != __MUTEX_ACTIVE_MAGIC ||
+		mutex->active.type != EVL_MONITOR_PP)
 		return -EINVAL;
 
-	_mutex->active.state->u.gate.ceiling = ceiling;
+	mutex->active.state->u.gate.ceiling = ceiling;
 
 	return 0;
 }
 
 int evl_get_mutex_ceiling(struct evl_mutex *mutex)
 {
-	struct evl_monitor *_mutex = &mutex->__mutex;
-
-	if (_mutex->magic == __MUTEX_UNINIT_MAGIC) {
-		if (_mutex->uninit.type != EVL_MONITOR_PP)
+	if (mutex->magic == __MUTEX_UNINIT_MAGIC) {
+		if (mutex->uninit.type != EVL_MONITOR_PP)
 			return -EINVAL;
 
-		return _mutex->uninit.ceiling;
+		return mutex->uninit.ceiling;
 	}
 
-	if (_mutex->magic != __MUTEX_ACTIVE_MAGIC ||
-		_mutex->active.type != EVL_MONITOR_PP)
+	if (mutex->magic != __MUTEX_ACTIVE_MAGIC ||
+		mutex->active.type != EVL_MONITOR_PP)
 		return -EINVAL;
 
-	return _mutex->active.state->u.gate.ceiling;
+	return mutex->active.state->u.gate.ceiling;
 }

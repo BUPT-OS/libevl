@@ -7,35 +7,49 @@
 #ifndef _EVENLESS_MUTEX_H
 #define _EVENLESS_MUTEX_H
 
-#include <evenless/monitor.h>
+#include <time.h>
+#include <linux/types.h>
+#include <evenless/atomic.h>
+#include <uapi/evenless/types.h>
+#include <uapi/evenless/monitor.h>
 
 struct evl_mutex {
-	struct evl_monitor __mutex;
+	unsigned int magic;
+	union {
+		struct {
+			fundle_t fundle;
+			struct evl_monitor_state *state;
+			int efd;
+			int type;
+		} active;
+		struct {
+			const char *name;
+			int clockfd;
+			unsigned int ceiling;
+			int type;
+		} uninit;
+	};
 };
 
 #define __MUTEX_UNINIT_MAGIC	0xfe11fe11
 
-#define EVL_MUTEX_INITIALIZER(__name, __clock)  {		\
-		.__mutex = {					\
-			.magic = __MUTEX_UNINIT_MAGIC,		\
-			.uninit = {				\
-				.type = EVL_MONITOR_PI,		\
-				.name = (__name),		\
-				.clockfd = (__clock),		\
-				.ceiling = 0,			\
-			}					\
-		}						\
+#define EVL_MUTEX_INITIALIZER(__name, __clock)  {	\
+		.magic = __MUTEX_UNINIT_MAGIC,		\
+		.uninit = {				\
+			.type = EVL_MONITOR_PI,		\
+			.name = (__name),		\
+			.clockfd = (__clock),		\
+			.ceiling = 0,			\
+		}					\
 	}
 
 #define EVL_MUTEX_CEILING_INITIALIZER(__name, __clock, __ceiling)  {	\
-		.__mutex = {						\
-			.magic = __MUTEX_UNINIT_MAGIC,			\
-			.uninit = {					\
-				.type = EVL_MONITOR_PP,			\
-				.name = (__name),			\
-				.clockfd = (__clock),			\
-				.ceiling = (__ceiling),			\
-			}						\
+		.magic = __MUTEX_UNINIT_MAGIC,				\
+		.uninit = {						\
+			.type = EVL_MONITOR_PP,				\
+			.name = (__name),				\
+			.clockfd = (__clock),				\
+			.ceiling = (__ceiling),				\
 		}							\
 	}
 
