@@ -66,6 +66,8 @@ extern int (*arch_clock_gettime)(clockid_t clk_id,
 
 extern void *evl_shared_memory;
 
+extern int evl_ctlfd;
+
 extern int evl_mono_clockfd;
 
 extern int evl_real_clockfd;

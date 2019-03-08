@@ -32,7 +32,7 @@ static struct sigaction orig_sigshadow,	orig_sigdebug;
 
 static struct evl_core_info core_info;
 
-static int evl_ctlfd = -1;
+int evl_ctlfd = -1;
 
 void *evl_shared_memory = NULL;
 
