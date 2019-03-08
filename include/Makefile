@@ -27,5 +27,5 @@ clean clobber mrproper:
 
 install: all
 	$(Q)$(MKDIR_P) $(DESTDIR)/$(includedir)/uapi
-	$(Q)(cd $(O_UAPI) && find -L evenless \! \( -name '*~' \) -type f | $(CPIO) -Lpdum --quiet $(DESTDIR)/$(includedir)/uapi)
-	$(Q)(find evenless \! \( -name '*~' \) -type f | $(CPIO) -Lpdum --quiet $(DESTDIR)/$(includedir))
+	$(call inst-cmd,uapi-headers,cd $(O_UAPI) && find -L evenless \! \( -name '*~' \) -type f | $(CPIO) -Lpdum --quiet $(DESTDIR)/$(includedir)/uapi)
+	$(call inst-cmd,interface-headers,find evenless \! \( -name '*~' \) -type f | $(CPIO) -Lpdum --quiet $(DESTDIR)/$(includedir))
