@@ -135,6 +135,9 @@ int evl_close_condvar(struct evl_condvar *cv)
 {
 	int efd;
 
+	if (cv->magic == __CONDVAR_UNINIT_MAGIC)
+		return 0;
+
 	if (cv->magic != __CONDVAR_ACTIVE_MAGIC)
 		return -EINVAL;
 
