@@ -4,15 +4,15 @@
  * Copyright (C) 2018 Philippe Gerum  <rpm@xenomai.org>
  */
 
-#ifndef _EVENLESS_CLOCK_H
-#define _EVENLESS_CLOCK_H
+#ifndef _EVL_CLOCK_H
+#define _EVL_CLOCK_H
 
 #include <time.h>
 #include <errno.h>
 #include <sys/timex.h>
 #include <sys/ioctl.h>
-#include <evenless/syscall.h>
-#include <uapi/evenless/clock.h>
+#include <evl/syscall.h>
+#include <uapi/evl/clock.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -47,4 +47,4 @@ int evl_udelay(unsigned int usecs);
 }
 #endif
 
-#endif /* _EVENLESS_CLOCK_H */
+#endif /* _EVL_CLOCK_H */

@@ -23,9 +23,9 @@
 #include <error.h>
 #include <errno.h>
 #include <sys/ioctl.h>
-#include <evenless/evl.h>
-#include <uapi/evenless/devices/latmus.h>
-#include <uapi/evenless/signal.h>
+#include <evl/evl.h>
+#include <uapi/evl/devices/latmus.h>
+#include <uapi/evl/signal.h>
 
 static int test_irqlat, test_klat, test_ulat;
 

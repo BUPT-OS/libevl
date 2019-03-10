@@ -4,8 +4,8 @@
  * Copyright (C) 2018 Philippe Gerum  <rpm@xenomai.org>
  */
 
-#ifndef _EVENLESS_ATOMIC_H
-#define _EVENLESS_ATOMIC_H
+#ifndef _EVL_ATOMIC_H
+#define _EVL_ATOMIC_H
 
 #include <linux/types.h>
 
@@ -34,4 +34,4 @@ static inline void atomic_set(atomic_t *ptr, long val)
 
 #define compiler_barrier()  __asm__ __volatile__("": : :"memory")
 
-#endif /* _EVENLESS_ATOMIC_H */
+#endif /* _EVL_ATOMIC_H */

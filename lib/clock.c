@@ -10,9 +10,9 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <sys/timex.h>
-#include <evenless/clock.h>
-#include <evenless/thread.h>
-#include <uapi/evenless/clock.h>
+#include <evl/clock.h>
+#include <evl/thread.h>
+#include <uapi/evl/clock.h>
 #include "internal.h"
 
 int evl_mono_clockfd, evl_real_clockfd;

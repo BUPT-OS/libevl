@@ -14,7 +14,7 @@ Prerequisites:
 
 - the UAPI headers from the target kernel fit with the EVL core. We
   need access to the contents of include/uapi/asm/ and
-  include/uapi/evenless/ from the source Linux tree.
+  include/uapi/evl/ from the source Linux tree.
 
 Command:
 
@@ -42,22 +42,22 @@ Other build variables
 D={0|1}			Disable|enable debug build, i.e. -g -O0 vs -O2	[0]
 O=$output_dir		Generate binary output files into $output_dir	[.]
 V={0|1}			Set build verbosity level, 0 is terse		[0]
-DESTDIR=$install_dir	Install library and binaries into $install_dir	[/usr/evenless]
+DESTDIR=$install_dir	Install library and binaries into $install_dir	[/usr/evl]
 
 Build command examples
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Say the library source code is located at ~/git/evenless, and the
+Say the library source code is located at ~/git/evl, and the
 kernel sources featuring the EVL core is located at
-~/git/linux-evenless. You could build+install the EVL library and
+~/git/linux-evl. You could build+install the EVL library and
 utilities directly to a staging directory at
-/nfsroot/<machine>/usr/evenless as follows:
+/nfsroot/<machine>/usr/evl as follows:
 
 $ mkdir /tmp/build-imx6q && cd /tmp/build-imx6q
-$ make -C ~/git/evenless O=$PWD ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- UAPI=~/git/linux-evenless DESTDIR=/nfsroot/imx6q/usr/evenless install
+$ make -C ~/git/evl O=$PWD ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- UAPI=~/git/linux-evl DESTDIR=/nfsroot/imx6q/usr/evl install
 
 or,
 
 $ mkdir /tmp/build-hikey
-$ cd ~/git/evenless
-$ make O=/tmp/build-hikey ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- UAPI=~/git/linux-evenless DESTDIR=/nfsroot/hikey/usr/evenless install
+$ cd ~/git/evl
+$ make O=/tmp/build-hikey ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- UAPI=~/git/linux-evl DESTDIR=/nfsroot/hikey/usr/evl install

@@ -4,8 +4,8 @@
  * Copyright (C) 2019 Philippe Gerum  <rpm@xenomai.org>
  */
 
-#ifndef _EVENLESS_UTILS_H
-#define _EVENLESS_UTILS_H
+#ifndef _EVL_UTILS_H
+#define _EVL_UTILS_H
 
 #include <sys/types.h>
 
@@ -26,4 +26,4 @@ int evl_sched_control(int policy,
 }
 #endif
 
-#endif /* _EVENLESS_UTILS_H */
+#endif /* _EVL_UTILS_H */

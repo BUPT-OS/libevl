@@ -15,11 +15,11 @@
 #include <memory.h>
 #include <pthread.h>
 #include <sched.h>
-#include <evenless/evl.h>
-#include <evenless/thread.h>
+#include <evl/evl.h>
+#include <evl/thread.h>
 #include <linux/types.h>
-#include <uapi/evenless/factory.h>
-#include <uapi/evenless/control.h>
+#include <uapi/evl/factory.h>
+#include <uapi/evl/control.h>
 #include "internal.h"
 
 __thread __attribute__ ((tls_model (EVL_TLS_MODEL)))

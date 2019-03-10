@@ -61,16 +61,16 @@ if test x$enable = xtrue; then
    if test x$full = xfalse; then
        echo 1 > events/irq/enable
        echo 1 > events/power/cpu_idle/enable
-       echo 1 > events/evenless/enable
+       echo 1 > events/evl/enable
    else
        echo function > current_tracer
    fi
    echo 1 > ${pcpu}snapshot
-   echo 1 > events/evenless/evl_timer_shot/enable
-   echo \!snapshot > events/evenless/evl_trigger/trigger
-   echo snapshot > events/evenless/evl_trigger/trigger
-   echo 1 > events/evenless/evl_trigger/enable
-   echo 1 > events/evenless/evl_latspot/enable
+   echo 1 > events/evl/evl_timer_shot/enable
+   echo \!snapshot > events/evl/evl_trigger/trigger
+   echo snapshot > events/evl/evl_trigger/trigger
+   echo 1 > events/evl/evl_trigger/enable
+   echo 1 > events/evl/evl_latspot/enable
    echo "tracing enabled"
    print=false
 elif test x$disable = xtrue; then

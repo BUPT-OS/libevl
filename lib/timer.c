@@ -7,8 +7,8 @@
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <errno.h>
-#include <evenless/syscall.h>
-#include <evenless/timer.h>
+#include <evl/syscall.h>
+#include <evl/timer.h>
 #include "internal.h"
 
 int evl_new_timer(int clockfd)

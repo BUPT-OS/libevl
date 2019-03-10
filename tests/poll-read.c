@@ -8,10 +8,10 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <evenless/thread.h>
-#include <evenless/xbuf.h>
-#include <evenless/clock.h>
-#include <evenless/poll.h>
+#include <evl/thread.h>
+#include <evl/xbuf.h>
+#include <evl/clock.h>
+#include <evl/poll.h>
 #include "helpers.h"
 
 static const char *msg[] = {

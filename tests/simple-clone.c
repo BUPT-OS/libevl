@@ -7,7 +7,7 @@
 #include <error.h>
 #include <errno.h>
 #include <unistd.h>
-#include <evenless/thread.h>
+#include <evl/thread.h>
 
 int main(int argc, char *argv[])
 {

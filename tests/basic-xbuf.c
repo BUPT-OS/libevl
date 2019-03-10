@@ -7,8 +7,8 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <evenless/thread.h>
-#include <evenless/xbuf.h>
+#include <evl/thread.h>
+#include <evl/xbuf.h>
 #include "helpers.h"
 
 static void *peer(void *arg)

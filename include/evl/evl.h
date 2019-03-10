@@ -4,20 +4,20 @@
  * Copyright (C) 2018 Philippe Gerum  <rpm@xenomai.org>
  */
 
-#ifndef _EVENLESS_EVL_H
-#define _EVENLESS_EVL_H
+#ifndef _EVL_EVL_H
+#define _EVL_EVL_H
 
 #include <signal.h>
-#include <evenless/clock.h>
-#include <evenless/mutex.h>
-#include <evenless/condvar.h>
-#include <evenless/sem.h>
-#include <evenless/syscall.h>
-#include <evenless/thread.h>
-#include <evenless/xbuf.h>
-#include <evenless/poll.h>
-#include <evenless/proxy.h>
-#include <evenless/utils.h>
+#include <evl/clock.h>
+#include <evl/mutex.h>
+#include <evl/condvar.h>
+#include <evl/sem.h>
+#include <evl/syscall.h>
+#include <evl/thread.h>
+#include <evl/xbuf.h>
+#include <evl/poll.h>
+#include <evl/proxy.h>
+#include <evl/utils.h>
 
 #define __EVL__  0	/* API revision */
 
@@ -37,4 +37,4 @@ unsigned int evl_detect_fpu(void);
 }
 #endif
 
-#endif /* _EVENLESS_EVL_H */
+#endif /* _EVL_EVL_H */

@@ -12,11 +12,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <linux/types.h>
-#include <uapi/evenless/factory.h>
+#include <uapi/evl/factory.h>
 #include "internal.h"
 
 /*
- * Creating a Evenless element is done by the following steps:
+ * Creating an EVL element is done by the following steps:
  *
  * 1. open the clone device of the proper element class.
  *
@@ -36,7 +36,7 @@ int create_evl_element(const char *type, const char *name,
 	char *fdevname, *edevname;
 	int ffd, efd, ret;
 
-	ret = asprintf(&fdevname, "/dev/evenless/%s/clone", type);
+	ret = asprintf(&fdevname, "/dev/evl/%s/clone", type);
 	if (ret < 0)
 		return -ENOMEM;
 
@@ -55,10 +55,10 @@ int create_evl_element(const char *type, const char *name,
 	}
 
 	if (name)
-		ret = asprintf(&edevname, "/dev/evenless/%s/%s",
+		ret = asprintf(&edevname, "/dev/evl/%s/%s",
 			       type, name);
 	else
-		ret = asprintf(&edevname, "/dev/evenless/%s/%d",
+		ret = asprintf(&edevname, "/dev/evl/%s/%d",
 			       type, clone.eids.minor);
 	if (ret < 0) {
 		ret = -ENOMEM;
@@ -108,7 +108,7 @@ int open_evl_element_vargs(const char *type,
 	if (ret < 0)
 		return -ENOMEM;
 
-	ret = asprintf(&path, "/dev/evenless/%s/%s", type, name);
+	ret = asprintf(&path, "/dev/evl/%s/%s", type, name);
 	free(name);
 	if (ret < 0)
 		return -ENOMEM;
@@ -160,7 +160,7 @@ int create_evl_file(const char *type)
 	char *devname;
 	int fd, ret;
 
-	ret = asprintf(&devname, "/dev/evenless/%s", type);
+	ret = asprintf(&devname, "/dev/evl/%s", type);
 	if (ret < 0)
 		return -ENOMEM;
 

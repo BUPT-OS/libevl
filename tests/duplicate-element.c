@@ -7,9 +7,9 @@
 #include <error.h>
 #include <errno.h>
 #include <unistd.h>
-#include <evenless/clock.h>
-#include <evenless/sem.h>
-#include <evenless/evl.h>
+#include <evl/clock.h>
+#include <evl/sem.h>
+#include <evl/evl.h>
 #include "helpers.h"
 
 int main(int argc, char *argv[])

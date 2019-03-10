@@ -14,13 +14,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
-#include <evenless/atomic.h>
-#include <evenless/evl.h>
-#include <evenless/sem.h>
-#include <evenless/thread.h>
-#include <evenless/syscall.h>
+#include <evl/atomic.h>
+#include <evl/evl.h>
+#include <evl/sem.h>
+#include <evl/thread.h>
+#include <evl/syscall.h>
 #include <linux/types.h>
-#include <uapi/evenless/factory.h>
+#include <uapi/evl/factory.h>
 #include "internal.h"
 
 #define __SEM_ACTIVE_MAGIC	0xcb13cb13

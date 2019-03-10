@@ -4,14 +4,14 @@
  * Copyright (C) 2018 Philippe Gerum  <rpm@xenomai.org>
  */
 
-#ifndef _EVENLESS_THREAD_H
-#define _EVENLESS_THREAD_H
+#ifndef _EVL_THREAD_H
+#define _EVL_THREAD_H
 
 #include <linux/types.h>
 #include <limits.h>
-#include <evenless/syscall.h>
-#include <uapi/evenless/thread.h>
-#include <uapi/evenless/sched.h>
+#include <evl/syscall.h>
+#include <uapi/evl/thread.h>
+#include <uapi/evl/sched.h>
 
 /* Enable dlopen() on libevl.so. */
 #define EVL_TLS_MODEL	"global-dynamic"
@@ -62,4 +62,4 @@ int evl_get_state(int efd, struct evl_thread_state *statebuf);
 }
 #endif
 
-#endif /* _EVENLESS_THREAD_H */
+#endif /* _EVL_THREAD_H */

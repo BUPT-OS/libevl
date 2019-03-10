@@ -4,13 +4,13 @@
  * Copyright (C) 2018 Philippe Gerum  <rpm@xenomai.org>
  */
 
-#ifndef _EVENLESS_XBUF_H
-#define _EVENLESS_XBUF_H
+#ifndef _EVL_XBUF_H
+#define _EVL_XBUF_H
 
 #include <sys/types.h>
-#include <evenless/syscall.h>
+#include <evl/syscall.h>
 #include <linux/types.h>
-#include <uapi/evenless/xbuf.h>
+#include <uapi/evl/xbuf.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,4 +23,4 @@ int evl_new_xbuf(size_t i_bufsz, size_t o_bufsz,
 }
 #endif
 
-#endif /* _EVENLESS_XBUF_H */
+#endif /* _EVL_XBUF_H */

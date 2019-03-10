@@ -11,7 +11,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <evenless/proxy.h>
+#include <evl/proxy.h>
 
 static inline int do_memfd_create(const char *name, int flags)
 {
@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 	void *p;
 
 	if (argc > 1) {
-		ret = chdir("/dev/evenless/proxy");
+		ret = chdir("/dev/evl/proxy");
 		(void)ret;
 		efd = open(argv[1], O_RDWR);
 		if (efd < 0)

@@ -9,8 +9,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <evenless/proxy.h>
-#include <evenless/syscall.h>
+#include <evl/proxy.h>
+#include <evl/syscall.h>
 #include "internal.h"
 
 int evl_new_proxy(int fd, size_t bufsz, const char *fmt, ...)

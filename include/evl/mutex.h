@@ -4,14 +4,14 @@
  * Copyright (C) 2019 Philippe Gerum  <rpm@xenomai.org>
  */
 
-#ifndef _EVENLESS_MUTEX_H
-#define _EVENLESS_MUTEX_H
+#ifndef _EVL_MUTEX_H
+#define _EVL_MUTEX_H
 
 #include <time.h>
 #include <linux/types.h>
-#include <evenless/atomic.h>
-#include <uapi/evenless/types.h>
-#include <uapi/evenless/monitor.h>
+#include <evl/atomic.h>
+#include <uapi/evl/types.h>
+#include <uapi/evl/monitor.h>
 
 struct evl_mutex {
 	unsigned int magic;
@@ -87,4 +87,4 @@ int evl_close_mutex(struct evl_mutex *mutex);
 }
 #endif
 
-#endif /* _EVENLESS_MUTEX_H */
+#endif /* _EVL_MUTEX_H */

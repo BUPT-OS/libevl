@@ -14,12 +14,12 @@
 #include <pthread.h>
 #include <string.h>
 #include <stdio.h>
-#include <evenless/evl.h>
-#include <evenless/syscall.h>
-#include <evenless/thread.h>
+#include <evl/evl.h>
+#include <evl/syscall.h>
+#include <evl/thread.h>
 #include <linux/types.h>
-#include <uapi/evenless/control.h>
-#include <uapi/evenless/signal.h>
+#include <uapi/evl/control.h>
+#include <uapi/evl/signal.h>
 #include "internal.h"
 
 #define STDLOG_SIZE	32768
@@ -61,7 +61,7 @@ static inline int generic_init(void)
 	 * sign that we have no EVL core in there. Return with
 	 * -ENOSYS to give a clear hint about this.
 	 */
-	ctlfd = open("/dev/evenless/control", O_RDWR);
+	ctlfd = open("/dev/evl/control", O_RDWR);
 	if (ctlfd < 0)
 		return errno == -ENOENT ? -ENOSYS : -errno;
 
@@ -164,7 +164,7 @@ static void sigshadow_handler(int sig, siginfo_t *si, void *ctxt)
 
 	if ((!(sa->sa_flags & SA_SIGINFO) && sa->sa_handler == NULL) ||
 	    ((sa->sa_flags & SA_SIGINFO) && sa->sa_sigaction == NULL))
-		return;		/* Not sent by the Evenless core */
+		return;		/* Not sent by the EVL core */
 
 	pthread_sigmask(SIG_SETMASK, &sa->sa_mask, &omask);
 

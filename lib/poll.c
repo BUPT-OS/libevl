@@ -9,8 +9,8 @@
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
-#include <evenless/syscall.h>
-#include <evenless/poll.h>
+#include <evl/syscall.h>
+#include <evl/poll.h>
 #include "internal.h"
 
 int evl_new_poll(void)

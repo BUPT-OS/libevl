@@ -11,11 +11,11 @@
 #include <stdio.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <evenless/thread.h>
-#include <evenless/syscall.h>
-#include <evenless/utils.h>
-#include <uapi/evenless/sched.h>
-#include <uapi/evenless/control.h>
+#include <evl/thread.h>
+#include <evl/syscall.h>
+#include <evl/utils.h>
+#include <uapi/evl/sched.h>
+#include <uapi/evl/control.h>
 #include "internal.h"
 
 ssize_t evl_log(int fd, const void *buf, size_t len)

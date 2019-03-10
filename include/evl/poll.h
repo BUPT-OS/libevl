@@ -4,13 +4,13 @@
  * Copyright (C) 2019 Philippe Gerum  <rpm@xenomai.org>
  */
 
-#ifndef _EVENLESS_POLL_H
-#define _EVENLESS_POLL_H
+#ifndef _EVL_POLL_H
+#define _EVL_POLL_H
 
 #include <sys/types.h>
 #include <sys/poll.h>
 #include <linux/types.h>
-#include <uapi/evenless/poll.h>
+#include <uapi/evl/poll.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,4 +36,4 @@ int evl_poll(int efd, struct evl_poll_event *pollset,
 }
 #endif
 
-#endif /* _EVENLESS_POLL_H */
+#endif /* _EVL_POLL_H */

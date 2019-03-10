@@ -4,12 +4,12 @@
  * Copyright (C) 2019 Philippe Gerum  <rpm@xenomai.org>
  */
 
-#ifndef _EVENLESS_PROXY_H
-#define _EVENLESS_PROXY_H
+#ifndef _EVL_PROXY_H
+#define _EVL_PROXY_H
 
 #include <sys/types.h>
 #include <linux/types.h>
-#include <uapi/evenless/proxy.h>
+#include <uapi/evl/proxy.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,4 +22,4 @@ int evl_new_proxy(int fd, size_t bufsz,
 }
 #endif
 
-#endif /* _EVENLESS_PROXY_H */
+#endif /* _EVL_PROXY_H */

@@ -4,12 +4,12 @@
  * Copyright (C) 2019 Philippe Gerum  <rpm@xenomai.org>
  */
 
-#ifndef _EVENLESS_TIMER_H
-#define _EVENLESS_TIMER_H
+#ifndef _EVL_TIMER_H
+#define _EVL_TIMER_H
 
 #include <time.h>
 #include <linux/types.h>
-#include <uapi/evenless/clock.h>
+#include <uapi/evl/clock.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,4 +28,4 @@ int evl_get_timer(int efd,
 }
 #endif
 
-#endif /* _EVENLESS_TIMER_H */
+#endif /* _EVL_TIMER_H */

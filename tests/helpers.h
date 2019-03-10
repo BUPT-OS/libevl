@@ -2,8 +2,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-#ifndef _EVENLESS_TESTS_HELPERS_H
-#define _EVENLESS_TESTS_HELPERS_H
+#ifndef _EVL_TESTS_HELPERS_H
+#define _EVL_TESTS_HELPERS_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -114,4 +114,4 @@ void timespec_add_ns(struct timespec *__restrict r,
 		const struct timespec *__restrict t,
 		long ns);
 
-#endif /* !_EVENLESS_TESTS_HELPERS_H */
+#endif /* !_EVL_TESTS_HELPERS_H */

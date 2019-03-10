@@ -8,7 +8,7 @@ CC		= $(CROSS_COMPILE)gcc
 LD		= $(CROSS_COMPILE)ld
 AR		= $(CROSS_COMPILE)ar
 UAPI		?= /usr/include
-DESTDIR		?= /usr/evenless
+DESTDIR		?= /usr/evl
 
 INSTALL		?= install
 INSTALL_PROGRAM	?= $(INSTALL)

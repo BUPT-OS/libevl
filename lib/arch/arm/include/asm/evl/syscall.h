@@ -4,12 +4,12 @@
  * Copyright (C) 2018 Philippe Gerum  <rpm@xenomai.org>
  */
 
-#ifndef _LIB_EVENLESS_ARM_SYSCALL_H
-#define _LIB_EVENLESS_ARM_SYSCALL_H
+#ifndef _LIB_EVL_ARM_SYSCALL_H
+#define _LIB_EVL_ARM_SYSCALL_H
 
 #include <uapi/asm/dovetail.h>
 
-#define evenless_syscall3(__nr, __a0, __a1, __a2)		\
+#define evl_syscall3(__nr, __a0, __a1, __a2)		\
 	({							\
 		register unsigned long __asc __asm__("r7");	\
 		register unsigned long __res __asm__("r0");	\
@@ -31,4 +31,4 @@
 		__res;						\
 	})
 
-#endif /* !_LIB_EVENLESS_ARM_SYSCALL_H */
+#endif /* !_LIB_EVL_ARM_SYSCALL_H */

@@ -8,9 +8,9 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <stdlib.h>
-#include <evenless/thread.h>
-#include <evenless/clock.h>
-#include <evenless/sem.h>
+#include <evl/thread.h>
+#include <evl/clock.h>
+#include <evl/sem.h>
 #include "helpers.h"
 
 struct test_context {

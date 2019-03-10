@@ -4,14 +4,14 @@
  * Copyright (C) 2018 Philippe Gerum  <rpm@xenomai.org>
  */
 
-#ifndef _EVENLESS_SEM_H
-#define _EVENLESS_SEM_H
+#ifndef _EVL_SEM_H
+#define _EVL_SEM_H
 
 #include <time.h>
-#include <evenless/atomic.h>
+#include <evl/atomic.h>
 #include <linux/types.h>
-#include <uapi/evenless/types.h>
-#include <uapi/evenless/monitor.h>
+#include <uapi/evl/types.h>
+#include <uapi/evl/monitor.h>
 
 struct evl_thread;
 
@@ -70,4 +70,4 @@ int evl_getval(struct evl_sem *sem);
 }
 #endif
 
-#endif /* _EVENLESS_SEM_H */
+#endif /* _EVL_SEM_H */

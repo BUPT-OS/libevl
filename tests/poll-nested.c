@@ -8,10 +8,10 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <evenless/thread.h>
-#include <evenless/clock.h>
-#include <evenless/poll.h>
-#include <evenless/evl.h>
+#include <evl/thread.h>
+#include <evl/clock.h>
+#include <evl/poll.h>
+#include <evl/evl.h>
 #include "helpers.h"
 
 int main(int argc, char *argv[])

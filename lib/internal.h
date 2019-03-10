@@ -4,13 +4,13 @@
  * Copyright (C) 2018 Philippe Gerum  <rpm@xenomai.org>
  */
 
-#ifndef _LIB_EVENLESS_INTERNAL_H
-#define _LIB_EVENLESS_INTERNAL_H
+#ifndef _LIB_EVL_INTERNAL_H
+#define _LIB_EVL_INTERNAL_H
 
 #include <time.h>
 #include <stdarg.h>
-#include <evenless/thread.h>
-#include <uapi/evenless/types.h>
+#include <evl/thread.h>
+#include <uapi/evl/types.h>
 
 /*
  * Length of per-thread print formatting buffer used by evl_printf().
@@ -72,4 +72,4 @@ extern int evl_mono_clockfd;
 
 extern int evl_real_clockfd;
 
-#endif /* _LIB_EVENLESS_INTERNAL_H */
+#endif /* _LIB_EVL_INTERNAL_H */

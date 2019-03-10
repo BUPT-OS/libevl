@@ -24,9 +24,9 @@
 #include <setjmp.h>
 #include <getopt.h>
 #include <sys/ioctl.h>
-#include <evenless/evl.h>
-#include <uapi/asm/evenless/fptest.h>
-#include <uapi/evenless/devices/hectic.h>
+#include <evl/evl.h>
+#include <uapi/asm/evl/fptest.h>
+#include <uapi/evl/devices/hectic.h>
 
 static unsigned int nr_cpus;
 

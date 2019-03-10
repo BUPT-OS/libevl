@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
-#include <evenless/xbuf.h>
+#include <evl/xbuf.h>
 #include "internal.h"
 
 int evl_new_xbuf(size_t i_bufsz, size_t o_bufsz,

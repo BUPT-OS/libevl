@@ -6,8 +6,8 @@
 #include <stdio.h>
 #include <errno.h>
 #include <unistd.h>
-#include <evenless/proxy.h>
-#include <evenless/thread.h>
+#include <evl/proxy.h>
+#include <evl/thread.h>
 
 int main(int argc, char *argv[])
 {

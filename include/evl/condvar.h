@@ -4,14 +4,14 @@
  * Copyright (C) 2019 Philippe Gerum  <rpm@xenomai.org>
  */
 
-#ifndef _EVENLESS_CONDVAR_H
-#define _EVENLESS_CONDVAR_H
+#ifndef _EVL_CONDVAR_H
+#define _EVL_CONDVAR_H
 
 #include <time.h>
 #include <linux/types.h>
-#include <evenless/atomic.h>
-#include <uapi/evenless/types.h>
-#include <uapi/evenless/monitor.h>
+#include <evl/atomic.h>
+#include <uapi/evl/types.h>
+#include <uapi/evl/monitor.h>
 
 struct evl_condvar {
 	unsigned int magic;
@@ -69,4 +69,4 @@ int evl_close_condvar(struct evl_condvar *cv);
 }
 #endif
 
-#endif /* _EVENLESS_CONDVAR_H */
+#endif /* _EVL_CONDVAR_H */

@@ -8,9 +8,9 @@
 #include <error.h>
 #include <errno.h>
 #include <unistd.h>
-#include <evenless/thread.h>
-#include <evenless/timer.h>
-#include <evenless/clock.h>
+#include <evl/thread.h>
+#include <evl/timer.h>
+#include <evl/clock.h>
 #include "helpers.h"
 
 int main(int argc, char *argv[])

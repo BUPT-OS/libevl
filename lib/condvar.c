@@ -16,14 +16,14 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <sched.h>
-#include <evenless/evl.h>
-#include <evenless/mutex.h>
-#include <evenless/condvar.h>
-#include <evenless/thread.h>
-#include <evenless/syscall.h>
+#include <evl/evl.h>
+#include <evl/mutex.h>
+#include <evl/condvar.h>
+#include <evl/thread.h>
+#include <evl/syscall.h>
 #include <linux/types.h>
-#include <uapi/evenless/factory.h>
-#include <uapi/evenless/mutex.h>
+#include <uapi/evl/factory.h>
+#include <uapi/evl/mutex.h>
 #include "internal.h"
 
 #define __CONDVAR_ACTIVE_MAGIC	0xef55ef55

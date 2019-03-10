@@ -12,4 +12,4 @@
 #define git_hash  " -- " GIT_STAMP
 #endif
 
-const char *libevenless_version_string = "evl." LIBSERIAL git_hash;
+const char *libevl_version_string = "evl." LIBSERIAL git_hash;

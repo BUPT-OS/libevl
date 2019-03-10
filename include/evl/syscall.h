@@ -4,8 +4,8 @@
  * Copyright (C) 2018 Philippe Gerum  <rpm@xenomai.org>
  */
 
-#ifndef _EVENLESS_SYSCALL_H
-#define _EVENLESS_SYSCALL_H
+#ifndef _EVL_SYSCALL_H
+#define _EVL_SYSCALL_H
 
 #include <sys/types.h>
 
@@ -23,4 +23,4 @@ int oob_ioctl(int efd, unsigned long request, ...);
 }
 #endif
 
-#endif /* _EVENLESS_SYSCALL_H */
+#endif /* _EVL_SYSCALL_H */
