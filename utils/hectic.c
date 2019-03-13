@@ -204,6 +204,9 @@ static void display_switches_count(struct cpu_tasks *cpu, struct timespec *now)
 	static unsigned nlines = 0;
 	__u32 switches_count;
 
+	if (cpu->tasks_count < 2) /* Nothing but the switcher/sleeper */
+		return;
+
 	if (ioctl(cpu->fd,
 		  EVL_HECIOC_GET_SWITCHES_COUNT,&switches_count)) {
 		perror("sleeper: ioctl(EVL_HECIOC_GET_SWITCHES_COUNT)");
