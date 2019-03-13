@@ -784,9 +784,10 @@ static int task_create(struct cpu_tasks *cpu,
 	pthread_attr_t attr;
 	int err;
 
+	param->swt.flags = 0;
+
 	switch(param->type) {
 	case RTK:
-		param->swt.flags = 0;
 		err = ioctl(cpu->fd, EVL_HECIOC_CREATE_KTASK, &param->swt);
 		if (err) {
 			perror("ioctl(EVL_HECIOC_CREATE_KTASK)");
@@ -797,9 +798,10 @@ static int task_create(struct cpu_tasks *cpu,
 	case RTUP:
 	case RTUS:
 	case RTUO:
+		param->swt.flags = HECTIC_OOB_WAIT;
+		/* fallthrough wanted. */
 	case SLEEPER:
 	case SWITCHER:
-		param->swt.flags = 0;
 		err = ioctl(cpu->fd, EVL_HECIOC_REGISTER_UTASK, &param->swt);
 		if (err) {
 			perror("ioctl(EVL_HECIOC_REGISTER_UTASK)");
