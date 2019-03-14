@@ -63,7 +63,6 @@ int evl_new_sem(struct evl_sem *sem, int clockfd, int initval,
 int evl_open_sem(struct evl_sem *sem, const char *fmt, ...)
 {
 	struct evl_monitor_binding bind;
-	struct evl_element_ids eids;
 	int ret, efd;
 	va_list ap;
 
@@ -77,8 +76,8 @@ int evl_open_sem(struct evl_sem *sem, const char *fmt, ...)
 	if (ret)
 		return -errno;
 
-	sem->active.state = evl_shared_memory + eids.state_offset;
-	sem->active.fundle = eids.fundle;
+	sem->active.state = evl_shared_memory + bind.eids.state_offset;
+	sem->active.fundle = bind.eids.fundle;
 	sem->active.efd = efd;
 	sem->magic = __SEM_ACTIVE_MAGIC;
 
