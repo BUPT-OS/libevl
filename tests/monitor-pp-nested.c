@@ -43,11 +43,11 @@ int main(int argc, char *argv[])
 	/* EVL inherits the inband scheduling params upon attachment. */
 	__Tcall_assert(tfd, evl_attach_self("monitor-pp-nested:%d", getpid()));
 
-	name = get_unique_name("monitor", 0);
+	name = get_unique_name(EVL_MONITOR_DEV, 0);
 	__Tcall_assert(gfd, evl_new_mutex_ceiling(&lock_medium,
 				EVL_CLOCK_MONOTONIC, MEDIUM_PRIO, name));
 
-	name = get_unique_name("monitor", 1);
+	name = get_unique_name(EVL_MONITOR_DEV, 1);
 	__Tcall_assert(gfd, evl_new_mutex_ceiling(&lock_high,
 				EVL_CLOCK_MONOTONIC, HIGH_PRIO, name));
 

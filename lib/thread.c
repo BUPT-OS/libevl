@@ -85,7 +85,7 @@ int evl_attach_self(const char *fmt, ...)
 	if (ret < 0)
 		return -ENOMEM;
 
-	efd = create_evl_element("thread", name, NULL, &eids);
+	efd = create_evl_element(EVL_THREAD_DEV, name, NULL, &eids);
 	free(name);
 	if (efd < 0)
 		return efd;

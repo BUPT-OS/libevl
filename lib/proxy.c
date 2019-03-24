@@ -28,7 +28,7 @@ int evl_new_proxy(int fd, size_t bufsz, const char *fmt, ...)
 
 	attrs.fd = fd;
 	attrs.bufsz = bufsz;
-	efd = create_evl_element("proxy", name, &attrs, NULL);
+	efd = create_evl_element(EVL_PROXY_DEV, name, &attrs, NULL);
 	free(name);
 
 	return efd;

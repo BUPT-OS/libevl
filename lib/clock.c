@@ -112,11 +112,13 @@ int evl_udelay(unsigned int usecs)
 
 int attach_evl_clocks(void)
 {
-	evl_mono_clockfd = open_evl_element("clock", "monotonic");
+	evl_mono_clockfd = open_evl_element(EVL_CLOCK_DEV,
+					    EVL_CLOCK_MONOTONIC_DEV);
 	if (evl_mono_clockfd < 0)
 		return evl_mono_clockfd;
 
-	evl_real_clockfd = open_evl_element("clock", "realtime");
+	evl_real_clockfd = open_evl_element(EVL_CLOCK_DEV,
+					    EVL_CLOCK_REALTIME_DEV);
 	if (evl_real_clockfd < 0) {
 		close(evl_mono_clockfd);
 		return evl_real_clockfd;

@@ -61,7 +61,7 @@ static int init_mutex_vargs(struct evl_mutex *mutex,
 	attrs.type = type;
 	attrs.clockfd = clockfd;
 	attrs.initval = ceiling;
-	efd = create_evl_element("monitor", name, &attrs, &eids);
+	efd = create_evl_element(EVL_MONITOR_DEV, name, &attrs, &eids);
 	free(name);
 	if (efd < 0)
 		return efd;
@@ -95,7 +95,7 @@ static int open_mutex_vargs(struct evl_mutex *mutex,
 	struct evl_monitor_binding bind;
 	int ret, efd;
 
-	efd = open_evl_element_vargs("monitor", fmt, ap);
+	efd = open_evl_element_vargs(EVL_MONITOR_DEV, fmt, ap);
 	if (efd < 0)
 		return efd;
 

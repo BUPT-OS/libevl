@@ -59,10 +59,10 @@ static void test_steal(bool do_steal)
 	int gfd, sfd, ret;
 	char *name;
 
-	name = get_unique_name("monitor", 0);
+	name = get_unique_name(EVL_MONITOR_DEV, 0);
 	__Tcall_assert(gfd, evl_new_mutex(&c.lock, EVL_CLOCK_MONOTONIC, name));
 
-	name = get_unique_name("monitor", 1);
+	name = get_unique_name(EVL_MONITOR_DEV, 1);
 	__Tcall_assert(sfd, evl_new_sem(&c.start, EVL_CLOCK_MONOTONIC, 0, name));
 	c.acquired = false;
 

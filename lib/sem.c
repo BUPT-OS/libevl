@@ -47,7 +47,7 @@ int evl_new_sem(struct evl_sem *sem, int clockfd, int initval,
 	attrs.type = EVL_MONITOR_EV;
 	attrs.clockfd = clockfd;
 	attrs.initval = initval;
-	efd = create_evl_element("monitor", name, &attrs, &eids);
+	efd = create_evl_element(EVL_MONITOR_DEV, name, &attrs, &eids);
 	free(name);
 	if (efd < 0)
 		return efd;
@@ -67,7 +67,7 @@ int evl_open_sem(struct evl_sem *sem, const char *fmt, ...)
 	va_list ap;
 
 	va_start(ap, fmt);
-	efd = open_evl_element_vargs("monitor", fmt, ap);
+	efd = open_evl_element_vargs(EVL_MONITOR_DEV, fmt, ap);
 	va_end(ap);
 	if (efd < 0)
 		return efd;

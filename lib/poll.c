@@ -15,7 +15,7 @@
 
 int evl_new_poll(void)
 {
-	return create_evl_file("poll");
+	return create_evl_file(EVL_POLL_DEV);
 }
 
 static int update_pollset(int efd, int op, int fd, unsigned int events)

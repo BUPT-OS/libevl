@@ -47,7 +47,7 @@ static int init_condvar_vargs(struct evl_condvar *cv,
 	attrs.type = EVL_MONITOR_EV;
 	attrs.clockfd = clockfd;
 	attrs.initval = 0;
-	efd = create_evl_element("monitor", name, &attrs, &eids);
+	efd = create_evl_element(EVL_MONITOR_DEV, name, &attrs, &eids);
 	free(name);
 	if (efd < 0)
 		return efd;
@@ -79,7 +79,7 @@ static int open_condvar_vargs(struct evl_condvar *cv,
 	struct evl_monitor_binding bind;
 	int ret, efd;
 
-	efd = open_evl_element_vargs("monitor", fmt, ap);
+	efd = open_evl_element_vargs(EVL_MONITOR_DEV, fmt, ap);
 	if (efd < 0)
 		return efd;
 

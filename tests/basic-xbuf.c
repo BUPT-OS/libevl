@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 	tfd = evl_attach_self("basic-xbuf:%d", getpid());
 	printf("thread tfd=%d\n", tfd);
 
-	name = get_unique_name_and_path("xbuf", 0, &path);
+	name = get_unique_name_and_path(EVL_XBUF_DEV, 0, &path);
 	__Tcall_assert(xfd, evl_new_xbuf(1024, 1024, name));
 
 	printf("xfd=%d\n", xfd);
