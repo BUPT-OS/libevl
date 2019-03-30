@@ -17,18 +17,23 @@
 
 static char *find_command_dir(const char *arg0)
 {
-	char *cmddir;
+	char *exepath, *bindir, *cmddir;
 	int ret;
 
-	cmddir = malloc(PATH_MAX);
-	if (cmddir == NULL)
+	exepath = malloc(PATH_MAX);
+	if (exepath == NULL)
 		error(1, ENOMEM, "malloc");
 
-	ret = readlink("/proc/self/exe", cmddir, PATH_MAX);
+	ret = readlink("/proc/self/exe", exepath, PATH_MAX);
 	if (ret < 0)
 		error(1, errno, "readlink");
 
-	return dirname(cmddir);
+	bindir = dirname(exepath);
+	ret = asprintf(&cmddir, "%s/libexec", dirname(bindir));
+	if (ret < 0)
+		error(1, errno, "malloc");
+
+	return cmddir;
 }
 
 static void usage(void)
@@ -37,7 +42,7 @@ static void usage(void)
         fprintf(stderr, "-P --prefix=<path>   set command path prefix\n");
 }
 
-#define short_optlist "P:"
+#define short_optlist "+P:"
 
 static const struct option options[] = {
 	{
@@ -48,64 +53,42 @@ static const struct option options[] = {
 	{ /* Sentinel */ }
 };
 
-static int is_word(const char *s)
-{
-	while (*s && isalpha(*s))
-		s++;
-
-	return *s == '\0';
-}
-	
 int main(int argc, char *const argv[])
 {
 	char *cmddir = NULL, *cmdpath, **cmdargv, *cmd;
-	int ret, c, n, wcount, wpos = -1, cmdargc;
 	const char *arg0 = argv[0];
-
-	if (argc < 2) {
-		wpos = 0;
-		cmd = strdup("help");
-		goto run;
-	}
-
-	for (n = 1, wcount = 0; n < argc; n++) {
-		if (is_word(argv[n])) {
-			wpos = n;
-			if (++wcount > 1)
-				break;
-		} else
-			wcount = 0;
-	}
-
-	if (wpos < 0) {
-		fprintf(stderr, "evl: no command word\n");
-		usage();
-		return 2;
-	}
-
-	cmd = strdup(argv[wpos]);
-	*argv[wpos] = '\0';
+	int ret, c, n, cmdargc;
 
 	opterr = 0;
 
-	for (;;) {
-		c = getopt_long(wpos, argv, short_optlist, options, NULL);
-		if (c == EOF)
-			break;
-
+	do {
+		c = getopt_long(argc, argv, short_optlist, options, NULL);
 		switch (c) {
 		case 0:
+		case 'z':
 			break;
 		case 'P':
 			cmddir = optarg;
 			break;
 		case '?':
+			usage();
+			return 2;
 		default:
+			break;
+		}
+	} while (c != EOF && c != '?');
+
+	if (optind >= argc) {
+		cmd = "help";
+		optind = argc - 1;
+	} else {
+		if (c == '?') {
 			usage();
 			return 2;
 		}
+		cmd = argv[optind];
 	}
-run:
+
 	if (cmddir == NULL)
 		cmddir = find_command_dir(arg0);
 
@@ -117,13 +100,13 @@ run:
 	setenv("EVL_SYSDIR", "/sys/devices/virtual", 1);
 	setenv("EVL_TRACEDIR", "/sys/kernel/debug/tracing", 1);
 
-	cmdargv = malloc(sizeof(char *) * (argc - wpos + 1));
+	cmdargv = malloc(sizeof(char *) * (argc - optind + 1));
 	if (cmdargv == NULL)
 		error(1, ENOMEM, "malloc");
 	cmdargv[0] = basename(cmdpath);
-	for (cmdargc = 1, n = wpos + 1; n < argc; n++)
+	for (n = optind + 1, cmdargc = 1; n < argc; n++)
 		cmdargv[cmdargc++] = argv[n];
-	cmdargv[cmdargc] = NULL;
+	cmdargv[cmdargc++] = NULL;
 
 	execv(cmdpath, cmdargv);
 	fprintf(stderr, "evl: undefined command '%s'\n", cmd);
