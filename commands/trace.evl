@@ -7,10 +7,10 @@ if test \! -d $EVL_TRACEDIR; then
 fi
 
 usage() {
-   echo >&2 "usage: $1 [-e [-s <buffer_size>]] [-d] [-p] [-f] [-?] [-c <cpu>]"
+   echo >&2 "usage: $(basename $1) [-e [-s <buffer_size>]] [-d] [-p] [-f] [-?] [-c <cpu>]"
 }
 
-set -- $(getopt -n $(basename $0) 'es:dc:pf?' "$@")
+args=$(getopt -n $(basename $0) 'es:dc:pf?' "$@")
 if [ $? -ne 0 ]; then
    usage $0
    exit 1
@@ -24,6 +24,7 @@ bufsz=64
 pcpu=
 help=false
 
+set -- $args
 for opt
 do
 case "$opt" in
@@ -41,8 +42,8 @@ case "$opt" in
        shift;;
    -c) pcpu=per_cpu/cpu$(eval echo $2)/
        shift;;
-   -?) help=true
-       shift;;
+   -\?) help=true;
+	shift;;
    --) shift; break;;
    esac
 done

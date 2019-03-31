@@ -1,15 +1,21 @@
 #! /bin/sh
 # SPDX-License-Identifier: MIT
 
-set -- $(getopt -n $(basename $0) el "$@")
+usage() {
+   echo >&2 "usage: $(basename $1) [-el]"
+}
+
+args=$(getopt -n $(basename $0) 'el?' "$@")
 if [ $? -ne 0 ]; then
-   echo >&2 "usage: $0 [-el]"
+   usage $0
    exit 1
 fi
 
 all=false
 long=false
+help=false
 
+set -- $args
 for opt
 do
 case "$opt" in
@@ -17,9 +23,16 @@ case "$opt" in
        shift;;
    -l) long=true
        shift;;
+   -\?) help=true;
+	shift;;
    --) shift; break;;
    esac
 done
+
+if test x$help = xtrue; then
+   usage $0
+   exit 0
+fi
 
 # TBD
 
