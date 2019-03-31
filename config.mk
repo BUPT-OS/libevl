@@ -24,6 +24,7 @@ libdir		?= lib
 includedir	?= include
 bindir		?= bin
 testdir		?= tests
+libexecdir	?= libexec
 
 export ARCH CROSS_COMPILE CC LD AR UAPI CFLAGS LDFLAGS DESTDIR
 
