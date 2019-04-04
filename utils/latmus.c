@@ -395,6 +395,9 @@ static void dump_gnuplot(time_t duration)
 	unsigned int start, stop;
 	int n;
 
+	if (all_samples == 0)
+		return;
+
 	fprintf(plot_fp, "# %.2ld:%.2ld:%.2ld (%s, %d us period, priority %d)\n",
 		duration / 3600, (duration / 60) % 60, duration % 60,
 		context_labels[context_type],
@@ -484,16 +487,18 @@ static void do_measurement(int type)
 		putchar('\n');
 	}
 
-	printf
-	    ("---|-----------|-----------|-----------|--------|------|-------------------------\n"
-	     "RTS|%11.3f|%11.3f|%11.3f|%8d|%6u|    %.2ld:%.2ld:%.2ld/%.2ld:%.2ld:%.2ld\n",
-	     (double)all_minlat / 1000.0,
-	     (double)(all_sum / all_samples) / 1000.0,
-	     (double)all_maxlat / 1000.0,
-	     all_overruns, all_switches,
-	     duration / 3600, (duration / 60) % 60,
-	     duration % 60, duration / 3600,
-	     (timeout / 60) % 60, timeout % 60);
+	if (all_samples > 0)
+		printf("---|-----------|-----------|-----------|--------"
+			"|------|-------------------------\n"
+			"RTS|%11.3f|%11.3f|%11.3f|%8d|%6u|    "
+			"%.2ld:%.2ld:%.2ld/%.2ld:%.2ld:%.2ld\n",
+			(double)all_minlat / 1000.0,
+			(double)(all_sum / all_samples) / 1000.0,
+			(double)all_maxlat / 1000.0,
+			all_overruns, all_switches,
+			duration / 3600, (duration / 60) % 60,
+			duration % 60, duration / 3600,
+			(timeout / 60) % 60, timeout % 60);
 
 	if (all_switches > 0)
 		printf("WARNING: unexpected switches to in-band"
