@@ -160,10 +160,16 @@ static void *sampler_thread(void *arg)
 	int ret, n = 0, efd;
 	__u64 timestamp = 0;
 	struct timespec now;
+	__u32 mode;
 
 	efd = evl_attach_self("lat-sampler:%d", getpid());
 	if (efd < 0)
 		error(1, -efd, "evl_attach_self() failed");
+
+	mode = T_WARN;
+	ret = oob_ioctl(efd, EVL_THRIOC_SET_MODE, &mode);
+	if (ret)
+		error(1, errno, "ioctl(EVL_THRIOC_SET_MODE) failed");
 
 	for (;;) {
 		ret = oob_ioctl(latmus_fd, EVL_LATIOC_PULSE, &timestamp);
