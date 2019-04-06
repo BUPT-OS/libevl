@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
+#include <sys/syscall.h>
 #include <unistd.h>
 #include <signal.h>
 #include <fcntl.h>
@@ -135,6 +136,8 @@ static const char *sigdebug_msg[] = {
 
 void evl_sigdebug_handler(int sig, siginfo_t *si, void *ctxt)
 {
+	union sigval val;
+
 	if (sigdebug_marked(si)) {
 		switch (sigdebug_cause(si)) {
 		case SIGDEBUG_UNDEFINED:
@@ -150,8 +153,13 @@ void evl_sigdebug_handler(int sig, siginfo_t *si, void *ctxt)
 		}
 	}
 
+	/*
+	 * Bounce the notification to the original handler, passing on
+	 * the event cause.
+	 */
 	sigaction(SIGDEBUG, &orig_sigdebug, NULL);
-	pthread_kill(pthread_self(), SIGDEBUG);
+	val.sival_int = sigdebug_code(si);
+	sigqueue(syscall(__NR_gettid), SIGDEBUG, val);
 }
 
 static void sigshadow_handler(int sig, siginfo_t *si, void *ctxt)
