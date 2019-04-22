@@ -112,6 +112,8 @@ int evl_udelay(unsigned int usecs)
 
 int attach_evl_clocks(void)
 {
+	struct timespec dummy;
+
 	evl_mono_clockfd = open_evl_element(EVL_CLOCK_DEV,
 					    EVL_CLOCK_MONOTONIC_DEV);
 	if (evl_mono_clockfd < 0)
@@ -123,6 +125,15 @@ int attach_evl_clocks(void)
 		close(evl_mono_clockfd);
 		return evl_real_clockfd;
 	}
+
+	/*
+	 * Force the in-band syscall for MMIO mapping on the initial
+	 * clock reading for architectures which export clock sources
+	 * via MMIO. This way we won't receive SIGDEBUG due to
+	 * switching in-band inadvertently later on when reading the
+	 * clock from out-of-band context.
+	 */
+	evl_read_clock(EVL_CLOCK_MONOTONIC, &dummy);
 
 	return 0;
 }
