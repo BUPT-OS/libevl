@@ -488,10 +488,8 @@ static void do_measurement(int type)
 		free(histogram);
 	}
 
-	if (!timeout) {
+	if (!timeout)
 		timeout = duration;
-		putchar('\n');
-	}
 
 	if (all_samples > 0)
 		printf("---|-----------|-----------|-----------|--------"
