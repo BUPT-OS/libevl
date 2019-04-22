@@ -509,6 +509,8 @@ static void do_measurement(int type)
 		       " mode detected, latency figures may not "
 		       " be reliable. Please report.\n");
 
+	abort_on_switch = 0;
+
 	if (type == EVL_LAT_USER)
 		pthread_cancel(sampler);
 
