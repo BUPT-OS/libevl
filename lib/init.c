@@ -29,7 +29,7 @@ static pthread_once_t init_once = PTHREAD_ONCE_INIT;
 
 static int init_status;
 
-static struct sigaction orig_sigshadow,	orig_sigdebug;
+static struct sigaction orig_sigevl,	orig_sigdebug;
 
 static struct evl_core_info core_info;
 
@@ -105,10 +105,10 @@ fail:
 	return ret;
 }
 
-int evl_sigshadow_handler(int sig, siginfo_t *si, void *ctxt)
+int evl_sigevl_handler(int sig, siginfo_t *si, void *ctxt)
 {
 	if (si->si_code == SI_QUEUE &&
-	    sigshadow_action(si->si_int) == SIGEVL_ACTION_HOME) {
+	    sigevl_action(si->si_int) == SIGEVL_ACTION_HOME) {
 		oob_ioctl(evl_efd, EVL_THRIOC_SWITCH_OOB);
 		return 1;
 	}
@@ -162,12 +162,12 @@ void evl_sigdebug_handler(int sig, siginfo_t *si, void *ctxt)
 	sigqueue(syscall(__NR_gettid), SIGDEBUG, val);
 }
 
-static void sigshadow_handler(int sig, siginfo_t *si, void *ctxt)
+static void sigevl_handler(int sig, siginfo_t *si, void *ctxt)
 {
-	const struct sigaction *const sa = &orig_sigshadow;
+	const struct sigaction *const sa = &orig_sigevl;
 	sigset_t omask;
 
-	if (evl_sigshadow_handler(sig, si, ctxt))
+	if (evl_sigevl_handler(sig, si, ctxt))
 		return;
 
 	if ((!(sa->sa_flags & SA_SIGINFO) && sa->sa_handler == NULL) ||
@@ -193,14 +193,14 @@ static void install_signal_handlers(void)
 	sigaddset(&mask, SIGEVL);
 
 	sa.sa_flags = SA_SIGINFO | SA_RESTART;
-	sa.sa_sigaction = sigshadow_handler;
+	sa.sa_sigaction = sigevl_handler;
 	sigemptyset(&sa.sa_mask);
 	pthread_sigmask(SIG_BLOCK, &mask, &omask);
 
-	sigaction(SIGEVL, &sa, &orig_sigshadow);
+	sigaction(SIGEVL, &sa, &orig_sigevl);
 
-	if (!(orig_sigshadow.sa_flags & SA_NODEFER))
-		sigaddset(&orig_sigshadow.sa_mask, SIGEVL);
+	if (!(orig_sigevl.sa_flags & SA_NODEFER))
+		sigaddset(&orig_sigevl.sa_mask, SIGEVL);
 
 	pthread_sigmask(SIG_SETMASK, &omask, NULL);
 
