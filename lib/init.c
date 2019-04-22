@@ -7,7 +7,6 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
-#include <sys/syscall.h>
 #include <unistd.h>
 #include <signal.h>
 #include <fcntl.h>
@@ -29,7 +28,7 @@ static pthread_once_t init_once = PTHREAD_ONCE_INIT;
 
 static int init_status;
 
-static struct sigaction orig_sigevl,	orig_sigdebug;
+static struct sigaction orig_sigevl;
 
 static struct evl_core_info core_info;
 
@@ -134,10 +133,10 @@ static const char *sigdebug_msg[] = {
 	"goes to sleep while holding a mutex\n",
 };
 
+/* A basic SIGDEBUG handler which only prints out the cause. */
+
 void evl_sigdebug_handler(int sig, siginfo_t *si, void *ctxt)
 {
-	union sigval val;
-
 	if (sigdebug_marked(si)) {
 		switch (sigdebug_cause(si)) {
 		case SIGDEBUG_UNDEFINED:
@@ -152,14 +151,6 @@ void evl_sigdebug_handler(int sig, siginfo_t *si, void *ctxt)
 			break;
 		}
 	}
-
-	/*
-	 * Bounce the notification to the original handler, passing on
-	 * the event cause.
-	 */
-	sigaction(SIGDEBUG, &orig_sigdebug, NULL);
-	val.sival_int = sigdebug_code(si);
-	sigqueue(syscall(__NR_gettid), SIGDEBUG, val);
 }
 
 static void sigevl_handler(int sig, siginfo_t *si, void *ctxt)
@@ -203,11 +194,6 @@ static void install_signal_handlers(void)
 		sigaddset(&orig_sigevl.sa_mask, SIGEVL);
 
 	pthread_sigmask(SIG_SETMASK, &omask, NULL);
-
-	sa.sa_sigaction = evl_sigdebug_handler;
-	sigemptyset(&sa.sa_mask);
-	sa.sa_flags = SA_SIGINFO;
-	sigaction(SIGDEBUG, &sa, &orig_sigdebug);
 }
 
 static inline int do_init(void)

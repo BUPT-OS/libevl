@@ -559,7 +559,7 @@ static void do_tuning(int type)
 		printf("%u ns\n", gravity);
 }
 
-static void sigdebug(int sig, siginfo_t *si, void *context)
+static void sigdebug_handler(int sig, siginfo_t *si, void *context)
 {
 	if (sigdebug_marked(si)) {
 		switch (sigdebug_cause(si)) {
@@ -751,12 +751,8 @@ int main(int argc, char *const argv[])
 	sigaddset(&sigmask, SIGALRM);
 	pthread_sigmask(SIG_BLOCK, &sigmask, NULL);
 
-	/*
-	 * Early, before evl_init() installs sighandlers so that it
-	 * can notice.
-	 */
 	sigemptyset(&sa.sa_mask);
-	sa.sa_sigaction = sigdebug;
+	sa.sa_sigaction = sigdebug_handler;
 	sa.sa_flags = SA_SIGINFO;
 	sigaction(SIGDEBUG, &sa, NULL);
 
