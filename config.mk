@@ -2,7 +2,8 @@
 
 ARCH		?= $(shell uname -m | sed	\
 		-e s/arm.*/arm/			\
-		-e s/aarch64.*/arm64/ )
+		-e s/aarch64.*/arm64/		\
+		-e s/x86_64/x86/ )
 CROSS_COMPILE	?=
 CC		= $(CROSS_COMPILE)gcc
 LD		= $(CROSS_COMPILE)ld
