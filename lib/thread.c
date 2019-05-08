@@ -165,7 +165,7 @@ int evl_switch_oob(void)
 	if (!evl_is_inband())
 		return 0;
 
-	ret = ioctl(evl_efd, EVL_THRIOC_SWITCH_OOB);
+	ret = oob_ioctl(evl_efd, EVL_THRIOC_SWITCH_OOB);
 
 	return ret ? -errno : 0;
 }
