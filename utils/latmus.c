@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <getopt.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <signal.h>
@@ -292,6 +293,8 @@ const char *context_labels[] = {
 static void log_results(struct latmus_measurement *meas,
 			unsigned int round)
 {
+	double min, avg, max, best, worst;
+	bool oops = false;
 	time_t now, dt;
 
 	if (verbosity > 0 && data_lines && (round % data_lines) == 0) {
@@ -324,16 +327,33 @@ static void log_results(struct latmus_measurement *meas,
 	all_sum += meas->sum_lat;
 	all_samples += meas->samples;
 	all_overruns += meas->overruns;
+	min = (double)meas->min_lat / 1000.0;
+	avg = (double)(meas->sum_lat / meas->samples) / 1000.0;
+	max = (double)meas->max_lat / 1000.0;
+	best = (double)all_minlat / 1000.0;
+	worst = (double)all_maxlat / 1000.0;
+
+	/*
+	 * A trivial check on the reported values, so that we detect
+	 * and stop on obviously inconsistent results.
+	 */
+	if (min > max || min > avg || avg > max ||
+		min > worst || max > worst || avg > worst ||
+		best > worst || worst < best) {
+		oops = true;
+		verbosity = 1;
+	}
 
 	if (verbosity > 0)
 		printf("RTD|%11.3f|%11.3f|%11.3f|%8d|%6u|%11.3f|%11.3f\n",
-			(double)meas->min_lat / 1000.0,
-			(double)(meas->sum_lat / meas->samples) / 1000.0,
-			(double)meas->max_lat / 1000.0,
-			all_overruns,
-			all_switches,
-			(double)all_minlat / 1000.0,
-			(double)all_maxlat / 1000.0);
+			min, avg, max,
+			all_overruns, all_switches,
+			best, worst);
+
+	if (oops) {
+		fprintf(stderr, "results look weird, aborting.\n");
+		exit(103);
+	}
 }
 
 static void *logger_thread(void *arg)
