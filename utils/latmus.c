@@ -328,7 +328,7 @@ static void log_results(struct latmus_measurement *meas,
 	all_samples += meas->samples;
 	all_overruns += meas->overruns;
 	min = (double)meas->min_lat / 1000.0;
-	avg = (double)(meas->sum_lat / meas->samples) / 1000.0;
+	avg = (double)(meas->sum_lat / (int)meas->samples) / 1000.0;
 	max = (double)meas->max_lat / 1000.0;
 	best = (double)all_minlat / 1000.0;
 	worst = (double)all_maxlat / 1000.0;
