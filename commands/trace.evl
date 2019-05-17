@@ -57,7 +57,7 @@ cd $EVL_TRACEDIR
 
 if test x$enable = xtrue; then
    echo nop > current_tracer
-   echo 0 > snapshot
+   test -r snapshot && echo 0 > snapshot
    echo $bufsz > ${pcpu}buffer_size_kb
    if test x$full = xfalse; then
        echo 1 > events/irq/enable
@@ -66,23 +66,28 @@ if test x$enable = xtrue; then
    else
        echo function > current_tracer
    fi
-   echo 1 > ${pcpu}snapshot
-   echo 1 > events/evl/evl_timer_shot/enable
-   echo \!snapshot > events/evl/evl_trigger/trigger
-   echo snapshot > events/evl/evl_trigger/trigger
-   echo 1 > events/evl/evl_trigger/enable
-   echo 1 > events/evl/evl_latspot/enable
-   echo "tracing enabled"
+   warn=
+   if test -r ${pcpu}snapshot; then
+       echo 1 > ${pcpu}snapshot
+       echo \!snapshot > events/evl/evl_trigger/trigger
+       echo snapshot > events/evl/evl_trigger/trigger
+       echo 1 > events/evl/evl_timer_shot/enable
+       echo 1 > events/evl/evl_trigger/enable
+       echo 1 > events/evl/evl_latspot/enable
+   else
+       warn=" (no snapshot)"
+   fi
+   echo "tracing enabled$warn"
    print=false
 elif test x$disable = xtrue; then
    echo nop > current_tracer
-   echo 0 > snapshot
+   test -r snapshot && echo 0 > snapshot
    echo "tracing disabled"
    print=false
 fi
 
 if test x$print = xtrue; then
-   cat ${pcpu}snapshot
+   test -r ${pcpu}snapshot && cat ${pcpu}snapshot || echo "no snapshot."
 fi
 
 exit 0
