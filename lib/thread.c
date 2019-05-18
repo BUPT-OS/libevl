@@ -115,6 +115,8 @@ int evl_attach_self(const char *fmt, ...)
 		break;
 	}
 
+	pthread_once(&atfork_once, do_atfork_once);
+
 	attrs.sched_policy = policy;
 	attrs.sched_priority = priority;
 	ret = oob_ioctl(efd, EVL_THRIOC_SET_SCHEDPARAM, &attrs);
@@ -122,8 +124,6 @@ int evl_attach_self(const char *fmt, ...)
 		ret = -errno;
 		goto fail;
 	}
-
-	pthread_once(&atfork_once, do_atfork_once);
 
 	return efd;
 fail:
