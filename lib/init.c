@@ -123,7 +123,7 @@ int evl_sigevl_handler(int sig, siginfo_t *si, void *ctxt)
 	} while (0)
 
 static const char *sigdebug_msg[] = {
-	"undefined\n",
+	"undefined\n",		/* Should never happen. */
 	"switched inband (signal)\n",
 	"switched inband (syscall)\n",
 	"switched inband (fault)\n",
@@ -139,7 +139,7 @@ void evl_sigdebug_handler(int sig, siginfo_t *si, void *ctxt)
 {
 	if (sigdebug_marked(si)) {
 		switch (sigdebug_cause(si)) {
-		case SIGDEBUG_UNDEFINED:
+		case SIGDEBUG_NONE:
 		case SIGDEBUG_MIGRATE_SIGNAL:
 		case SIGDEBUG_MIGRATE_SYSCALL:
 		case SIGDEBUG_MIGRATE_FAULT:
