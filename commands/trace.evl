@@ -6,6 +6,11 @@ if test \! -d $EVL_TRACEDIR; then
    exit 2
 fi
 
+if test \! -d $EVL_TRACEDIR/events/evl; then
+   echo >&2 "no EVL core in kernel"
+   exit 2
+fi
+
 usage() {
    echo >&2 "usage: $(basename $1) [-e [-s <buffer_size>]] [-d] [-p] [-f] [-?] [-c <cpu>]"
 }
