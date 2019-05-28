@@ -107,8 +107,8 @@ static inline char *get_unique_name(const char *type,
 	return get_unique_name_and_path(type, serial, NULL);
 }
 
-int new_thread(pthread_t *tid, int policy, int prio,
-	void *(*fn)(void *), void *arg);
+void new_thread(pthread_t *tid, int policy, int prio,
+		void *(*fn)(void *), void *arg);
 
 void timespec_add_ns(struct timespec *__restrict r,
 		const struct timespec *__restrict t,

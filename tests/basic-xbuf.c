@@ -67,9 +67,7 @@ int main(int argc, char *argv[])
 		       n, ret, *buf);
 	}
 
-	ret = new_thread(&tid, SCHED_OTHER, 0, peer, path);
-	if (ret < 0)
-		exit(1);
+	new_thread(&tid, SCHED_OTHER, 0, peer, path);
 
 	sleep(1);
 	ret = oob_write(xfd, "01", 2);

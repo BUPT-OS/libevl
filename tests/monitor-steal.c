@@ -66,9 +66,7 @@ static void test_steal(bool do_steal)
 	__Tcall_assert(sfd, evl_new_sem(&c.start, EVL_CLOCK_MONOTONIC, 0, name));
 	c.acquired = false;
 
-	ret = new_thread(&contender, SCHED_FIFO, LOW_PRIO, victim, &c);
-	if (ret < 0)
-		exit(1);
+	new_thread(&contender, SCHED_FIFO, LOW_PRIO, victim, &c);
 
 	__Tcall_assert(ret, evl_lock(&c.lock));
 

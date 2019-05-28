@@ -30,21 +30,18 @@ char *get_unique_name_and_path(const char *type,
 	return strrchr(path, '/') + 1;
 }
 
-int new_thread(pthread_t *tid, int policy, int prio,
+void new_thread(pthread_t *tid, int policy, int prio,
 		void *(*fn)(void *), void *arg)
 {
 	struct sched_param param;
 	pthread_attr_t attr;
-	int ret;
 
 	pthread_attr_init(&attr);
 	param.sched_priority = prio;
 	pthread_attr_setschedpolicy(&attr, policy);
 	pthread_attr_setschedparam(&attr, &param);
 	pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
-	__Tcall(ret, pthread_create(tid, &attr, fn, arg));
-
-	return ret;
+	__Texpr_assert(pthread_create(tid, &attr, fn, arg) == 0);
 }
 
 void timespec_add_ns(struct timespec *__restrict r,

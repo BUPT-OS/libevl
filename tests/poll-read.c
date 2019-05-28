@@ -81,9 +81,7 @@ int main(int argc, char *argv[])
 	__Tcall_errno_assert(ret, fcntl(xfd, F_SETFL,
 			fcntl(xfd, F_GETFL)|O_NONBLOCK));
 
-	ret = new_thread(&writer, SCHED_OTHER, 0, writer_thread, path);
-	if (ret < 0)
-		exit(1);
+	new_thread(&writer, SCHED_OTHER, 0, writer_thread, path);
 
 	__Tcall_assert(pfd, evl_new_poll());
 	__Tcall_assert(ret, evl_add_pollfd(pfd, xfd, POLLIN));
