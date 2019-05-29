@@ -612,17 +612,17 @@ static void usage(void)
                         "      tune for all contexts ]\n");
         fprintf(stderr, "-p --period             sampling period (µs)\n");
         fprintf(stderr, "-P --priority           sampler thread priority [=90]\n");
-        fprintf(stderr, "-c --cpu=<n>            pin sampler to CPU [=0]\n");
-        fprintf(stderr, "-r --reset              reset core timer gravity to Kconfig defaults\n");
-        fprintf(stderr, "-l --load               enable load generation [on if tuning]\n");
+        fprintf(stderr, "-c --cpu=<n>            pin sampler thread to CPU [=0]\n");
+        fprintf(stderr, "-r --reset              reset core timer gravity to factory default\n");
+        fprintf(stderr, "-L --load               enable load generation [on if tuning]\n");
         fprintf(stderr, "-n --noload             disable load generation\n");
         fprintf(stderr, "-b --background         run in the background (daemon mode)\n");
         fprintf(stderr, "-a --mode-abort         abort upon unexpected switch to in-band mode\n");
         fprintf(stderr, "-A --max-abort=<µs>     abort if maximum latency exceeds threshold\n");
-        fprintf(stderr, "-T --timeout=<t>        stop measurement after <t> seconds\n");
+        fprintf(stderr, "-T --timeout=<secs>     stop measurement after <secs> seconds\n");
         fprintf(stderr, "-v --verbose[=level]    set verbosity level [=1]\n");
         fprintf(stderr, "-q --quiet              quiet mode (i.e. --verbose=0)\n");
-        fprintf(stderr, "-l --lines=<num>        data lines per header, 0 = no headers [=21]\n");
+        fprintf(stderr, "-l --lines=<num>        result lines per page, 0 = no pagination [=21]\n");
         fprintf(stderr, "-H --histogram[=<nr>]   set histogram size to <nr> cells [=200]\n");
         fprintf(stderr, "-g --plot=<filename>    dump histogram data to file (gnuplot format)\n");
 }
