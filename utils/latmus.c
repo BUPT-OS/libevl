@@ -619,7 +619,7 @@ static void usage(void)
         fprintf(stderr, "-b --background         run in the background (daemon mode)\n");
         fprintf(stderr, "-a --mode-abort         abort upon unexpected switch to in-band mode\n");
         fprintf(stderr, "-A --max-abort=<µs>     abort if maximum latency exceeds threshold\n");
-        fprintf(stderr, "-T --timeout=<t>[hms]   stop measurement after <t> hours|minutes|seconds\n");
+        fprintf(stderr, "-T --timeout=<t>[dhms]  stop measurement after <t> [d(ays)|h(ours)|m(inutes)|s(econds)]\n");
         fprintf(stderr, "-v --verbose[=level]    set verbosity level [=1]\n");
         fprintf(stderr, "-q --quiet              quiet mode (i.e. --verbose=0)\n");
         fprintf(stderr, "-l --lines=<num>        result lines per page, 0 = no pagination [=21]\n");
@@ -748,6 +748,11 @@ int main(int argc, char *const argv[])
 			usage();
 			return 1;
 		}
+	}
+
+	if (optind < argc) {
+		usage();
+		return 1;
 	}
 
 	setlinebuf(stdout);
