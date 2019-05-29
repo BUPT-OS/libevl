@@ -33,6 +33,8 @@ void evl_sigdebug_handler(int sig, siginfo_t *si, void *ctxt);
 
 unsigned int evl_detect_fpu(void);
 
+extern const char *libevl_version_string;
+
 #ifdef __cplusplus
 }
 #endif

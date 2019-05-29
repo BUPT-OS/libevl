@@ -416,6 +416,21 @@ static void *measurement_thread(void *arg)
 	return NULL;
 }
 
+static void dump_procinfo(const char *path)
+{
+	char buf[BUFSIZ];
+	FILE *fp;
+
+	fp = fopen(path, "r");
+	if (fp == NULL)
+		return;
+
+	while (fgets(buf, sizeof(buf), fp))
+		fprintf(plot_fp, "# %s", buf);
+
+	fclose(fp);
+}
+
 static void dump_gnuplot(time_t duration)
 {
 	unsigned int start, stop;
@@ -424,10 +439,17 @@ static void dump_gnuplot(time_t duration)
 	if (all_samples == 0)
 		return;
 
-	fprintf(plot_fp, "# %.2ld:%.2ld:%.2ld (%s, %d us period, priority %d)\n",
-		duration / 3600, (duration / 60) % 60, duration % 60,
-		context_labels[context_type],
-		period, sampler_priority);
+	dump_procinfo("/proc/version");
+	dump_procinfo("/proc/cmdline");
+	fprintf(plot_fp, "# libevl version: %s\n", libevl_version_string);
+	fprintf(plot_fp, "# sampling period: %u µs\n", period);
+	fprintf(plot_fp, "# context: %s\n", context_labels[context_type]);
+	if (test_klat || test_ulat) {
+		fprintf(plot_fp, "# thread priority: %d\n", sampler_priority);
+		fprintf(plot_fp, "# thread affinity: CPU%d\n", sampler_cpu);
+	}
+	fprintf(plot_fp, "# duration (hhmmss): %.2ld:%.2ld:%.2ld\n",
+		duration / 3600, (duration / 60) % 60, duration % 60);
 	fprintf(plot_fp, "# %11s|%11s|%11s|%8s|%6s|\n",
 		"----lat min", "----lat avg",
 		"----lat max", "-overrun", "---msw");
