@@ -619,7 +619,7 @@ static void usage(void)
         fprintf(stderr, "-b --background         run in the background (daemon mode)\n");
         fprintf(stderr, "-a --mode-abort         abort upon unexpected switch to in-band mode\n");
         fprintf(stderr, "-A --max-abort=<µs>     abort if maximum latency exceeds threshold\n");
-        fprintf(stderr, "-T --timeout=<secs>     stop measurement after <secs> seconds\n");
+        fprintf(stderr, "-T --timeout=<t>[hms]   stop measurement after <t> hours|minutes|seconds\n");
         fprintf(stderr, "-v --verbose[=level]    set verbosity level [=1]\n");
         fprintf(stderr, "-q --quiet              quiet mode (i.e. --verbose=0)\n");
         fprintf(stderr, "-l --lines=<num>        result lines per page, 0 = no pagination [=21]\n");
@@ -629,11 +629,12 @@ static void usage(void)
 
 int main(int argc, char *const argv[])
 {
-	int ret, c, spec, type, max_prio;
 	const char *plot_filename = NULL;
+	int ret, c, spec, type, max_prio;
 	struct sigaction sa;
 	pthread_t loadgen;
 	cpu_set_t cpu_set;
+	char *endptr;
 
 	opterr = 0;
 
@@ -690,9 +691,26 @@ int main(int argc, char *const argv[])
 				error(1, EINVAL, "invalid timeout");
 			break;
 		case 'T':
-			timeout = atoi(optarg);
-			if (timeout < 0)
+			timeout = (int)strtol(optarg, &endptr, 10);
+			if (timeout < 0 || endptr == optarg)
 				error(1, EINVAL, "invalid timeout");
+			switch (*endptr) {
+			case 'd':
+				timeout *= 24;
+				/* Falldown wanted. */
+			case 'h':
+				timeout *= 60;
+				/* Falldown wanted. */
+			case 'm':
+				timeout *= 60;
+				break;
+			case 's':
+			case '\0':
+				break;
+			default:
+				error(1, EINVAL, "invalid modifier: '%c'",
+					*endptr);
+			}
 			alarm(timeout + 1); /* +1s warmup time */
 			break;
 		case 'v':
