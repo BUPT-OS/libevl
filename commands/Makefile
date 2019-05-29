@@ -3,12 +3,13 @@
 include ../config.mk
 
 SRCFILES := $(wildcard *.c)
-BINARIES = $(SRCFILES:%.c=%)
 TARGETS = $(SRCFILES:%.c=$(O_DIR)/%)
 DEPFILES = $(SRCFILES:%.c=$(O_DIR)/%.d)
-HELPERS = $(wildcard *.evl)
+COMMANDS = evl
+HELPER_SCRIPTS = $(wildcard *.evl)
+HELPER_PROGRAMS = ps
 
-CMD_CPPFLAGS := $(BASE_CPPFLAGS) -I.
+CMD_CPPFLAGS := $(BASE_CPPFLAGS) -I. -I$(O_DIR)/../include
 CMD_CFLAGS := $(CMD_CPPFLAGS) $(BASE_CFLAGS)
 override CFLAGS := $(CMD_CFLAGS) $(CFLAGS)
 
@@ -16,12 +17,15 @@ all: $(TARGETS)
 
 install: all
 	$(call inst-cmd,commands,						\
-		for bin in $(BINARIES); do					\
+		for bin in $(COMMANDS); do					\
 		$(INSTALL) -D $(O_DIR)/$$bin $(DESTDIR)/$(bindir)/$$bin; done)
 	$(call inst-cmd,helpers,						\
-		for hlp in $(HELPERS); do					\
+		for hlp in $(HELPER_SCRIPTS); do				\
 		name=evl-$$(basename $$hlp .evl);				\
-		$(INSTALL) -D $$hlp $(DESTDIR)/$(libexecdir)/$$name; done)
+		$(INSTALL) -D $$hlp $(DESTDIR)/$(libexecdir)/$$name; done;	\
+		for hlp in $(HELPER_PROGRAMS); do				\
+		name=evl-$$hlp;							\
+		$(INSTALL) -D $(O_DIR)/$$hlp $(DESTDIR)/$(libexecdir)/$$name; done)
 
 clean clobber mrproper:
 	$(Q)$(RM) -f $(TARGETS) $(DEPFILES)
