@@ -1,11 +1,11 @@
 /*
  * SPDX-License-Identifier: MIT
  *
- * PURPOSE: check that an EVL proxy properly relays the output sent
- * from an out-of-band threads through a regular pipe. The
- * transmission path is logfd->pipefd[1]->pipefd[0] where the reader
- * receives the relayed data eventually. We use a tiny buffer size to
- * trigger the buffer overflow condition often.
+ * PURPOSE: check that an EVL proxy properly relays the output sent by
+ * an out-of-band thread through a regular pipe. The transmission path
+ * is logfd->pipefd[1]->pipefd[0] where the reader receives the
+ * relayed data eventually. We use a tiny buffer size to trigger the
+ * buffer overflow condition often.
  */
 
 #include <sys/types.h>
