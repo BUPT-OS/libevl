@@ -450,14 +450,16 @@ static void dump_gnuplot(time_t duration)
 	}
 	fprintf(plot_fp, "# duration (hhmmss): %.2ld:%.2ld:%.2ld\n",
 		duration / 3600, (duration / 60) % 60, duration % 60);
-	fprintf(plot_fp, "# %11s|%11s|%11s|%8s|%6s|\n",
-		"----lat min", "----lat avg",
-		"----lat max", "-overrun", "---msw");
-	fprintf(plot_fp,
-		"# %11.3f|%11.3f|%11.3f|%8d|%6u|\n",
-		(double)all_minlat / 1000.0,
-		(double)(all_sum / all_samples) / 1000.0,
-		(double)all_maxlat / 1000.0, all_overruns, all_switches);
+	if (all_overruns > 0)
+		fprintf(plot_fp, "# OVERRUNS: %u\n", all_overruns);
+	if (all_switches > 0)
+		fprintf(plot_fp, "# IN-BAND SWITCHES: %u\n", all_switches);
+	fprintf(plot_fp, "# min latency: %.3f\n",
+		(double)all_minlat / 1000.0);
+	fprintf(plot_fp, "# avg latency: %.3f\n",
+		(double)(all_sum / all_samples) / 1000.0);
+	fprintf(plot_fp, "# max latency: %.3f\n",
+		(double)all_maxlat / 1000.0);
 
 	for (n = 0; n < histogram_cells && histogram[n] == 0; n++)
 		;
