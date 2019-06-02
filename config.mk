@@ -88,10 +88,36 @@ inst-cmd = $(call run-cmd,INST,$(notdir $(1)),$(2))
 
 MAIN_GOALS := all clean clobber mrproper install
 
+_all:
+
+# Default target when no goal was given on the command line
+_all: all
+
 $(TARGETS):
 	$(Q)$(MAKE) -C $@ O=$(O_DIR)/$@ V=$(V)
 
 $(O_DIR)/%.d: %.c
 	$(call dep-cmd,$@,@$(CC) -MM $(CFLAGS) $< | sed 's$(comma)\($*\)\.o[ :]*$(comma)$(O_DIR)/\1.o $@: $(comma)g' > $@ || rm -f $@)
 
-.PHONY: $(MAIN_GOALS) $(TARGETS)
+define MAKEFLY =
+# Automatically generated: do not edit
+
+MAKEARGS := O=$(O_DIR) -C $(CURDIR) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) UAPI=$(UAPI) DESTDIR=$(DESTDIR)
+
+$$(filter-out sub-make, $$(MAKECMDGOALS)): sub-make
+	@:
+
+sub-make:
+	$$(MAKE) $$(MAKEARGS) $$(MAKECMDGOALS)
+endef
+
+# CURDIR is the source directory
+export MAKEFLY
+output-Makefile:
+ifneq ($(O_DIR), $(CURDIR))
+	@if test \! -e $(O_DIR)/Makefile || grep -q Automatically $(O_DIR)/Makefile; then \
+		echo "$$MAKEFLY" > $(O_DIR)/Makefile; \
+	fi
+endif
+
+.PHONY: _all $(MAIN_GOALS) $(TARGETS) output-Makefile

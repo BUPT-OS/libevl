@@ -26,6 +26,8 @@ override CFLAGS := $(LIB_CFLAGS) $(CFLAGS)
 
 override LDFLAGS := $(LDFLAGS) -lpthread -lrt
 
+$(TARGETS): output-Makefile
+
 all: $(TARGETS)
 
 install: all
@@ -33,7 +35,7 @@ install: all
 	@$(LN_S) $(SOLIBNAME) $(DESTDIR)/$(libdir)/$(DTSONAME)
 	$(call inst-cmd,$(ARLIBNAME),$(INSTALL) -D $(O_DIR)/$(ARLIBNAME) $(DESTDIR)/$(libdir)/$(ARLIBNAME))
 
-clean clobber mrproper:
+clean clobber mrproper: output-Makefile
 	$(Q)$(RM) -f $(O_DIR)/git-stamp.h $(PIC_OBJFILES) $(OBJFILES) \
 		$(TARGETS) $(O_DIR)/$(DTSONAME) $(DEPFILES)
 

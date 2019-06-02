@@ -13,6 +13,8 @@ CMD_CPPFLAGS := $(BASE_CPPFLAGS) -I. -I$(O_DIR)/../include
 CMD_CFLAGS := $(CMD_CPPFLAGS) $(BASE_CFLAGS)
 override CFLAGS := $(CMD_CFLAGS) $(CFLAGS)
 
+$(TARGETS): output-Makefile
+
 all: $(TARGETS)
 
 install: all

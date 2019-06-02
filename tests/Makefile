@@ -23,7 +23,7 @@ override LDFLAGS := $(TEST_LDFLAGS) $(LDFLAGS)
 
 all: $(TARGETS)
 
-$(TARGETS): $(HELPOBJ)
+$(TARGETS): output-Makefile $(HELPOBJ)
 
 install: all
 	$(Q)for bin in $(TESTSRC:%.c=%); do					\

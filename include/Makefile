@@ -6,6 +6,8 @@ O_UAPI = $(O_DIR)/uapi
 
 TARGETS := uapi
 
+$(TARGETS): output-Makefile
+
 uapi: $(O_DIR)/.uapi_stamp $(O_DIR)/uapi
 
 $(O_DIR)/.uapi_stamp $(O_DIR)/uapi:

@@ -19,6 +19,8 @@ override CFLAGS := $(UTIL_CFLAGS) $(CFLAGS)
 UTIL_LDFLAGS := $(O_DIR)/../lib/libevl.so.$(EVL_IVERSION) -lpthread -lrt
 override LDFLAGS := $(UTIL_LDFLAGS) $(LDFLAGS)
 
+$(TARGETS): output-Makefile
+
 all: $(TARGETS)
 
 install: all
