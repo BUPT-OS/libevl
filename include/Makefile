@@ -8,7 +8,7 @@ TARGETS := uapi
 
 $(TARGETS): output-Makefile
 
-uapi: $(O_DIR)/.uapi_stamp $(O_DIR)/uapi
+uapi: $(O_DIR)/.uapi_stamp $(O_UAPI)
 
 $(O_DIR)/.uapi_stamp $(O_DIR)/uapi:
 	$(Q)$(MKDIR_P) $(O_UAPI)
@@ -24,8 +24,10 @@ $(O_DIR)/.uapi_stamp $(O_DIR)/uapi:
 
 all: uapi
 
+# Remove the UAPI links. Careful with removing $(O_DIR)/uapi, just in case.
 clean clobber mrproper:
 	$(Q)$(RM) -f $(O_DIR)/.uapi_stamp $(O_UAPI)/asm $(O_UAPI)/evl
+	$(Q)test -d $(O_UAPI) && $(RMDIR_SAFE) $(O_UAPI) || :
 
 install: all
 	$(Q)$(MKDIR_P) $(DESTDIR)/$(includedir)/uapi

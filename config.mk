@@ -20,6 +20,7 @@ CPIO		:= cpio
 RM		:= rm
 LN_S		:= ln -sf
 MKDIR_P		:= mkdir -p
+RMDIR_SAFE	:= rmdir --ignore-fail-on-non-empty
 
 libdir		?= lib
 includedir	?= include
