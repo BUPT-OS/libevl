@@ -94,7 +94,7 @@ int main(int argc, char *const argv[])
 
 	ret = asprintf(&cmdpath, "%s/evl-%s", cmddir, cmd);
 	if (ret < 0)
-		error(1, ENOMEM, arg0);
+		error(1, ENOMEM, "%s", arg0);
 
 	setenv("EVL_CMDDIR", cmddir, 1);
 	setenv("EVL_SYSDIR", "/sys/devices/virtual", 1);
