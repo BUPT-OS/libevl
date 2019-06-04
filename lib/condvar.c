@@ -271,9 +271,12 @@ int evl_signal_thread(struct evl_condvar *cv, int thrfd)
 	if (gst) {
 		gst->flags |= EVL_MONITOR_SIGNALED;
 		efd = cv->active.efd;
+		return oob_ioctl(thrfd, EVL_THRIOC_SIGNAL, &efd) ? -errno : 0;
 	}
 
-	return oob_ioctl(thrfd, EVL_THRIOC_SIGNAL, &efd) ? -errno : 0;
+	/* No thread waits on @cv, so @thrfd neither => nop. */
+
+	return 0;
 }
 
 int evl_broadcast(struct evl_condvar *cv)
