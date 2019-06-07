@@ -12,10 +12,10 @@ if test \! -d $EVL_TRACEDIR/events/evl; then
 fi
 
 usage() {
-   echo >&2 "usage: $(basename $1) [-e [-s <buffer_size>]] [-d] [-p] [-f] [-?] [-c <cpu>]"
+   echo >&2 "usage: $(basename $1) [-e [-s <buffer_size>]] [-d] [-p] [-f] [-h] [-c <cpu>]"
 }
 
-args=$(getopt -n $(basename $0) 'es:dc:pf?' "$@")
+args=$(getopt -n $(basename $0) 'es:dc:pfh@' "$@")
 if [ $? -ne 0 ]; then
    usage $0
    exit 1
@@ -47,8 +47,10 @@ case "$opt" in
        shift;;
    -c) pcpu=per_cpu/cpu$(eval echo $2)/
        shift;;
-   -\?) help=true;
-	shift;;
+   -h) help=true;
+       shift;;
+   -@) echo "ftrace control front-end for EVL"
+	exit 0;;
    --) shift; break;;
    esac
 done

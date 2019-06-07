@@ -65,8 +65,6 @@ int main(int argc, char *const argv[])
 		c = getopt_long(argc, argv, short_optlist, options, NULL);
 		switch (c) {
 		case 0:
-		case 'z':
-			break;
 		case 'P':
 			cmddir = optarg;
 			break;

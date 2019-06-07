@@ -51,7 +51,7 @@ static int sort_key;
 	for (__cpu = 0; __cpu < CPU_SETSIZE; __cpu++)	\
 		if (CPU_ISSET(__cpu, &cpu_restrict))
 
-#define short_optlist "nlstpc:S:"
+#define short_optlist "@hnlstpc:S:"
 
 static const struct option options[] = {
 	{
@@ -88,6 +88,11 @@ static const struct option options[] = {
 		.name = "sort",
 		.has_arg = required_argument,
 		.val = 'S',
+	},
+	{
+		.name = "help",
+		.has_arg = no_argument,
+		.val = 'h',
 	},
 	{ /* Sentinel */ }
 };
@@ -632,6 +637,7 @@ static void usage(char *arg0)
         fprintf(stderr, "-l --long              long format, same as -stp\n");
         fprintf(stderr, "-n --numeric           numeric output for STAT\n");
         fprintf(stderr, "-S --sort=<c|i|t|x>    sort key: c=%%CPU, i=ISW, t=CPUTIME, x=CTXSW\n");
+        fprintf(stderr, "-h --help              this help\n");
 }
 
 static inline int resolve_cpuid(const char *s)
@@ -746,7 +752,12 @@ int main(int argc, char *const argv[])
 				}
 			}
 			break;
-		case '?':
+		case 'h':
+			usage(argv[0]);
+			return 0;
+		case '@':
+			printf("report a snapshot of the current EVL threads\n");
+			return 0;
 		default:
 			usage(argv[0]);
 			return 1;
