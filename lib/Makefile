@@ -26,9 +26,7 @@ override CFLAGS := $(LIB_CFLAGS) $(CFLAGS)
 
 override LDFLAGS := $(LDFLAGS) -lpthread -lrt
 
-$(TARGETS): output-Makefile
-
-all: $(TARGETS)
+all: output-Makefile $(TARGETS)
 
 install: all
 	$(call inst-cmd,$(SOLIBNAME),$(INSTALL) -D $(O_DIR)/$(SOLIBNAME) $(DESTDIR)/$(libdir)/$(SOLIBNAME))

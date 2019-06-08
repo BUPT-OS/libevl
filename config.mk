@@ -121,4 +121,6 @@ ifneq ($(O_DIR), $(CURDIR))
 	fi
 endif
 
-.PHONY: _all $(MAIN_GOALS) $(TARGETS) output-Makefile
+FORCE:
+
+.PHONY: _all $(MAIN_GOALS) output-Makefile FORCE

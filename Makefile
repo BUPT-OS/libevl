@@ -11,4 +11,4 @@ $(MAIN_GOALS): output-Makefile
 
 lib: include
 
-tests utils: lib
+tests utils commands: lib

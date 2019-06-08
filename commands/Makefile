@@ -13,9 +13,9 @@ CMD_CPPFLAGS := $(BASE_CPPFLAGS) -I. -I$(O_DIR)/../include
 CMD_CFLAGS := $(CMD_CPPFLAGS) $(BASE_CFLAGS)
 override CFLAGS := $(CMD_CFLAGS) $(CFLAGS)
 
-$(TARGETS): output-Makefile
+$(TARGETS):
 
-all: $(TARGETS)
+all: output-Makefile $(TARGETS)
 
 install: all
 	$(call inst-cmd,commands,						\
@@ -29,7 +29,7 @@ install: all
 		name=evl-$$hlp;							\
 		$(INSTALL) -D $(O_DIR)/$$hlp $(DESTDIR)/$(libexecdir)/$$name; done)
 
-clean clobber mrproper:
+clean clobber mrproper: output-Makefile
 	$(Q)$(RM) -f $(TARGETS) $(DEPFILES)
 
 $(O_DIR)/%: %.c

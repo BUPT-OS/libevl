@@ -6,26 +6,26 @@ O_UAPI = $(O_DIR)/uapi
 
 TARGETS := uapi
 
-$(TARGETS): output-Makefile
+uapi: $(O_UAPI)
 
-uapi: $(O_DIR)/.uapi_stamp $(O_UAPI)
-
-$(O_DIR)/.uapi_stamp $(O_DIR)/uapi:
+$(O_UAPI): $(O_DIR)/.uapi_stamp
 	$(Q)$(MKDIR_P) $(O_UAPI)
 	$(Q)$(RM) -f $(O_UAPI)/asm $(O_UAPI)/evl
-	$(Q)if test -r $(UAPI)/Makefile; then					\
+	$(Q)if test -r $(UAPI)/Kbuild; then					\
 		$(LN_S) $(UAPI)/arch/$(ARCH)/include/uapi/asm $(O_UAPI)/asm;	\
 		$(LN_S) $(UAPI)/include/uapi/evl $(O_UAPI)/evl;			\
-	else									\
+	elif test \! -L	$(O_UAPI)/asm; then					\
 		$(LN_S) $(UAPI)/asm $(O_UAPI)/asm;				\
 		$(LN_S) $(UAPI)/evl $(O_UAPI)/evl;				\
-	fi;									\
-	touch $@
+	fi
 
-all: uapi
+$(O_DIR)/.uapi_stamp: FORCE
+	@touch $@
 
-# Remove the UAPI links. Careful with removing $(O_DIR)/uapi, just in case.
-clean clobber mrproper:
+all: output-Makefile $(TARGETS)
+
+# Remove the UAPI links. Careful with removing $(O_UAPI), just in case.
+clean clobber mrproper: output-Makefile
 	$(Q)$(RM) -f $(O_DIR)/.uapi_stamp $(O_UAPI)/asm $(O_UAPI)/evl
 	$(Q)test -d $(O_UAPI) && $(RMDIR_SAFE) $(O_UAPI) || :
 

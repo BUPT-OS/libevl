@@ -7,7 +7,9 @@ ALLSRC := $(wildcard *.c)
 HELPSRC := helpers.c
 HELPOBJ := $(O_DIR)/helpers.o
 TESTSRC := $(filter-out $(HELPSRC),$(ALLSRC))
+FPSRC := fault.c
 TARGETS = $(TESTSRC:%.c=$(O_DIR)/%)
+NEEDLIBM = $(FPSRC:%.c=$(O_DIR)/%)
 DEPFILES = $(ALLSRC:%.c=$(O_DIR)/%.d)
 
 TEST_CPPFLAGS := $(BASE_CPPFLAGS)	\
@@ -20,10 +22,11 @@ override CFLAGS := $(TEST_CFLAGS) $(CFLAGS)
 
 TEST_LDFLAGS := $(O_DIR)/../lib/libevl.so.$(EVL_IVERSION) -lpthread -lrt
 override LDFLAGS := $(TEST_LDFLAGS) $(LDFLAGS)
+$(NEEDLIBM): override LDFLAGS += -lm
 
-all: $(TARGETS)
+all: output-Makefile $(TARGETS)
 
-$(TARGETS): output-Makefile $(HELPOBJ)
+$(TARGETS): $(HELPOBJ)
 
 install: all
 	$(Q)for bin in $(TESTSRC:%.c=%); do					\

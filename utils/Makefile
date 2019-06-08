@@ -19,16 +19,14 @@ override CFLAGS := $(UTIL_CFLAGS) $(CFLAGS)
 UTIL_LDFLAGS := $(O_DIR)/../lib/libevl.so.$(EVL_IVERSION) -lpthread -lrt
 override LDFLAGS := $(UTIL_LDFLAGS) $(LDFLAGS)
 
-$(TARGETS): output-Makefile
-
-all: $(TARGETS)
+all: output-Makefile $(TARGETS)
 
 install: all
 	$(Q)for bin in $(BINARIES); do						\
 		$(INSTALL) -D $(O_DIR)/$$bin $(DESTDIR)/$(bindir)/$$bin;	\
 	done
 
-clean clobber mrproper:
+clean clobber mrproper: output-Makefile
 	$(Q)$(RM) -f $(TARGETS) $(DEPFILES)
 
 $(O_DIR)/%: %.c
