@@ -9,6 +9,7 @@
 
 #include <sys/types.h>
 #include <unistd.h>
+#include <fenv.h>
 #include <setjmp.h>
 #include <stdlib.h>
 #include <time.h>
@@ -17,9 +18,9 @@
 #include <uapi/evl/signal.h>
 #include "helpers.h"
 
-#define EXPECTED_SIGS ((1 << (SIGSEGV-1))|(1 << (SIGFPE-1)))
+static int *blunder, received;
 
-static int *blunder, zero, received;
+static float zero;
 
 static jmp_buf recover;
 
@@ -32,8 +33,8 @@ static void fault_handler(int sig, siginfo_t *si, void *context)
 int main(int argc, char *argv[])
 {
 	struct sched_param param;
+	int tfd, expected_sigs;
 	struct sigaction sa;
-	int tfd;
 
 	sigemptyset(&sa.sa_mask);
 	sa.sa_sigaction = fault_handler;
@@ -46,15 +47,25 @@ int main(int argc, char *argv[])
 				SCHED_FIFO, &param) == 0);
 	__Tcall_assert(tfd, evl_attach_self("fault:%d", getpid()));
 
+	expected_sigs = 1 << (SIGSEGV-1);
+
 	if (!setjmp(recover)) {
 		blunder = (int *)0x1UL;
 		*blunder = 0;
 	}
 
-	if (!setjmp(recover))
-		zero = 127 / zero;
+	if (!setjmp(recover)) {
+		/*
+		 * If we can't enable fp exceptions, skip the divzero
+		 * test.
+		 */
+		if (!feenableexcept(FE_DIVBYZERO)) {
+			expected_sigs |= (1 << (SIGFPE-1));
+			zero = 127.0 / zero;
+		}
+	}
 
-	__Texpr_assert(received == EXPECTED_SIGS);
+	__Texpr_assert(received == expected_sigs);
 
 	return zero;
 }
