@@ -30,7 +30,8 @@
 #define __MUTEX_DEAD_MAGIC	0
 
 static int init_mutex_vargs(struct evl_mutex *mutex,
-			int type, int clockfd, unsigned int ceiling,
+			int protocol, int clockfd,
+			unsigned int ceiling,
 			const char *fmt, va_list ap)
 {
 	struct evl_monitor_attrs attrs;
@@ -48,7 +49,7 @@ static int init_mutex_vargs(struct evl_mutex *mutex,
 	 * for users with respect to inband <-> out-of-band mode
 	 * switches.
 	 */
-	if (type == EVL_MONITOR_PP) {
+	if (protocol == EVL_GATE_PP) {
 		ret = sched_get_priority_max(SCHED_FIFO);
 		if (ret < 0 || ceiling > ret)
 			return -EINVAL;
@@ -58,7 +59,8 @@ static int init_mutex_vargs(struct evl_mutex *mutex,
 	if (ret < 0)
 		return -ENOMEM;
 
-	attrs.type = type;
+	attrs.type = EVL_MONITOR_GATE;
+	attrs.protocol = protocol;
 	attrs.clockfd = clockfd;
 	attrs.initval = ceiling;
 	efd = create_evl_element(EVL_MONITOR_DEV, name, &attrs, &eids);
@@ -68,7 +70,8 @@ static int init_mutex_vargs(struct evl_mutex *mutex,
 
 	mutex->active.state = evl_shared_memory + eids.state_offset;
 	mutex->active.fundle = eids.fundle;
-	mutex->active.type = type;
+	mutex->active.type = EVL_MONITOR_GATE;
+	mutex->active.protocol = protocol;
 	mutex->active.efd = efd;
 	mutex->magic = __MUTEX_ACTIVE_MAGIC;
 
@@ -76,14 +79,14 @@ static int init_mutex_vargs(struct evl_mutex *mutex,
 }
 
 static int init_mutex(struct evl_mutex *mutex,
-			int type, int clockfd, unsigned int ceiling,
+			int protocol, int clockfd, unsigned int ceiling,
 			const char *fmt, ...)
 {
 	va_list ap;
 	int ret;
 
 	va_start(ap, fmt);
-	ret = init_mutex_vargs(mutex, type, clockfd, ceiling, fmt, ap);
+	ret = init_mutex_vargs(mutex, protocol, clockfd, ceiling, fmt, ap);
 	va_end(ap);
 
 	return ret;
@@ -105,7 +108,7 @@ static int open_mutex_vargs(struct evl_mutex *mutex,
 		goto fail;
 	}
 
-	if (bind.type != EVL_MONITOR_PP && bind.type != EVL_MONITOR_PI) {
+	if (bind.type != EVL_MONITOR_GATE) {
 		ret = -EINVAL;
 		goto fail;
 	}
@@ -113,6 +116,7 @@ static int open_mutex_vargs(struct evl_mutex *mutex,
 	mutex->active.state = evl_shared_memory + bind.eids.state_offset;
 	mutex->active.fundle = bind.eids.fundle;
 	mutex->active.type = bind.type;
+	mutex->active.protocol = bind.protocol;
 	mutex->active.efd = efd;
 	mutex->magic = __MUTEX_ACTIVE_MAGIC;
 
@@ -130,8 +134,7 @@ int evl_new_mutex(struct evl_mutex *mutex, int clockfd,
 	int ret;
 
 	va_start(ap, fmt);
-	ret = init_mutex_vargs(mutex, EVL_MONITOR_PI,
-			clockfd, 0, fmt, ap);
+	ret = init_mutex_vargs(mutex, EVL_GATE_PI, clockfd, 0, fmt, ap);
 	va_end(ap);
 
 	return ret;
@@ -145,8 +148,7 @@ int evl_new_mutex_ceiling(struct evl_mutex *mutex, int clockfd,
 	int ret;
 
 	va_start(ap, fmt);
-	ret = init_mutex_vargs(mutex, EVL_MONITOR_PP,
-			clockfd, ceiling, fmt, ap);
+	ret = init_mutex_vargs(mutex, EVL_GATE_PP, clockfd, ceiling, fmt, ap);
 	va_end(ap);
 
 	return ret;
@@ -199,10 +201,9 @@ static int try_lock(struct evl_mutex *mutex)
 		return -EPERM;
 
 	if (mutex->magic == __MUTEX_UNINIT_MAGIC &&
-		(mutex->uninit.type == EVL_MONITOR_PI ||
-			mutex->uninit.type == EVL_MONITOR_PP)) {
+		mutex->uninit.type == EVL_MONITOR_GATE) {
 		ret = init_mutex(mutex,
-				mutex->uninit.type,
+				mutex->uninit.protocol,
 				mutex->uninit.clockfd,
 				mutex->uninit.ceiling,
 				mutex->uninit.name);
@@ -219,7 +220,7 @@ static int try_lock(struct evl_mutex *mutex)
 	 */
 	mode = evl_get_current_mode();
 	if (!(mode & (T_INBAND|T_WEAK|T_DEBUG))) {
-		if (mutex->active.type == EVL_MONITOR_PP) {
+		if (mutex->active.protocol == EVL_GATE_PP) {
 			u_window = evl_get_current_window();
 			/*
 			 * Can't nest lazy ceiling requests, have to
@@ -321,7 +322,7 @@ int evl_unlock(struct evl_mutex *mutex)
 		goto slow_path;
 
 	if (evl_fast_unlock_mutex(&gst->u.gate.owner, current)) {
-		if (mutex->active.type == EVL_MONITOR_PP) {
+		if (mutex->active.protocol == EVL_GATE_PP) {
 			u_window = evl_get_current_window();
 			u_window->pp_pending = EVL_NO_HANDLE;
 		}
@@ -352,15 +353,18 @@ int evl_set_mutex_ceiling(struct evl_mutex *mutex,
 		return -EINVAL;
 
 	if (mutex->magic == __MUTEX_UNINIT_MAGIC) {
-		if (mutex->uninit.type != EVL_MONITOR_PP)
+		if (mutex->uninit.type != EVL_MONITOR_GATE ||
+			mutex->uninit.protocol != EVL_GATE_PP)
 			return -EINVAL;
 		mutex->uninit.ceiling = ceiling;
 		return 0;
 	}
 
 	if (mutex->magic != __MUTEX_ACTIVE_MAGIC ||
-		mutex->active.type != EVL_MONITOR_PP)
+		mutex->active.type != EVL_MONITOR_GATE ||
+		mutex->active.protocol != EVL_GATE_PP) {
 		return -EINVAL;
+	}
 
 	mutex->active.state->u.gate.ceiling = ceiling;
 
@@ -370,14 +374,16 @@ int evl_set_mutex_ceiling(struct evl_mutex *mutex,
 int evl_get_mutex_ceiling(struct evl_mutex *mutex)
 {
 	if (mutex->magic == __MUTEX_UNINIT_MAGIC) {
-		if (mutex->uninit.type != EVL_MONITOR_PP)
+		if (mutex->uninit.type != EVL_MONITOR_GATE ||
+			mutex->uninit.protocol != EVL_GATE_PP)
 			return -EINVAL;
 
 		return mutex->uninit.ceiling;
 	}
 
 	if (mutex->magic != __MUTEX_ACTIVE_MAGIC ||
-		mutex->active.type != EVL_MONITOR_PP)
+		mutex->active.type != EVL_MONITOR_GATE ||
+		mutex->active.protocol != EVL_GATE_PP)
 		return -EINVAL;
 
 	return mutex->active.state->u.gate.ceiling;

@@ -44,7 +44,8 @@ int evl_new_sem(struct evl_sem *sem, int clockfd, int initval,
 	if (ret < 0)
 		return -ENOMEM;
 
-	attrs.type = EVL_MONITOR_EV;
+	attrs.type = EVL_MONITOR_EVENT;
+	attrs.protocol = EVL_EVENT_COUNT;
 	attrs.clockfd = clockfd;
 	attrs.initval = initval;
 	efd = create_evl_element(EVL_MONITOR_DEV, name, &attrs, &eids);
@@ -73,8 +74,16 @@ int evl_open_sem(struct evl_sem *sem, const char *fmt, ...)
 		return efd;
 
 	ret = ioctl(efd, EVL_MONIOC_BIND, &bind);
-	if (ret)
-		return -errno;
+	if (ret) {
+		ret = -errno;
+		goto fail;
+	}
+
+	if (bind.type != EVL_MONITOR_EVENT ||
+		bind.protocol != EVL_EVENT_COUNT) {
+		ret = -EINVAL;
+		goto fail;
+	}
 
 	sem->active.state = evl_shared_memory + bind.eids.state_offset;
 	sem->active.fundle = bind.eids.fundle;
@@ -82,6 +91,10 @@ int evl_open_sem(struct evl_sem *sem, const char *fmt, ...)
 	sem->magic = __SEM_ACTIVE_MAGIC;
 
 	return 0;
+fail:
+	close(efd);
+
+	return ret;
 }
 
 int evl_close_sem(struct evl_sem *sem)

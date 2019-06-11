@@ -44,7 +44,8 @@ static int init_condvar_vargs(struct evl_condvar *cv,
 	if (ret < 0)
 		return -ENOMEM;
 
-	attrs.type = EVL_MONITOR_EV;
+	attrs.type = EVL_MONITOR_EVENT;
+	attrs.protocol = EVL_EVENT_GATED;
 	attrs.clockfd = clockfd;
 	attrs.initval = 0;
 	efd = create_evl_element(EVL_MONITOR_DEV, name, &attrs, &eids);
@@ -89,7 +90,8 @@ static int open_condvar_vargs(struct evl_condvar *cv,
 		goto fail;
 	}
 
-	if (bind.type != EVL_MONITOR_EV) {
+	if (bind.type != EVL_MONITOR_EVENT ||
+		bind.protocol != EVL_EVENT_GATED) {
 		ret = -EINVAL;
 		goto fail;
 	}

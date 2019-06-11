@@ -20,13 +20,15 @@ struct evl_mutex {
 			fundle_t fundle;
 			struct evl_monitor_state *state;
 			int efd;
-			int type;
+			int type : 2,
+			    protocol : 4;
 		} active;
 		struct {
 			const char *name;
 			int clockfd;
 			unsigned int ceiling;
-			int type;
+			int type : 2,
+			    protocol : 4;
 		} uninit;
 	};
 };
@@ -36,7 +38,8 @@ struct evl_mutex {
 #define EVL_MUTEX_INITIALIZER(__name, __clock)  {	\
 		.magic = __MUTEX_UNINIT_MAGIC,		\
 		.uninit = {				\
-			.type = EVL_MONITOR_PI,		\
+			.type = EVL_MONITOR_GATE,	\
+			.protocol = EVL_GATE_PI,	\
 			.name = (__name),		\
 			.clockfd = (__clock),		\
 			.ceiling = 0,			\
@@ -46,7 +49,8 @@ struct evl_mutex {
 #define EVL_MUTEX_CEILING_INITIALIZER(__name, __clock, __ceiling)  {	\
 		.magic = __MUTEX_UNINIT_MAGIC,				\
 		.uninit = {						\
-			.type = EVL_MONITOR_PP,				\
+			.type = EVL_MONITOR_GATE,			\
+			.protocol = EVL_GATE_PP,			\
 			.name = (__name),				\
 			.clockfd = (__clock),				\
 			.ceiling = (__ceiling),				\
