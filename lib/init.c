@@ -83,6 +83,14 @@ static inline int generic_init(void)
 		goto fail;
 	}
 
+	if (core_info.abi_level != EVL_ABI_LEVEL) {
+		fprintf(stderr,
+			"evl: ABI mismatch, see -ENOEXEC at https://evlproject.org/"
+			"core/user-api/thread/#evl_attach_self\n");
+		ret = -ENOEXEC;
+		goto fail;
+	}
+
 	ret = attach_evl_clocks();
 	if (ret)
 		goto fail;
