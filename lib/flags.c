@@ -122,9 +122,9 @@ static int check_sanity(struct evl_flags *flg)
 {
 	if (flg->magic == __FLAGS_UNINIT_MAGIC)
 		return evl_new_flags(flg,
-				   flg->uninit.clockfd,
-				   flg->uninit.initval,
-				   flg->uninit.name);
+				flg->uninit.clockfd,
+				flg->uninit.initval,
+				flg->uninit.name);
 
 	return flg->magic != __FLAGS_ACTIVE_MAGIC ? -EINVAL : 0;
 }

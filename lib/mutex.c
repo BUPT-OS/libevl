@@ -79,8 +79,8 @@ static int init_mutex_vargs(struct evl_mutex *mutex,
 }
 
 static int init_mutex(struct evl_mutex *mutex,
-			int protocol, int clockfd, unsigned int ceiling,
-			const char *fmt, ...)
+		int protocol, int clockfd, unsigned int ceiling,
+		const char *fmt, ...)
 {
 	va_list ap;
 	int ret;
@@ -253,8 +253,8 @@ static int try_lock(struct evl_mutex *mutex)
 	return -ENODATA;
 }
 
-int evl_timedlock(struct evl_mutex *mutex,
-		const struct timespec *timeout)
+int evl_timedlock_mutex(struct evl_mutex *mutex,
+			const struct timespec *timeout)
 {
 	struct evl_monitor_lockreq lreq;
 	int ret, cancel_type;
@@ -276,14 +276,14 @@ int evl_timedlock(struct evl_mutex *mutex,
 	return ret ? -errno : 0;
 }
 
-int evl_lock(struct evl_mutex *mutex)
+int evl_lock_mutex(struct evl_mutex *mutex)
 {
 	struct timespec timeout = { .tv_sec = 0, .tv_nsec = 0 };
 
-	return evl_timedlock(mutex, &timeout);
+	return evl_timedlock_mutex(mutex, &timeout);
 }
 
-int evl_trylock(struct evl_mutex *mutex)
+int evl_trylock_mutex(struct evl_mutex *mutex)
 {
 	int ret;
 
@@ -298,7 +298,7 @@ int evl_trylock(struct evl_mutex *mutex)
 	return ret ? -errno : 0;
 }
 
-int evl_unlock(struct evl_mutex *mutex)
+int evl_unlock_mutex(struct evl_mutex *mutex)
 {
 	struct evl_user_window *u_window;
 	struct evl_monitor_state *gst;
@@ -313,7 +313,7 @@ int evl_unlock(struct evl_mutex *mutex)
 	if (!evl_is_mutex_owner(&gst->u.gate.owner, current))
 		return -EPERM;
 
-	/* Do we have waiters on a signaled condvar we are gating? */
+	/* Do we have waiters on a signaled event we are gating? */
 	if (gst->flags & EVL_MONITOR_SIGNALED)
 		goto slow_path;
 

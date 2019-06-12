@@ -30,7 +30,7 @@ static void *flags_receiver(void *arg)
 	int ret, tfd, bits;
 
 	__Tcall_assert(tfd, evl_attach_self("monitor-flags-receiver:%d", getpid()));
-	__Tcall_assert(ret, evl_get(&p->start));
+	__Tcall_assert(ret, evl_get_sem(&p->start));
 	evl_read_clock(EVL_CLOCK_MONOTONIC, &now);
 	timespec_add_ns(&timeout, &now, 200000000); /* 200ms */
 
@@ -39,7 +39,7 @@ static void *flags_receiver(void *arg)
 		!__Texpr(ret == -ETIMEDOUT))
 		goto fail;
 
-	__Tcall_assert(ret, evl_put(&p->sem));
+	__Tcall_assert(ret, evl_put_sem(&p->sem));
 
 	/* Sender should have sent 0x12121212. */
 	if (!__Tcall(ret, evl_timedwait_flags(&p->flags, &timeout, &bits)))
@@ -62,7 +62,7 @@ static void *flags_receiver(void *arg)
 	if (!__Texpr(ret == -EAGAIN))
 		goto fail;
 
-	__Tcall_assert(ret, evl_put(&p->sem));
+	__Tcall_assert(ret, evl_put_sem(&p->sem));
 
 	/* Sender should send 0x76767676 in a moment. */
 	if (!__Tcall(ret, evl_wait_flags(&p->flags, &bits)))
@@ -71,7 +71,7 @@ static void *flags_receiver(void *arg)
 	if (!__Texpr(bits == 0x76767676))
 		goto fail;
 
-	__Tcall_assert(ret, evl_put(&p->sem));
+	__Tcall_assert(ret, evl_put_sem(&p->sem));
 
 	return NULL;
 fail:
@@ -106,15 +106,15 @@ int main(int argc, char *argv[])
 	new_thread(&receiver, SCHED_FIFO, LOW_PRIO,
 			flags_receiver, &c);
 
-	__Tcall_assert(ret, evl_put(&c.start));
-	__Tcall_assert(ret, evl_get(&c.sem));
+	__Tcall_assert(ret, evl_put_sem(&c.start));
+	__Tcall_assert(ret, evl_get_sem(&c.sem));
 	__Tcall_assert(ret, evl_post_flags(&c.flags, 0x12121212));
 	__Tcall_assert(ret, evl_peek_flags(&c.flags, &bits));
 	__Texpr_assert(bits == 0x12121212);
-	__Tcall_assert(ret, evl_get(&c.sem));
+	__Tcall_assert(ret, evl_get_sem(&c.sem));
 	__Tcall_assert(ret, evl_udelay(1000));
 	__Tcall_assert(ret, evl_post_flags(&c.flags, 0x76767676));
-	__Tcall_assert(ret, evl_get(&c.sem));
+	__Tcall_assert(ret, evl_get_sem(&c.sem));
 	__Texpr_assert(pthread_join(receiver, &status) == 0);
 	__Texpr_assert(status == NULL);
 

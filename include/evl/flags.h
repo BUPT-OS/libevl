@@ -51,7 +51,7 @@ int evl_new_flags(struct evl_flags *flg,
 		const char *fmt, ...);
 
 int evl_open_flags(struct evl_flags *flg,
-		 const char *fmt, ...);
+		const char *fmt, ...);
 
 int evl_close_flags(struct evl_flags *flg);
 

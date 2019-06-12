@@ -30,7 +30,7 @@
  * an element causes its automatic deletion.
  */
 int create_evl_element(const char *type, const char *name,
-		       void *attrs, struct evl_element_ids *eids)
+		void *attrs, struct evl_element_ids *eids)
 {
 	struct evl_clone_req clone;
 	char *fdevname, *edevname;

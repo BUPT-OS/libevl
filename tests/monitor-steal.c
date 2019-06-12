@@ -37,15 +37,15 @@ static void *victim(void *arg)
 	 */
 	close(tfd);
 
-	if (!__Tcall(ret, evl_get(&p->start)))
+	if (!__Tcall(ret, evl_get_sem(&p->start)))
 		return (void *)(long)ret;
 
-	if (!__Tcall(ret, evl_lock(&p->lock)))
+	if (!__Tcall(ret, evl_lock_mutex(&p->lock)))
 		return (void *)(long)ret;
 
 	p->acquired = true;
 
-	if (!__Tcall(ret, evl_unlock(&p->lock)))
+	if (!__Tcall(ret, evl_unlock_mutex(&p->lock)))
 		return (void *)(long)ret;
 
 	return NULL;
@@ -68,9 +68,9 @@ static void test_steal(bool do_steal)
 
 	new_thread(&contender, SCHED_FIFO, LOW_PRIO, victim, &c);
 
-	__Tcall_assert(ret, evl_lock(&c.lock));
+	__Tcall_assert(ret, evl_lock_mutex(&c.lock));
 
-	__Tcall_assert(ret, evl_put(&c.start));
+	__Tcall_assert(ret, evl_put_sem(&c.start));
 
 	/*
 	 * Wait for the victim to block on the lock. Sleep for 200ms
@@ -83,18 +83,18 @@ static void test_steal(bool do_steal)
 	 * priority so it can't resume just yet. If @do_steal is true,
 	 * we should be able to steal the lock from it.
 	 */
-	__Tcall_assert(ret, evl_unlock(&c.lock));
+	__Tcall_assert(ret, evl_unlock_mutex(&c.lock));
 
 	if (do_steal) {
-		__Tcall_assert(ret, evl_lock(&c.lock));	/* Steal it. */
+		__Tcall_assert(ret, evl_lock_mutex(&c.lock));	/* Steal it. */
 		__Fexpr_assert(c.acquired);
 	} else {
 		evl_udelay(200000);
-		__Tcall_assert(ret, evl_lock(&c.lock));
+		__Tcall_assert(ret, evl_lock_mutex(&c.lock));
 		__Texpr_assert(c.acquired);
 	}
 
-	__Tcall_assert(ret, evl_unlock(&c.lock));
+	__Tcall_assert(ret, evl_unlock_mutex(&c.lock));
 	__Texpr_assert(pthread_join(contender, &status) == 0);
 	__Texpr_assert(status == NULL);
 

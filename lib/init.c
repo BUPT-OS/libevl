@@ -96,7 +96,7 @@ static inline int generic_init(void)
 		goto fail;
 
 	shmem = mmap(NULL, core_info.shm_size, PROT_READ|PROT_WRITE,
-		     MAP_SHARED, ctlfd, 0);
+		MAP_SHARED, ctlfd, 0);
 	if (shmem == MAP_FAILED) {
 		ret = -errno;
 		goto fail;
@@ -115,7 +115,7 @@ fail:
 int evl_sigevl_handler(int sig, siginfo_t *si, void *ctxt)
 {
 	if (si->si_code == SI_QUEUE &&
-	    sigevl_action(si->si_int) == SIGEVL_ACTION_HOME) {
+		sigevl_action(si->si_int) == SIGEVL_ACTION_HOME) {
 		oob_ioctl(evl_efd, EVL_THRIOC_SWITCH_OOB);
 		return 1;
 	}
@@ -170,7 +170,7 @@ static void sigevl_handler(int sig, siginfo_t *si, void *ctxt)
 		return;
 
 	if ((!(sa->sa_flags & SA_SIGINFO) && sa->sa_handler == NULL) ||
-	    ((sa->sa_flags & SA_SIGINFO) && sa->sa_sigaction == NULL))
+		((sa->sa_flags & SA_SIGINFO) && sa->sa_sigaction == NULL))
 		return;		/* Not sent by the EVL core */
 
 	pthread_sigmask(SIG_SETMASK, &sa->sa_mask, &omask);

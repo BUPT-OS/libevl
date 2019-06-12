@@ -122,9 +122,9 @@ static int check_sanity(struct evl_sem *sem)
 {
 	if (sem->magic == __SEM_UNINIT_MAGIC)
 		return evl_new_sem(sem,
-				   sem->uninit.clockfd,
-				   sem->uninit.initval,
-				   sem->uninit.name);
+				sem->uninit.clockfd,
+				sem->uninit.initval,
+				sem->uninit.name);
 
 	return sem->magic != __SEM_ACTIVE_MAGIC ? -EINVAL : 0;
 }
@@ -160,7 +160,7 @@ static int try_get(struct evl_monitor_state *state)
 	return 0;
 }
 
-int evl_timedget(struct evl_sem *sem, const struct timespec *timeout)
+int evl_timedget_sem(struct evl_sem *sem, const struct timespec *timeout)
 {
 	struct evl_monitor_state *state;
 	struct evl_monitor_waitreq req;
@@ -199,14 +199,14 @@ int evl_timedget(struct evl_sem *sem, const struct timespec *timeout)
 	return ret ? -errno : req.status;
 }
 
-int evl_get(struct evl_sem *sem)
+int evl_get_sem(struct evl_sem *sem)
 {
 	struct timespec timeout = { .tv_sec = 0, .tv_nsec = 0 };
 
-	return evl_timedget(sem, &timeout);
+	return evl_timedget_sem(sem, &timeout);
 }
 
-int evl_tryget(struct evl_sem *sem)
+int evl_tryget_sem(struct evl_sem *sem)
 {
 	int ret;
 
@@ -217,7 +217,7 @@ int evl_tryget(struct evl_sem *sem)
 	return try_get(sem->active.state);
 }
 
-int evl_put(struct evl_sem *sem)
+int evl_put_sem(struct evl_sem *sem)
 {
 	struct evl_monitor_state *state;
 	int val, prev, next, ret;
@@ -250,7 +250,7 @@ int evl_put(struct evl_sem *sem)
 	return 0;
 }
 
-int evl_getval(struct evl_sem *sem)
+int evl_peek_sem(struct evl_sem *sem)
 {
 	if (sem->magic != __SEM_ACTIVE_MAGIC)
 		return -EINVAL;

@@ -71,14 +71,14 @@ int evl_new_mutex_ceiling(struct evl_mutex *mutex,
 int evl_open_mutex(struct evl_mutex *mutex,
 		const char *fmt, ...);
 
-int evl_lock(struct evl_mutex *mutex);
+int evl_lock_mutex(struct evl_mutex *mutex);
 
-int evl_timedlock(struct evl_mutex *mutex,
-		const struct timespec *timeout);
+int evl_timedlock_mutex(struct evl_mutex *mutex,
+			const struct timespec *timeout);
 
-int evl_trylock(struct evl_mutex *mutex);
+int evl_trylock_mutex(struct evl_mutex *mutex);
 
-int evl_unlock(struct evl_mutex *mutex);
+int evl_unlock_mutex(struct evl_mutex *mutex);
 
 int evl_set_mutex_ceiling(struct evl_mutex *mutex,
 			unsigned int ceiling);

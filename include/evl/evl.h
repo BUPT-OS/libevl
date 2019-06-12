@@ -10,7 +10,7 @@
 #include <signal.h>
 #include <evl/clock.h>
 #include <evl/mutex.h>
-#include <evl/condvar.h>
+#include <evl/event.h>
 #include <evl/sem.h>
 #include <evl/syscall.h>
 #include <evl/thread.h>
@@ -19,7 +19,7 @@
 #include <evl/proxy.h>
 #include <evl/utils.h>
 
-#define __EVL__  0	/* API revision */
+#define __EVL__  1	/* API revision */
 
 #ifdef __cplusplus
 extern "C" {

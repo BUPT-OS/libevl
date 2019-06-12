@@ -31,14 +31,14 @@ static void *pi_contend_timeout(void *arg)
 	int ret, tfd;
 
 	__Tcall_assert(tfd, evl_attach_self("monitor-pi-contend:%d", getpid()));
-	__Tcall_assert(ret, evl_get(&p->start));
+	__Tcall_assert(ret, evl_get_sem(&p->start));
 
 	evl_read_clock(EVL_CLOCK_MONOTONIC, &now);
 	timespec_add_ns(&timeout, &now, 10000000); /* 10ms */
 
-	__Tcall_assert(ret, evl_put(&p->sem));
+	__Tcall_assert(ret, evl_put_sem(&p->sem));
 
-	if (__Fcall(ret, evl_timedlock(&p->lock, &timeout)) &&
+	if (__Fcall(ret, evl_timedlock_mutex(&p->lock, &timeout)) &&
 		__Texpr(ret == -ETIMEDOUT))
 		return (void *)1;
 
@@ -89,18 +89,18 @@ int main(int argc, char *argv[])
 	new_thread(&contender, SCHED_FIFO, HIGH_PRIO,
 			pi_contend_timeout, &c);
 
-	__Tcall_assert(ret, evl_lock(&lock_pp));
+	__Tcall_assert(ret, evl_lock_mutex(&lock_pp));
 	__Tcall_assert(ret, evl_udelay(1000)); /* Commit PP boost. */
 	__Texpr_assert(check_priority(tfd, MEDIUM_PRIO));
-	__Tcall_assert(ret, evl_lock(&c.lock));
-	__Tcall_assert(ret, evl_put(&c.start));
-	__Tcall_assert(ret, evl_get(&c.sem));
+	__Tcall_assert(ret, evl_lock_mutex(&c.lock));
+	__Tcall_assert(ret, evl_put_sem(&c.start));
+	__Tcall_assert(ret, evl_get_sem(&c.sem));
 	__Texpr_assert(check_priority(tfd, HIGH_PRIO));
 	__Texpr_assert(pthread_join(contender, &status) == 0);
-	__Tcall_assert(ret, evl_unlock(&c.lock));
+	__Tcall_assert(ret, evl_unlock_mutex(&c.lock));
 	__Texpr_assert(check_priority(tfd, MEDIUM_PRIO));
 	__Fexpr_assert(status == NULL);
-	__Tcall_assert(ret, evl_unlock(&lock_pp));
+	__Tcall_assert(ret, evl_unlock_mutex(&lock_pp));
 	__Texpr_assert(check_priority(tfd, LOW_PRIO));
 
 	evl_close_sem(&c.start);

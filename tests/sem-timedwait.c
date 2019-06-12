@@ -26,7 +26,7 @@ static void *sem_contend(void *arg)
 	__Tcall_assert(tfd, evl_attach_self("sem-wait-contend:%d", getpid()));
 	__Tcall_assert(ret, evl_read_clock(EVL_CLOCK_MONOTONIC, &now));
 	timespec_add_ns(&timeout, &now, 10000000); /* 10ms */
-	__Fcall_assert(ret, evl_timedget(&p->sem, &timeout));
+	__Fcall_assert(ret, evl_timedget_sem(&p->sem, &timeout));
 	__Texpr_assert(ret == -ETIMEDOUT);
 
 	return NULL;

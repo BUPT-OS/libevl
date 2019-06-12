@@ -48,18 +48,18 @@ int main(int argc, char *argv[])
 
 	/* Taking the fast locking path requires running OOB. */
 	__Tcall_assert(ret, evl_switch_oob());
-	__Tcall_assert(ret, evl_lock(&lock));
-	__Texpr_assert(evl_trylock(&lock) == -EDEADLK);
+	__Tcall_assert(ret, evl_lock_mutex(&lock));
+	__Texpr_assert(evl_trylock_mutex(&lock) == -EDEADLK);
 	__Tcall_assert(ret, evl_udelay(1000)); /* Commit PP boost. */
 	__Texpr_assert(check_priority(tfd, HIGH_PRIO));
-	__Tcall_assert(ret, evl_unlock(&lock));
+	__Tcall_assert(ret, evl_unlock_mutex(&lock));
 	__Texpr_assert(check_priority(tfd, LOW_PRIO));
 	/* Force inband in order to skip the fast locking path. */
 	__Tcall_assert(ret, evl_switch_inband());
-	__Tcall_assert(ret, evl_trylock(&lock));
+	__Tcall_assert(ret, evl_trylock_mutex(&lock));
 	/* The slow path must have enforced the ceiling. */
 	__Texpr_assert(check_priority(tfd, HIGH_PRIO));
-	__Tcall_assert(ret, evl_unlock(&lock));
+	__Tcall_assert(ret, evl_unlock_mutex(&lock));
 	__Texpr_assert(check_priority(tfd, LOW_PRIO));
 
 	evl_close_mutex(&lock);

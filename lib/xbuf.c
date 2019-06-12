@@ -12,7 +12,7 @@
 #include "internal.h"
 
 int evl_new_xbuf(size_t i_bufsz, size_t o_bufsz,
-		 const char *fmt, ...)
+		const char *fmt, ...)
 {
 	struct evl_xbuf_attrs attrs;
 	int ret, efd;

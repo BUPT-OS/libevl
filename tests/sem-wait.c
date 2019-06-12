@@ -23,7 +23,7 @@ static void *sem_contend(void *arg)
 	int ret, tfd;
 
 	__Tcall_assert(tfd, evl_attach_self("sem-wait-contend:%d", getpid()));
-	__Tcall_assert(ret, evl_put(&p->sem));
+	__Tcall_assert(ret, evl_put_sem(&p->sem));
 
 	return NULL;
 }
@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 	__Tcall_assert(sfd, evl_new_sem(&c.sem, EVL_CLOCK_MONOTONIC, 0, name));
 	new_thread(&contender, SCHED_FIFO, 1, sem_contend, &c);
 
-	__Tcall_assert(ret, evl_get(&c.sem));
+	__Tcall_assert(ret, evl_get_sem(&c.sem));
 	pthread_join(contender, NULL);
 
 	evl_close_sem(&c.sem);
