@@ -190,6 +190,7 @@ int evl_timedget(struct evl_sem *sem, const struct timespec *timeout)
 	req.gatefd = -1;
 	req.timeout = *timeout;
 	req.status = -EINVAL;
+	req.value = 0;		/* dummy */
 
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, &cancel_type);
 	ret = oob_ioctl(sem->active.efd, EVL_MONIOC_WAIT, &req);
@@ -230,10 +231,10 @@ int evl_put(struct evl_sem *sem)
 	if (val < 0) {
 	slow_path:
 		if (evl_get_current())
-			ret = oob_ioctl(sem->active.efd, EVL_MONIOC_SIGNAL);
+			ret = oob_ioctl(sem->active.efd, EVL_MONIOC_SIGNAL, NULL);
 		else
 			/* In-band threads may post pended sema4s. */
-			ret = ioctl(sem->active.efd, EVL_MONIOC_SIGNAL);
+			ret = ioctl(sem->active.efd, EVL_MONIOC_SIGNAL, NULL);
 		return ret ? -errno : 0;
 	}
 

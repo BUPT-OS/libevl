@@ -210,6 +210,7 @@ int evl_timedwait(struct evl_condvar *cv,
 	req.gatefd = mutex->active.efd;
 	req.timeout = *timeout;
 	req.status = -EINVAL;
+	req.value = 0;		/* dummy */
 	unwait.ureq.gatefd = req.gatefd;
 	unwait.efd = cv->active.efd;
 
