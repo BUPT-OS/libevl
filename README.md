@@ -2,9 +2,9 @@
 What's this?
 ------------
 
-See https://evenless.org/
+See https://evlproject.org/
 
 How to build?
 -------------
 
-See https://evenless.org/core/build-steps/
+See https://evlproject.org/core/build-steps/
