@@ -28,6 +28,11 @@ static inline void atomic_set(atomic_t *ptr, long val)
 	__sync_val_compare_and_swap(&(__ptr)->val, __old, __new)
 #endif
 
+#ifndef atomic_add_return
+#define atomic_add_return(__ptr, __n)	\
+	__sync_add_and_fetch(&(__ptr)->val, __n)
+#endif
+
 #ifndef smp_mb
 #define smp_mb()  __sync_synchronize()
 #endif
