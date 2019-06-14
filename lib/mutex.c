@@ -257,7 +257,7 @@ int evl_timedlock_mutex(struct evl_mutex *mutex,
 			const struct timespec *timeout)
 {
 	struct evl_monitor_lockreq lreq;
-	int ret, cancel_type;
+	int ret;
 
 	ret = try_lock(mutex);
 	if (ret != -ENODATA)
@@ -265,13 +265,9 @@ int evl_timedlock_mutex(struct evl_mutex *mutex,
 
 	lreq.timeout = *timeout;
 
-	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, &cancel_type);
-
 	do
 		ret = oob_ioctl(mutex->active.efd, EVL_MONIOC_ENTER, &lreq);
 	while (ret && errno == EINTR);
-
-	pthread_setcanceltype(cancel_type, NULL);
 
 	return ret ? -errno : 0;
 }

@@ -152,8 +152,8 @@ int evl_timedwait_flags(struct evl_flags *flg,
 {
 	struct evl_monitor_state *state;
 	struct evl_monitor_waitreq req;
-	int mode, ret, cancel_type;
 	fundle_t current;
+	int mode, ret;
 
 	current = evl_get_current();
 	if (current == EVL_NO_HANDLE)
@@ -182,10 +182,7 @@ int evl_timedwait_flags(struct evl_flags *flg,
 	req.status = -EINVAL;
 	req.value = 0;
 
-	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, &cancel_type);
 	ret = oob_ioctl(flg->active.efd, EVL_MONIOC_WAIT, &req);
-	pthread_setcanceltype(cancel_type, NULL);
-
 	if (ret)
 		return -errno;
 

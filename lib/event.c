@@ -201,7 +201,7 @@ int evl_timedwait_event(struct evl_event *evt,
 {
 	struct evl_monitor_waitreq req;
 	struct unwait_data unwait;
-	int ret, old_type;
+	int ret;
 
 	ret = check_event_sanity(evt);
 	if (ret)
@@ -215,9 +215,7 @@ int evl_timedwait_event(struct evl_event *evt,
 	unwait.efd = evt->active.efd;
 
 	pthread_cleanup_push(unwait_event, &unwait);
-	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, &old_type);
 	ret = oob_ioctl(evt->active.efd, EVL_MONIOC_WAIT, &req);
-	pthread_setcanceltype(old_type, NULL);
 	pthread_cleanup_pop(0);
 
 	/*

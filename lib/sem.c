@@ -164,8 +164,8 @@ int evl_timedget_sem(struct evl_sem *sem, const struct timespec *timeout)
 {
 	struct evl_monitor_state *state;
 	struct evl_monitor_waitreq req;
-	int mode, ret, cancel_type;
 	fundle_t current;
+	int mode, ret;
 
 	current = evl_get_current();
 	if (current == EVL_NO_HANDLE)
@@ -192,9 +192,7 @@ int evl_timedget_sem(struct evl_sem *sem, const struct timespec *timeout)
 	req.status = -EINVAL;
 	req.value = 0;		/* dummy */
 
-	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, &cancel_type);
 	ret = oob_ioctl(sem->active.efd, EVL_MONIOC_WAIT, &req);
-	pthread_setcanceltype(cancel_type, NULL);
 
 	return ret ? -errno : req.status;
 }
