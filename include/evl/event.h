@@ -10,6 +10,7 @@
 #include <time.h>
 #include <linux/types.h>
 #include <evl/atomic.h>
+#include <evl/mutex.h>
 #include <uapi/evl/types.h>
 #include <uapi/evl/monitor.h>
 
@@ -30,11 +31,11 @@ struct evl_event {
 
 #define __EVENT_UNINIT_MAGIC	0x01770177
 
-#define EVL_EVENT_INITIALIZER(__name, __clock)  {	\
+#define EVL_EVENT_INITIALIZER(__name, __clockfd)  {	\
 		.magic = __EVENT_UNINIT_MAGIC,		\
 		.uninit = {				\
 			.name = (__name),		\
-			.clockfd = (__clock),		\
+			.clockfd = (__clockfd),		\
 		}					\
 	}
 
