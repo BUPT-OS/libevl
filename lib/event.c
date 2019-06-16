@@ -58,20 +58,20 @@ static int init_event_vargs(struct evl_event *evt,
 	evt->active.efd = efd;
 	evt->magic = __EVENT_ACTIVE_MAGIC;
 
-	return 0;
+	return efd;
 }
 
 static int init_event(struct evl_event *evt,
 		int clockfd, const char *fmt, ...)
 {
 	va_list ap;
-	int ret;
+	int efd;
 
 	va_start(ap, fmt);
-	ret = init_event_vargs(evt, clockfd, fmt, ap);
+	efd = init_event_vargs(evt, clockfd, fmt, ap);
 	va_end(ap);
 
-	return ret;
+	return efd;
 }
 
 static int open_event_vargs(struct evl_event *evt,
@@ -112,13 +112,13 @@ int evl_new_event(struct evl_event *evt,
 		int clockfd, const char *fmt, ...)
 {
 	va_list ap;
-	int ret;
+	int efd;
 
 	va_start(ap, fmt);
-	ret = init_event_vargs(evt, clockfd, fmt, ap);
+	efd = init_event_vargs(evt, clockfd, fmt, ap);
 	va_end(ap);
 
-	return ret;
+	return efd;
 }
 
 int evl_open_event(struct evl_event *evt, const char *fmt, ...)
@@ -157,12 +157,12 @@ int evl_close_event(struct evl_event *evt)
 
 static int check_event_sanity(struct evl_event *evt)
 {
-	int ret;
+	int efd;
 
 	if (evt->magic == __EVENT_UNINIT_MAGIC) {
-		ret = init_event(evt, evt->uninit.clockfd, evt->uninit.name);
-		if (ret)
-			return ret;
+		efd = init_event(evt, evt->uninit.clockfd, evt->uninit.name);
+		if (efd < 0)
+			return efd;
 	} else if (evt->magic != __EVENT_ACTIVE_MAGIC)
 		return -EINVAL;
 

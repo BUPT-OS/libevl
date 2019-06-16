@@ -58,7 +58,7 @@ int evl_new_flags(struct evl_flags *flg, int clockfd, int initval,
 	flg->active.efd = efd;
 	flg->magic = __FLAGS_ACTIVE_MAGIC;
 
-	return 0;
+	return efd;
 }
 
 int evl_open_flags(struct evl_flags *flg, const char *fmt, ...)
@@ -90,7 +90,7 @@ int evl_open_flags(struct evl_flags *flg, const char *fmt, ...)
 	flg->active.efd = efd;
 	flg->magic = __FLAGS_ACTIVE_MAGIC;
 
-	return 0;
+	return efd;
 fail:
 	close(efd);
 
@@ -120,11 +120,15 @@ int evl_close_flags(struct evl_flags *flg)
 
 static int check_sanity(struct evl_flags *flg)
 {
-	if (flg->magic == __FLAGS_UNINIT_MAGIC)
-		return evl_new_flags(flg,
+	int efd;
+
+	if (flg->magic == __FLAGS_UNINIT_MAGIC) {
+		efd = evl_new_flags(flg,
 				flg->uninit.clockfd,
 				flg->uninit.initval,
 				flg->uninit.name);
+		return efd < 0 ? efd : 0;
+	}
 
 	return flg->magic != __FLAGS_ACTIVE_MAGIC ? -EINVAL : 0;
 }

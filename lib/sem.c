@@ -58,7 +58,7 @@ int evl_new_sem(struct evl_sem *sem, int clockfd, int initval,
 	sem->active.efd = efd;
 	sem->magic = __SEM_ACTIVE_MAGIC;
 
-	return 0;
+	return efd;
 }
 
 int evl_open_sem(struct evl_sem *sem, const char *fmt, ...)
@@ -90,7 +90,7 @@ int evl_open_sem(struct evl_sem *sem, const char *fmt, ...)
 	sem->active.efd = efd;
 	sem->magic = __SEM_ACTIVE_MAGIC;
 
-	return 0;
+	return efd;
 fail:
 	close(efd);
 
@@ -120,11 +120,15 @@ int evl_close_sem(struct evl_sem *sem)
 
 static int check_sanity(struct evl_sem *sem)
 {
-	if (sem->magic == __SEM_UNINIT_MAGIC)
-		return evl_new_sem(sem,
+	int efd;
+
+	if (sem->magic == __SEM_UNINIT_MAGIC) {
+		efd = evl_new_sem(sem,
 				sem->uninit.clockfd,
 				sem->uninit.initval,
 				sem->uninit.name);
+		return efd < 0 ? efd : 0;
+	}
 
 	return sem->magic != __SEM_ACTIVE_MAGIC ? -EINVAL : 0;
 }

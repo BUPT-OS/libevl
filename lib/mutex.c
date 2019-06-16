@@ -75,7 +75,7 @@ static int init_mutex_vargs(struct evl_mutex *mutex,
 	mutex->active.efd = efd;
 	mutex->magic = __MUTEX_ACTIVE_MAGIC;
 
-	return 0;
+	return efd;
 }
 
 static int init_mutex(struct evl_mutex *mutex,
@@ -83,13 +83,13 @@ static int init_mutex(struct evl_mutex *mutex,
 		const char *fmt, ...)
 {
 	va_list ap;
-	int ret;
+	int efd;
 
 	va_start(ap, fmt);
-	ret = init_mutex_vargs(mutex, protocol, clockfd, ceiling, fmt, ap);
+	efd = init_mutex_vargs(mutex, protocol, clockfd, ceiling, fmt, ap);
 	va_end(ap);
 
-	return ret;
+	return efd;
 }
 
 static int open_mutex_vargs(struct evl_mutex *mutex,
@@ -131,13 +131,13 @@ int evl_new_mutex(struct evl_mutex *mutex, int clockfd,
 		const char *fmt, ...)
 {
 	va_list ap;
-	int ret;
+	int efd;
 
 	va_start(ap, fmt);
-	ret = init_mutex_vargs(mutex, EVL_GATE_PI, clockfd, 0, fmt, ap);
+	efd = init_mutex_vargs(mutex, EVL_GATE_PI, clockfd, 0, fmt, ap);
 	va_end(ap);
 
-	return ret;
+	return efd;
 }
 
 int evl_new_mutex_ceiling(struct evl_mutex *mutex, int clockfd,
@@ -145,13 +145,13 @@ int evl_new_mutex_ceiling(struct evl_mutex *mutex, int clockfd,
 			const char *fmt, ...)
 {
 	va_list ap;
-	int ret;
+	int efd;
 
 	va_start(ap, fmt);
-	ret = init_mutex_vargs(mutex, EVL_GATE_PP, clockfd, ceiling, fmt, ap);
+	efd = init_mutex_vargs(mutex, EVL_GATE_PP, clockfd, ceiling, fmt, ap);
 	va_end(ap);
 
-	return ret;
+	return efd;
 }
 
 int evl_open_mutex(struct evl_mutex *mutex, const char *fmt, ...)
@@ -207,7 +207,7 @@ static int try_lock(struct evl_mutex *mutex)
 				mutex->uninit.clockfd,
 				mutex->uninit.ceiling,
 				mutex->uninit.name);
-		if (ret)
+		if (ret < 0)
 			return ret;
 	} else if (mutex->magic != __MUTEX_ACTIVE_MAGIC)
 		return -EINVAL;

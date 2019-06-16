@@ -1257,7 +1257,7 @@ int evl_init_heap(struct evl_heap *heap, void *mem, size_t size)
 
 	ret = evl_new_mutex(&heap->lock, EVL_CLOCK_MONOTONIC, "heap:%.3d",
 			atomic_add_return(&heap_serial, 1));
-	if (ret)
+	if (ret < 0)
 		return ret;
 
 	/* Reset bucket page lists, all empty. */
