@@ -118,9 +118,9 @@ int main(int argc, char *argv[])
 	__Texpr_assert(pthread_join(receiver, &status) == 0);
 	__Texpr_assert(status == NULL);
 
-	evl_close_sem(&c.start);
-	evl_close_sem(&c.sem);
-	evl_close_flags(&c.flags);
+	__Tcall_assert(ret, evl_close_sem(&c.start));
+	__Tcall_assert(ret, evl_close_sem(&c.sem));
+	__Tcall_assert(ret, evl_close_flags(&c.flags));
 
 	return 0;
 }
