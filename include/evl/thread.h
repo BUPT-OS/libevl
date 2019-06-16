@@ -9,6 +9,7 @@
 
 #include <linux/types.h>
 #include <limits.h>
+#include <stdbool.h>
 #include <evl/syscall.h>
 #include <uapi/evl/thread.h>
 #include <uapi/evl/sched.h>
@@ -37,9 +38,9 @@ static inline int evl_get_current_mode(void)
 		evl_current_window->state : T_INBAND;
 }
 
-static inline int evl_is_inband(void)
+static inline bool evl_is_inband(void)
 {
-	return evl_get_current_mode() & T_INBAND;
+	return !!(evl_get_current_mode() & T_INBAND);
 }
 
 int evl_attach_self(const char *fmt, ...);
