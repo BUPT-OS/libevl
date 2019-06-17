@@ -127,11 +127,13 @@ int attach_evl_clocks(void)
 	}
 
 	/*
-	 * Force the in-band syscall for MMIO mapping on the initial
-	 * clock reading for architectures which export clock sources
-	 * via MMIO. This way we won't receive SIGDEBUG due to
-	 * switching in-band inadvertently later on when reading the
-	 * clock from out-of-band context.
+	 * With some architectures, the vDSO might have to mmap the
+	 * clock source register(s) into the caller's address space
+	 * upon first read call (ARM), which would trigger an in-band
+	 * syscall from the vDSO code. Force a dummy read of the
+	 * monotonic clock to map such register(s) now, so that we
+	 * won't receive SIGDEBUG due to switching in-band
+	 * inadvertently for this reason later on.
 	 */
 	evl_read_clock(EVL_CLOCK_MONOTONIC, &dummy);
 
