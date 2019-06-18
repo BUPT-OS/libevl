@@ -32,7 +32,7 @@ static void *flags_receiver(void *arg)
 	__Tcall_assert(tfd, evl_attach_self("monitor-flags-receiver:%d", getpid()));
 	__Tcall_assert(ret, evl_get_sem(&p->start));
 	evl_read_clock(EVL_CLOCK_MONOTONIC, &now);
-	timespec_add_ns(&timeout, &now, 200000000); /* 200ms */
+	timespec_add_ns(&timeout, &now, 400000000); /* 400ms */
 
 	/* Sender is quiet: expect timeout. */
 	if (!__Fcall(ret, evl_timedwait_flags(&p->flags, &timeout, &bits)) ||

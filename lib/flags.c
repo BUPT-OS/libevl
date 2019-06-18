@@ -5,6 +5,7 @@
  */
 
 #include <stdarg.h>
+#include <stdbool.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <time.h>
@@ -151,6 +152,11 @@ static int try_wait(struct evl_monitor_state *state)
 	return val;
 }
 
+static inline bool is_polled(struct evl_monitor_state *state)
+{
+	return !!atomic_read(&state->u.event.pollrefs);
+}
+
 int evl_timedwait_flags(struct evl_flags *flg,
 			const struct timespec *timeout,	int *r_bits)
 {
@@ -173,7 +179,7 @@ int evl_timedwait_flags(struct evl_flags *flg,
 	 */
 	state = flg->active.state;
 	mode = evl_get_current_mode();
-	if (!(mode & (T_INBAND|T_WEAK|T_DEBUG))) {
+	if (!(mode & (T_INBAND|T_WEAK|T_DEBUG)) && !is_polled(state)) {
 		ret = try_wait(state);
 		if (ret) {
 			*r_bits = ret;
@@ -235,9 +241,18 @@ int evl_post_flags(struct evl_flags *flg, int bits)
 	if (!bits)
 		return -EINVAL;
 
+	/*
+	 * Unlike with gated event, we have no raceless way to detect
+	 * that somebody is waiting on the flag group from userland,
+	 * so we do a kernel entry each time a zero->non-zero
+	 * transition is observed for the value. Fortunately, having
+	 * some thread(s) already waiting for a flag to be posted is
+	 * the most likely situation, so such entry will be required
+	 * in most cases anyway.
+	 */
 	state = flg->active.state;
 	val = atomic_read(&state->u.event.value);
-	if (!val) {
+	if (!val || is_polled(state)) {
 	slow_path:
 		if (evl_get_current())
 			ret = oob_ioctl(flg->active.efd, EVL_MONIOC_SIGNAL, &mask);
@@ -250,9 +265,14 @@ int evl_post_flags(struct evl_flags *flg, int bits)
 		prev = val;
 		next = prev | bits;
 		val = atomic_cmpxchg(&state->u.event.value, prev, next);
-		/* Check if somebody sneaked in the wait queue. */
 		if (!val)
 			goto slow_path;
+		if (is_polled(state)) {
+			/* If swap happened, just trigger a wakeup. */
+			if (val == prev)
+				mask = 0;
+			goto slow_path;
+		}
 	} while (val != prev);
 
 	return 0;

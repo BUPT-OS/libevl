@@ -5,6 +5,7 @@
  */
 
 #include <stdarg.h>
+#include <stdbool.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <time.h>
@@ -219,10 +220,16 @@ int evl_tryget_sem(struct evl_sem *sem)
 	return try_get(sem->active.state);
 }
 
+static inline bool is_polled(struct evl_monitor_state *state)
+{
+	return !!atomic_read(&state->u.event.pollrefs);
+}
+
 int evl_put_sem(struct evl_sem *sem)
 {
 	struct evl_monitor_state *state;
 	int val, prev, next, ret;
+	__s32 sigval = 1;
 
 	ret = check_sanity(sem);
 	if (ret)
@@ -230,13 +237,13 @@ int evl_put_sem(struct evl_sem *sem)
 
 	state = sem->active.state;
 	val = atomic_read(&state->u.event.value);
-	if (val < 0) {
+	if (val < 0 || is_polled(state)) {
 	slow_path:
 		if (evl_get_current())
-			ret = oob_ioctl(sem->active.efd, EVL_MONIOC_SIGNAL, NULL);
+			ret = oob_ioctl(sem->active.efd, EVL_MONIOC_SIGNAL, &sigval);
 		else
 			/* In-band threads may post pended sema4s. */
-			ret = ioctl(sem->active.efd, EVL_MONIOC_SIGNAL, NULL);
+			ret = ioctl(sem->active.efd, EVL_MONIOC_SIGNAL, &sigval);
 		return ret ? -errno : 0;
 	}
 
@@ -244,9 +251,19 @@ int evl_put_sem(struct evl_sem *sem)
 		prev = val;
 		next = prev + 1;
 		val = atomic_cmpxchg(&state->u.event.value, prev, next);
-		/* Check if somebody sneaked in the wait queue. */
+		/*
+		 * If somebody sneaked in the wait queue or started
+		 * polling us in the meantime, we have to perform a
+		 * kernel entry.
+		 */
 		if (val < 0)
 			goto slow_path;
+		if (is_polled(state)) {
+			/* If swap happened, just trigger a wakeup. */
+			if (val == prev)
+				sigval = 0;
+			goto slow_path;
+		}
 	} while (val != prev);
 
 	return 0;
