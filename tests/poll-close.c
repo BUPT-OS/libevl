@@ -10,16 +10,20 @@
 #include <evl/poll.h>
 #include "helpers.h"
 
-static int pfd;
+static int pfd, xfd;
 
 static void *polling_thread(void *arg)
 {
-	struct evl_poll_event pollset;
+	struct evl_poll_event pollset = {
+		.fd = -1,
+		.events = 0
+	};
 	int ret, tfd;
 
 	__Tcall_assert(tfd, evl_attach_self("poller-polling:%d", getpid()));
-	__Fcall_assert(ret, evl_poll(pfd, &pollset, 1));
-	__Texpr_assert(ret == -EBADF);
+	__Tcall_assert(ret, evl_poll(pfd, &pollset, 1));
+	__Texpr_assert(pollset.fd == xfd);
+	__Texpr_assert(pollset.events & POLLNVAL);
 
 	return NULL;
 }
@@ -27,8 +31,8 @@ static void *polling_thread(void *arg)
 int main(int argc, char *argv[])
 {
 	char *name, *path;
-	int tfd, xfd, ret;
 	pthread_t poller;
+	int tfd, ret;
 
 	__Tcall_assert(tfd, evl_attach_self("poller-close:%d", getpid()));
 
