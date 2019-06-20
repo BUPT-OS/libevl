@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 	 */
 	__Tcall_assert(pfd1, evl_new_poll());
 	__Fcall_assert(ret, evl_add_pollfd(pfd1, pfd1, POLLIN));
-	__Texpr_assert(ret == -EINVAL);
+	__Texpr_assert(ret == -ELOOP);
 
 	__Tcall_assert(pfd2, evl_new_poll());
 	__Tcall_assert(ret, evl_add_pollfd(pfd1, pfd2, POLLIN));
