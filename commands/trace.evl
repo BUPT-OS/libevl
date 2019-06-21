@@ -84,6 +84,7 @@ if test x$enable = xtrue; then
        echo 1 > events/evl/evl_timer_shot/enable
        echo 1 > events/evl/evl_trigger/enable
        echo 1 > events/evl/evl_latspot/enable
+       echo 1 > events/evl/evl_fpu_corrupt/enable
    else
        warn=" (no snapshot)"
    fi
