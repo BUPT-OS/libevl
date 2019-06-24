@@ -163,7 +163,7 @@ int evl_timedwait_flags(struct evl_flags *flg,
 	struct evl_monitor_state *state;
 	struct evl_monitor_waitreq req;
 	fundle_t current;
-	int mode, ret;
+	int ret;
 
 	current = evl_get_current();
 	if (current == EVL_NO_HANDLE)
@@ -173,13 +173,8 @@ int evl_timedwait_flags(struct evl_flags *flg,
 	if (ret)
 		return ret;
 
-	/*
-	 * Threads running in-band and/or enabling some debug features
-	 * must go through the slow syscall path.
-	 */
 	state = flg->active.state;
-	mode = evl_get_current_mode();
-	if (!(mode & (T_INBAND|T_WEAK|T_DEBUG)) && !is_polled(state)) {
+	if (!is_polled(state)) {
 		ret = try_wait(state);
 		if (ret) {
 			*r_bits = ret;
