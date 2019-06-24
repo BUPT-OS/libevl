@@ -170,7 +170,7 @@ int evl_timedget_sem(struct evl_sem *sem, const struct timespec *timeout)
 	struct evl_monitor_state *state;
 	struct evl_monitor_waitreq req;
 	fundle_t current;
-	int mode, ret;
+	int ret;
 
 	current = evl_get_current();
 	if (current == EVL_NO_HANDLE)
@@ -180,17 +180,10 @@ int evl_timedget_sem(struct evl_sem *sem, const struct timespec *timeout)
 	if (ret)
 		return ret;
 
-	/*
-	 * Threads running in-band and/or enabling some debug features
-	 * must go through the slow syscall path.
-	 */
 	state = sem->active.state;
-	mode = evl_get_current_mode();
-	if (!(mode & (T_INBAND|T_WEAK|T_DEBUG))) {
-		ret = try_get(state);
-		if (ret != -EAGAIN)
-			return ret;
-	}
+	ret = try_get(state);
+	if (ret != -EAGAIN)
+		return ret;
 
 	req.gatefd = -1;
 	req.timeout = *timeout;
