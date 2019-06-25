@@ -167,7 +167,7 @@ static void *sampler_thread(void *arg)
 	if (efd < 0)
 		error(1, -efd, "evl_attach_self() failed");
 
-	mode = T_WARN;
+	mode = T_WOSS;
 	ret = oob_ioctl(efd, EVL_THRIOC_SET_MODE, &mode);
 	if (ret)
 		error(1, errno, "ioctl(EVL_THRIOC_SET_MODE) failed");

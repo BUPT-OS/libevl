@@ -37,11 +37,6 @@ evl_get_current_window(void)
 	return evl_current ? evl_current_window : NULL;
 }
 
-static inline int evl_should_warn(void)
-{
-	return (evl_get_current_mode() & (T_INBAND|T_WARN)) == T_WARN;
-}
-
 struct evl_element_ids;
 
 int arch_evl_init(void);

@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 				SCHED_FIFO, &param) == 0);
 	__Tcall_assert(tfd, evl_attach_self("fpu-preload:%d", getpid()));
 
-	mode = T_WARN;
+	mode = T_WOSS;
 	__Tcall_assert(ret, oob_ioctl(tfd, EVL_THRIOC_SET_MODE, &mode));
 	f = get_float() * get_float();
 	__Tcall_assert(ret, oob_ioctl(tfd, EVL_THRIOC_CLEAR_MODE, &mode));

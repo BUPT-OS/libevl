@@ -215,11 +215,11 @@ static int try_lock(struct evl_mutex *mutex)
 	gst = mutex->active.state;
 
 	/*
-	 * Threads running in-band and/or enabling some debug features
-	 * must go through the slow syscall path.
+	 * Threads running in-band and/or enabling WOLI debug must go
+	 * through the slow syscall path.
 	 */
 	mode = evl_get_current_mode();
-	if (!(mode & (T_INBAND|T_WEAK|T_DEBUG))) {
+	if (!(mode & (T_INBAND|T_WEAK|T_WOLI))) {
 		if (mutex->active.protocol == EVL_GATE_PP) {
 			u_window = evl_get_current_window();
 			/*
@@ -314,7 +314,7 @@ int evl_unlock_mutex(struct evl_mutex *mutex)
 		goto slow_path;
 
 	mode = evl_get_current_mode();
-	if (mode & (T_WEAK|T_DEBUG))
+	if (mode & (T_WEAK|T_WOLI))
 		goto slow_path;
 
 	if (evl_fast_unlock_mutex(&gst->u.gate.owner, current)) {
