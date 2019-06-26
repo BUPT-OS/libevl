@@ -634,8 +634,8 @@ static void usage(void)
         fprintf(stderr, "-u --user               measure/tune user scheduling latency\n");
         fprintf(stderr, "    [ if none of --irq, --kernel and --user is given,\n"
                         "      tune for all contexts ]\n");
-        fprintf(stderr, "-p --period             sampling period (µs)\n");
-        fprintf(stderr, "-P --priority           sampler thread priority [=90]\n");
+        fprintf(stderr, "-p --period=<µs>        sampling period\n");
+        fprintf(stderr, "-P --priority=<prio>    sampler thread priority [=90]\n");
         fprintf(stderr, "-c --cpu=<n>            pin sampler thread to CPU [=0]\n");
         fprintf(stderr, "-r --reset              reset core timer gravity to factory default\n");
         fprintf(stderr, "-L --load               enable load generation [on if tuning]\n");
