@@ -12,6 +12,7 @@
 #include <evl/mutex.h>
 #include <evl/event.h>
 #include <evl/sem.h>
+#include <evl/flags.h>
 #include <evl/syscall.h>
 #include <evl/thread.h>
 #include <evl/xbuf.h>
