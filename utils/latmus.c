@@ -290,6 +290,26 @@ const char *context_labels[] = {
 	[EVL_LAT_USER] = "user",
 };
 
+static void __log_results(struct latmus_measurement *meas)
+{
+	if (meas->min_lat < all_minlat)
+		all_minlat = meas->min_lat;
+	if (meas->max_lat > all_maxlat) {
+		all_maxlat = meas->max_lat;
+		if (abort_threshold && all_maxlat > abort_threshold) {
+			fprintf(stderr, "latency threshold is exceeded"
+				" (%d >= %.3f), aborting.\n",
+				abort_threshold,
+				(double)all_maxlat / 1000.0);
+			exit(102);
+		}
+	}
+
+	all_sum += meas->sum_lat;
+	all_samples += meas->samples;
+	all_overruns += meas->overruns;
+}
+
 static void log_results(struct latmus_measurement *meas,
 			unsigned int round)
 {
@@ -311,22 +331,7 @@ static void log_results(struct latmus_measurement *meas,
 		       "---lat best", "--lat worst");
 	}
 
-	if (meas->min_lat < all_minlat)
-		all_minlat = meas->min_lat;
-	if (meas->max_lat > all_maxlat) {
-		all_maxlat = meas->max_lat;
-		if (abort_threshold && all_maxlat > abort_threshold) {
-			fprintf(stderr, "latency threshold is exceeded"
-				" (%d >= %.3f), aborting.\n",
-				abort_threshold,
-				(double)all_maxlat / 1000.0);
-			exit(102);
-		}
-	}
-
-	all_sum += meas->sum_lat;
-	all_samples += meas->samples;
-	all_overruns += meas->overruns;
+	__log_results(meas);
 	min = (double)meas->min_lat / 1000.0;
 	avg = (double)(meas->sum_lat / (int)meas->samples) / 1000.0;
 	max = (double)meas->max_lat / 1000.0;
@@ -398,6 +403,7 @@ static void create_logger(pthread_t *tid)
 
 static void *measurement_thread(void *arg)
 {
+	struct latmus_measurement_result mr;
 	struct latmus_result result;
 	int ret;
 
@@ -405,8 +411,12 @@ static void *measurement_thread(void *arg)
 	if (ret < 0)
 		error(1, -ret, "evl_attach_self() failed");
 
-	result.data = histogram;
-	result.len = histogram ? histogram_cells * sizeof(int32_t) : 0;
+	mr.last = arg;
+	mr.histogram = histogram;
+	mr.len = histogram ? histogram_cells * sizeof(int32_t) : 0;
+
+	result.data = &mr;
+	result.len = sizeof(mr);
 
 	/* Run test until signal. */
 	ret = oob_ioctl(latmus_fd, EVL_LATIOC_RUN, &result);
@@ -469,14 +479,13 @@ static void dump_gnuplot(time_t duration)
 		;
 	stop = n;
 
-	fprintf(plot_fp, "%u 1\n", start);
-	for (n = start; n <= stop; n++)
-		fprintf(plot_fp, "%g %d\n", n + 0.5, histogram[n] + 1);
-	fprintf(plot_fp, "%u 1\n", stop + 1);
+	for (n = start; n <= stop; n++) /* +1: no zero cell. */
+		fprintf(plot_fp, "%d %d\n", n, histogram[n] + 1);
 }
 
 static void do_measurement(int type)
 {
+	struct latmus_measurement last;
 	pthread_t sampler, logger;
 	struct latmus_setup setup;
 	pthread_attr_t attr;
@@ -514,7 +523,7 @@ static void do_measurement(int type)
 
 	pthread_attr_init(&attr);
 	pthread_attr_setstacksize(&attr, EVL_STACK_DEFAULT);
-	ret = pthread_create(&waiter, &attr, measurement_thread, NULL);
+	ret = pthread_create(&waiter, &attr, measurement_thread, &last);
 	pthread_attr_destroy(&attr);
 	if (ret)
 		error(1, ret, "measurement_thread");
@@ -523,6 +532,10 @@ static void do_measurement(int type)
 
 	pthread_cancel(waiter);
 	pthread_join(waiter, NULL);
+
+	/* Add results from the last incomplete bulk. */
+	if (last.samples > 0)
+		__log_results(&last);
 
 	duration = time(NULL) - start_time - 1;
 	if (plot_fp) {
