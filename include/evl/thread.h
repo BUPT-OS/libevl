@@ -11,6 +11,7 @@
 #include <limits.h>
 #include <stdbool.h>
 #include <evl/syscall.h>
+#include <uapi/evl/signal.h>
 #include <uapi/evl/thread.h>
 #include <uapi/evl/sched.h>
 
