@@ -670,7 +670,7 @@ bad:
 static void usage(void)
 {
         fprintf(stderr, "usage: latmus [options]:\n");
-        fprintf(stderr, "-p --period             sampling period (µs)\n");
+        fprintf(stderr, "-p --period             sampling period (us)\n");
 }
 
 #define short_optlist "s:p:c:r:v"

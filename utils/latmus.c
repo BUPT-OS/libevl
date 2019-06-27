@@ -442,7 +442,7 @@ static void dump_gnuplot(time_t duration)
 	dump_procinfo("/proc/version");
 	dump_procinfo("/proc/cmdline");
 	fprintf(plot_fp, "# libevl version: %s\n", libevl_version_string);
-	fprintf(plot_fp, "# sampling period: %u µs\n", period);
+	fprintf(plot_fp, "# sampling period: %u microseconds\n", period);
 	fprintf(plot_fp, "# context: %s\n", context_labels[context_type]);
 	if (test_klat || test_ulat) {
 		fprintf(plot_fp, "# thread priority: %d\n", sampler_priority);
@@ -634,7 +634,7 @@ static void usage(void)
         fprintf(stderr, "-u --user               measure/tune user scheduling latency\n");
         fprintf(stderr, "    [ if none of --irq, --kernel and --user is given,\n"
                         "      tune for all contexts ]\n");
-        fprintf(stderr, "-p --period=<µs>        sampling period\n");
+        fprintf(stderr, "-p --period=<us>        sampling period\n");
         fprintf(stderr, "-P --priority=<prio>    sampler thread priority [=90]\n");
         fprintf(stderr, "-c --cpu=<n>            pin sampler thread to CPU [=0]\n");
         fprintf(stderr, "-r --reset              reset core timer gravity to factory default\n");
@@ -642,7 +642,7 @@ static void usage(void)
         fprintf(stderr, "-n --noload             disable load generation\n");
         fprintf(stderr, "-b --background         run in the background (daemon mode)\n");
         fprintf(stderr, "-a --mode-abort         abort upon unexpected switch to in-band mode\n");
-        fprintf(stderr, "-A --max-abort=<µs>     abort if maximum latency exceeds threshold\n");
+        fprintf(stderr, "-A --max-abort=<us>     abort if maximum latency exceeds threshold\n");
         fprintf(stderr, "-T --timeout=<t>[dhms]  stop measurement after <t> [d(ays)|h(ours)|m(inutes)|s(econds)]\n");
         fprintf(stderr, "-v --verbose[=level]    set verbosity level [=1]\n");
         fprintf(stderr, "-q --quiet              quiet mode (i.e. --verbose=0)\n");
@@ -867,7 +867,7 @@ int main(int argc, char *const argv[])
 	} else {
 		if (verbosity)
 			printf("== latmus started for core tuning, "
-			       "period=%d us (may take a while)\n",
+			       "period=%d microseconds (may take a while)\n",
 			       period);
 
 		ret = evl_attach_self("lat-tuner:%d", getpid());
