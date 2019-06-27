@@ -669,8 +669,12 @@ bad:
 
 static void usage(void)
 {
-        fprintf(stderr, "usage: latmus [options]:\n");
-        fprintf(stderr, "-p --period             sampling period (us)\n");
+        fprintf(stderr, "usage: heap-torture [options]:\n");
+        fprintf(stderr, "-s --sequential-test-size    heap size for sequential access tests\n");
+        fprintf(stderr, "-p --pattern-test-size       heap size for pattern tests\n");
+        fprintf(stderr, "-c --pattern-check-rounds    number of pattern tests\n");
+        fprintf(stderr, "-r --random-check-rounds     number of random allocation tests\n");
+        fprintf(stderr, "-v --verbose                 turn on verbosity\n");
 }
 
 #define short_optlist "s:p:c:r:v"
