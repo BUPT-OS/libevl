@@ -20,6 +20,7 @@
 #include <error.h>
 #include <errno.h>
 #include <ftw.h>
+#include <uapi/evl/control.h>
 #include <uapi/evl/thread.h>
 
 static cpu_set_t cpu_restrict;
@@ -768,6 +769,9 @@ int main(int argc, char *const argv[])
 		usage(argv[0]);
 		return 1;
 	}
+
+	if (access(EVL_CONTROL_DEV, 0) && errno == ENOENT)
+		error(1, ENOSYS, "EVL core is not present/enabled");
 
 	if (!(display_format & ~DISPLAY_MODIFIERS))
 		display_format |= DISPLAY_DEFAULT_FORMAT;
