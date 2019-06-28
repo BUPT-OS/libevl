@@ -61,7 +61,7 @@ static inline int generic_init(void)
 	 * sign that we have no EVL core in there. Return with
 	 * -ENOSYS to give a clear hint about this.
 	 */
-	ctlfd = open("/dev/evl/control", O_RDWR);
+	ctlfd = open(EVL_CONTROL_DEV, O_RDWR);
 	if (ctlfd < 0)
 		return errno == -ENOENT ? -ENOSYS : -errno;
 
