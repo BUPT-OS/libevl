@@ -92,7 +92,7 @@ static inline void breathe(int loops)
 	 * to progress, let's nap a bit during the test.
 	 */
 	if ((loops % 1000) == 0)
-		evl_sleep(EVL_CLOCK_MONOTONIC, &idle, NULL);
+		evl_sleep(EVL_CLOCK_MONOTONIC, &idle);
 }
 
 static inline long diff_ts(struct timespec *left, struct timespec *right)

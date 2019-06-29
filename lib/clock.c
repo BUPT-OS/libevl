@@ -17,71 +17,69 @@
 
 int evl_mono_clockfd, evl_real_clockfd;
 
-#define do_call(__efd, __args...)				\
+#define do_call(__clockfd, __args...)				\
 	({							\
 		int __ret;					\
 		if (evl_is_inband())				\
-			__ret = ioctl(__efd, ##__args);		\
+			__ret = ioctl(__clockfd, ##__args);	\
 		else						\
-			__ret = oob_ioctl(__efd, ##__args);	\
+			__ret = oob_ioctl(__clockfd, ##__args);	\
 		__ret ? -errno : 0;				\
 	})
 
-int evl_set_clock(int efd, const struct timespec *tp)
+int evl_set_clock(int clockfd, const struct timespec *tp)
 {
 	int ret;
 
-	switch (efd) {
+	switch (clockfd) {
 	case EVL_CLOCK_MONOTONIC:
 	case EVL_CLOCK_REALTIME:
-		ret = clock_settime(-efd, tp);
+		ret = clock_settime(-clockfd, tp);
 		if (ret)
 			return -errno;
 		break;
 	default:
-		ret = do_call(efd, EVL_CLKIOC_SET_TIME, tp);
+		ret = do_call(clockfd, EVL_CLKIOC_SET_TIME, tp);
 	}
 
 	return ret;
 }
 
-int evl_get_clock_resolution(int efd, struct timespec *tp)
+int evl_get_clock_resolution(int clockfd, struct timespec *tp)
 {
 	int ret;
 
-	switch (efd) {
+	switch (clockfd) {
 	case EVL_CLOCK_MONOTONIC:
 	case EVL_CLOCK_REALTIME:
-		ret = clock_getres(-efd, tp);
+		ret = clock_getres(-clockfd, tp);
 		if (ret)
 			return -errno;
 		break;
 	default:
-		ret = do_call(efd, EVL_CLKIOC_GET_RES, tp);
+		ret = do_call(clockfd, EVL_CLKIOC_GET_RES, tp);
 	}
 
 	return ret;
 }
 
-int evl_adjust_clock(int efd, struct timex *tx)
+int evl_adjust_clock(int clockfd, struct timex *tx)
 {
-	return do_call(efd, EVL_CLKIOC_ADJ_TIME, tx);
+	return do_call(clockfd, EVL_CLKIOC_ADJ_TIME, tx);
 }
 
-int evl_sleep(int efd, const struct timespec *timeout,
-	      struct timespec *remain)
+int evl_sleep(int clockfd, const struct timespec *timeout)
 {
 	struct evl_clock_sleepreq req = {
 		.timeout = *timeout,
-		.remain = remain,
 	};
 
-	if (efd == EVL_CLOCK_MONOTONIC)
-		efd = evl_mono_clockfd;
-	else if (efd == EVL_CLOCK_REALTIME)
-		efd = evl_real_clockfd;
+	if (clockfd == EVL_CLOCK_MONOTONIC)
+		clockfd = evl_mono_clockfd;
+	else if (clockfd == EVL_CLOCK_REALTIME)
+		clockfd = evl_real_clockfd;
 
-	return oob_ioctl(efd, EVL_CLKIOC_SLEEP, &req) ? -errno : 0;
+	return oob_ioctl(clockfd, EVL_CLKIOC_SLEEP, &req) ? -errno : 0;
 }
 
 static void timespec_add_ns(struct timespec *__restrict r,
@@ -107,7 +105,7 @@ int evl_udelay(unsigned int usecs)
 	evl_read_clock(EVL_CLOCK_MONOTONIC, &now);
 	timespec_add_ns(&next, &now, usecs * 1000);
 
-	return evl_sleep(evl_mono_clockfd, &next, NULL);
+	return evl_sleep(evl_mono_clockfd, &next);
 }
 
 int attach_evl_clocks(void)

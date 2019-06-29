@@ -19,27 +19,26 @@ extern "C" {
 #endif
 
 static inline
-int evl_read_clock(int efd, struct timespec *tp)
+int evl_read_clock(int clockfd, struct timespec *tp)
 {
 	extern int (*arch_clock_gettime)(clockid_t clk_id,
 					 struct timespec *tp);
-	switch (efd) {
+	switch (clockfd) {
 	case -CLOCK_MONOTONIC:
 	case -CLOCK_REALTIME:
-		return arch_clock_gettime(-efd, tp) ? -errno : 0;
+		return arch_clock_gettime(-clockfd, tp) ? -errno : 0;
 	default:
-		return oob_ioctl(efd, EVL_CLKIOC_GET_TIME, tp) ? -errno : 0;
+		return oob_ioctl(clockfd, EVL_CLKIOC_GET_TIME, tp) ? -errno : 0;
 	}
 }
 
-int evl_set_clock(int efd, const struct timespec *tp);
+int evl_set_clock(int clockfd, const struct timespec *tp);
 
-int evl_get_clock_resolution(int efd, struct timespec *tp);
+int evl_get_clock_resolution(int clockfd, struct timespec *tp);
 
-int evl_adjust_clock(int efd, struct timex *tx);
+int evl_adjust_clock(int clockfd, struct timex *tx);
 
-int evl_sleep(int efd, const struct timespec *timeout,
-	struct timespec *remain);
+int evl_sleep(int clockfd, const struct timespec *timeout);
 
 int evl_udelay(unsigned int usecs);
 
