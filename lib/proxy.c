@@ -13,7 +13,8 @@
 #include <evl/syscall.h>
 #include "internal.h"
 
-int evl_new_proxy(int fd, size_t bufsz, const char *fmt, ...)
+int evl_new_proxy(int fd, size_t bufsz, size_t granularity,
+		const char *fmt, ...)
 {
 	struct evl_proxy_attrs attrs;
 	int ret, efd;
@@ -28,6 +29,7 @@ int evl_new_proxy(int fd, size_t bufsz, const char *fmt, ...)
 
 	attrs.fd = fd;
 	attrs.bufsz = bufsz;
+	attrs.granularity = granularity;
 	efd = create_evl_element(EVL_PROXY_DEV, name, &attrs, NULL);
 	free(name);
 

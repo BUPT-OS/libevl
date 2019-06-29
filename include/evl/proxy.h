@@ -16,6 +16,7 @@ extern "C" {
 #endif
 
 int evl_new_proxy(int fd, size_t bufsz,
+		size_t granularity,
 		const char *fmt, ...);
 
 #ifdef __cplusplus

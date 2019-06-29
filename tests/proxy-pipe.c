@@ -14,7 +14,6 @@
 #include <unistd.h>
 #include <evl/thread.h>
 #include <evl/proxy.h>
-#include <evl/clock.h>
 #include <evl/syscall.h>
 #include "helpers.h"
 
@@ -33,11 +32,6 @@ static void *writer(void *arg)
 	for (n = 0; n < TEST_COUNT; n++) {
 		c = 'A' + (n % 26);
 		__Tcall_assert(ret, oob_write(logfd, &c, 1));
-		if (ret == 0) {
-			/* Buffer was full, let it drain then redo. */
-			evl_udelay(1000);
-			n--;
-		}
 	}
 
 	/* End of test. */
@@ -54,8 +48,8 @@ int main(int argc, char *argv[])
 	char c, cmp;
 
 	__Tcall_assert(ret, pipe(pipefd));
-	__Tcall_assert(logfd, evl_new_proxy(pipefd[1], BUFFER_SIZE,
-						"pipe-relay:%d", getpid()));
+	__Tcall_assert(logfd, evl_new_proxy(pipefd[1], BUFFER_SIZE, 0,
+						"pipe-reader:%d", getpid()));
 	new_thread(&tid, SCHED_FIFO, 1, writer, NULL);
 
 	for (;;) {

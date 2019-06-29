@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 
 	ret = asprintf(&name, "proxy:%d", getpid());
 	(void)ret;
-	efd = evl_new_proxy(memfd, 0, "%s", name);
+	efd = evl_new_proxy(memfd, 0, 0, "%s", name);
 	printf("file proxy has efd=%d\n", efd);
 
 	switch (fork()) {

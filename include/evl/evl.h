@@ -20,7 +20,7 @@
 #include <evl/proxy.h>
 #include <evl/utils.h>
 
-#define __EVL__  1	/* API revision */
+#define __EVL__  2	/* API revision */
 
 #ifdef __cplusplus
 extern "C" {
