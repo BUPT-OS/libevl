@@ -58,9 +58,9 @@ static bool check_priority(int tfd, int prio)
 
 int main(int argc, char *argv[])
 {
+	int tfd, gfd, sfd, ret, mode = T_WOLI;
 	struct sched_param param;
 	struct evl_mutex lock_pp;
-	int tfd, gfd, sfd, ret;
 	struct test_context c;
 	pthread_t contender;
 	void *status = NULL;
@@ -89,6 +89,11 @@ int main(int argc, char *argv[])
 	new_thread(&contender, SCHED_FIFO, HIGH_PRIO,
 			pi_contend_timeout, &c);
 
+	/*
+	 * Disable WOLI in case CONFIG_EVL_DEBUG_WOLI is set, as we
+	 * are about to sleep while holding a mutex.
+	 */
+	__Tcall_assert(ret, oob_ioctl(tfd, EVL_THRIOC_CLEAR_MODE, &mode));
 	__Tcall_assert(ret, evl_lock_mutex(&lock_pp));
 	__Tcall_assert(ret, evl_udelay(1000)); /* Commit PP boost. */
 	__Texpr_assert(check_priority(tfd, MEDIUM_PRIO));
