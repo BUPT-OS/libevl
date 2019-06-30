@@ -10,6 +10,7 @@
 #include <stdarg.h>
 #include <sys/types.h>
 #include <linux/types.h>
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,6 +28,11 @@ int evl_vprint_proxy(int proxyfd,
 
 int evl_print_proxy(int proxyfd,
 		const char *fmt, ...);
+
+int evl_printf(const char *fmt, ...);
+
+extern int proxy_outfd,
+	proxy_errfd;
 
 #ifdef __cplusplus
 }

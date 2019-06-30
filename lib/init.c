@@ -58,8 +58,8 @@ static inline int generic_init(void)
 
 	/*
 	 * Failing to open the control device with ENOENT is a clear
-	 * sign that we have no EVL core in there. Return with
-	 * -ENOSYS to give a clear hint about this.
+	 * sign that we have no EVL core in there. Return with -ENOSYS
+	 * to give a clear hint about this.
 	 */
 	ctlfd = open(EVL_CONTROL_DEV, O_RDWR);
 	if (ctlfd < 0)
@@ -102,6 +102,7 @@ static inline int generic_init(void)
 		goto fail;
 	}
 
+	pthread_atfork(NULL, NULL, atfork_unmap_shmem);
 	evl_ctlfd = ctlfd;
 	evl_shared_memory = shmem;
 
@@ -220,8 +221,7 @@ static inline int do_init(void)
 	if (ret)
 		return ret;
 
-	pthread_atfork(NULL, NULL, atfork_unmap_shmem);
-
+	init_proxy_streams();
 	install_signal_handlers();
 
 	return 0;

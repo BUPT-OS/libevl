@@ -35,6 +35,8 @@ int arch_evl_init(void);
 
 int attach_evl_clocks(void);
 
+void init_proxy_streams(void);
+
 int create_evl_element(const char *type,
 		       const char *name,
 		       void *attrs,
