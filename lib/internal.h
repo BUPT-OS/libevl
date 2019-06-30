@@ -12,19 +12,11 @@
 #include <evl/thread.h>
 #include <uapi/evl/types.h>
 
-/*
- * Length of per-thread print formatting buffer used by evl_printf().
- */
-#define EVL_PRINTBUF_SIZE  1024
-
 extern __thread __attribute__ ((tls_model (EVL_TLS_MODEL)))
 fundle_t evl_current;
 
 extern __thread __attribute__ ((tls_model (EVL_TLS_MODEL)))
 int evl_efd;
-
-extern __thread __attribute__ ((tls_model (EVL_TLS_MODEL)))
-char evl_logging_buf[EVL_PRINTBUF_SIZE];
 
 static inline fundle_t evl_get_current(void)
 {

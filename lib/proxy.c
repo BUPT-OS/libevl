@@ -10,8 +10,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <evl/proxy.h>
+#include <evl/thread.h>
 #include <evl/syscall.h>
+#include <uapi/evl/proxy.h>
 #include "internal.h"
+
+static __thread __attribute__ ((tls_model (EVL_TLS_MODEL)))
+char fmt_buf[1024];
 
 int evl_new_proxy(int fd, size_t bufsz, size_t granularity,
 		const char *fmt, ...)
@@ -34,4 +39,31 @@ int evl_new_proxy(int fd, size_t bufsz, size_t granularity,
 	free(name);
 
 	return efd;
+}
+
+ssize_t evl_send_proxy(int proxyfd, const void *buf, size_t len)
+{
+	if (evl_is_inband())
+		return write(proxyfd, buf, len);
+
+	return oob_write(proxyfd, buf, len);
+}
+
+int evl_vprint_proxy(int proxyfd, const char *fmt, va_list ap)
+{
+	ssize_t len = vsnprintf(fmt_buf, sizeof(fmt_buf), fmt, ap);
+
+	return evl_send_proxy(proxyfd, fmt_buf, len);
+}
+
+int evl_print_proxy(int proxyfd, const char *fmt, ...)
+{
+	va_list ap;
+	int ret;
+
+	va_start(ap, fmt);
+	ret = evl_vprint_proxy(proxyfd, fmt, ap);
+	va_end(ap);
+
+	return ret;
 }

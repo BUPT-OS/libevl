@@ -7,16 +7,25 @@
 #ifndef _EVL_PROXY_H
 #define _EVL_PROXY_H
 
+#include <stdarg.h>
 #include <sys/types.h>
 #include <linux/types.h>
-#include <uapi/evl/proxy.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int evl_new_proxy(int fd, size_t bufsz,
+int evl_new_proxy(int proxyfd, size_t bufsz,
 		size_t granularity,
+		const char *fmt, ...);
+
+ssize_t evl_send_proxy(int proxyfd,
+		const void *buf, size_t len);
+
+int evl_vprint_proxy(int proxyfd,
+		const char *fmt, va_list ap);
+
+int evl_print_proxy(int proxyfd,
 		const char *fmt, ...);
 
 #ifdef __cplusplus

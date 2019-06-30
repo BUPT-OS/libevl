@@ -19,7 +19,6 @@
 #include <evl/xbuf.h>
 #include <evl/poll.h>
 #include <evl/proxy.h>
-#include <evl/utils.h>
 
 #define __EVL__  3	/* API revision */
 

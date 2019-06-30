@@ -31,9 +31,6 @@ int evl_efd = -1;
 __thread __attribute__ ((tls_model (EVL_TLS_MODEL)))
 struct evl_user_window *evl_current_window;
 
-__thread __attribute__ ((tls_model (EVL_TLS_MODEL)))
-char evl_logging_buf[EVL_PRINTBUF_SIZE];
-
 static pthread_once_t atfork_once = PTHREAD_ONCE_INIT;
 
 static void clear_tls(void)
