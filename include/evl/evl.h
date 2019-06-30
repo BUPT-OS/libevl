@@ -15,6 +15,7 @@
 #include <evl/flags.h>
 #include <evl/syscall.h>
 #include <evl/thread.h>
+#include <evl/sched.h>
 #include <evl/xbuf.h>
 #include <evl/poll.h>
 #include <evl/proxy.h>
