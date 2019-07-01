@@ -1165,10 +1165,10 @@ static struct avl_searchops addr_search_ops = {
 	.cmp = compare_range_by_addr,
 };
 
-static int add_extent(struct evl_heap *heap, void *mem, size_t size)
+static ssize_t add_extent(void *mem, size_t size)
 {
-	size_t user_size, overhead;
 	struct evl_heap_extent *ext;
+	size_t user_size, overhead;
 	int nrpages;
 
 	/*
@@ -1237,22 +1237,15 @@ static int add_extent(struct evl_heap *heap, void *mem, size_t size)
 	avl_init(&ext->addr_tree);
 	release_page_range(ext, ext->membase, user_size);
 
-	evl_lock_mutex(&heap->lock);
-	list_append(&ext->next, &heap->extents);
-	heap->arena_size += size;
-	heap->usable_size += user_size;
-	evl_unlock_mutex(&heap->lock);
-
-	return 0;
+	return (ssize_t)user_size;
 }
 
 int evl_init_heap(struct evl_heap *heap, void *mem, size_t size)
 {
-	int ret, n;
+	struct evl_heap_extent *ext = mem;
+	ssize_t ret;
+	int n;
 
-	heap->used_size = 0;
-	heap->usable_size = 0;
-	heap->arena_size = 0;
 	list_init(&heap->extents);
 
 	ret = evl_new_mutex(&heap->lock, EVL_CLOCK_MONOTONIC, "heap:%.3d",
@@ -1264,18 +1257,36 @@ int evl_init_heap(struct evl_heap *heap, void *mem, size_t size)
 	for (n = 0; n < EVL_HEAP_MAX_BUCKETS; n++)
 		heap->buckets[n] = -1U;
 
-	ret = add_extent(heap, mem, size);
-	if (ret) {
+	ret = add_extent(mem, size);
+	if (ret < 0) {
 		evl_close_mutex(&heap->lock);
 		return ret;
 	}
+
+	list_append(&ext->next, &heap->extents);
+	heap->arena_size = size;
+	heap->usable_size = ret;
+	heap->used_size = 0;
 
 	return 0;
 }
 
 int evl_extend_heap(struct evl_heap *heap, void *mem, size_t size)
 {
-	return add_extent(heap, mem, size);
+	struct evl_heap_extent *ext = mem;
+	ssize_t ret;
+
+	ret = add_extent(mem, size);
+	if (ret < 0)
+		return ret;
+
+	evl_lock_mutex(&heap->lock);
+	list_append(&ext->next, &heap->extents);
+	heap->arena_size += size;
+	heap->usable_size += ret;
+	evl_unlock_mutex(&heap->lock);
+
+	return 0;
 }
 
 void evl_destroy_heap(struct evl_heap *heap)
