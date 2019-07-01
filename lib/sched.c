@@ -13,6 +13,30 @@
 #include <uapi/evl/control.h>
 #include "internal.h"
 
+int evl_set_schedattr(int efd, const struct evl_sched_attrs *attrs)
+{
+	int ret;
+
+	if (evl_is_inband())
+		ret = ioctl(efd, EVL_THRIOC_SET_SCHEDPARAM, attrs);
+	else
+		ret = oob_ioctl(efd, EVL_THRIOC_SET_SCHEDPARAM, attrs);
+
+	return ret ? -errno : 0;
+}
+
+int evl_get_schedattr(int efd, struct evl_sched_attrs *attrs)
+{
+	int ret;
+
+	if (evl_is_inband())
+		ret = ioctl(efd, EVL_THRIOC_GET_SCHEDPARAM, attrs);
+	else
+		ret = oob_ioctl(efd, EVL_THRIOC_GET_SCHEDPARAM, attrs);
+
+	return ret ? -errno : 0;
+}
+
 int evl_sched_control(int policy,
 		union evl_sched_ctlparam *param,
 		union evl_sched_ctlinfo *info,

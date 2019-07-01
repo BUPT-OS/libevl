@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <evl/sched.h>
 #include <evl/thread.h>
 #include <evl/mutex.h>
 #include <evl/clock.h>
