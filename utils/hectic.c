@@ -28,6 +28,8 @@
 #include <uapi/asm/evl/fptest.h>
 #include <uapi/evl/devices/hectic.h>
 
+#define OOBCPUS_LIST  "/sys/devices/virtual/evl/control/cpus"
+
 static unsigned int nr_cpus;
 
 static cpu_set_t cpu_affinity;
@@ -1077,21 +1079,21 @@ static inline int resolve_cpuid(const char *s)
 static void build_cpu_mask(const char *cpu_list)
 {
 	char *s, *n, *range, *range_p = NULL, *id, *id_r;
-	int start, end, cpu, nr_cpus, ret;
+	int start, end, cpu, ret, max_cpus;
 
-	nr_cpus = (int)sysconf(_SC_NPROCESSORS_CONF);
-	if (nr_cpus < 0)
+	max_cpus = (int)sysconf(_SC_NPROCESSORS_CONF);
+	if (max_cpus < 0)
 		error(1, errno, "sysconf(_SC_NPROCESSORS_CONF)");
 
 	CPU_ZERO(&cpu_affinity);
 
 	s = n = strdup(cpu_list);
 	while ((range = strtok_r(n, ",", &range_p)) != NULL) {
-		if (*range == '\0')
+		if (*range == '\0' || *range == '\n')
 			continue;
 		end = -1;
 		if (range[strlen(range)-1] == '-')
-			end = nr_cpus - 1;
+			end = max_cpus - 1;
 		id = strtok_r(range, "-", &id_r);
 		if (id) {
 			start = resolve_cpuid(id);
@@ -1104,12 +1106,12 @@ static void build_cpu_mask(const char *cpu_list)
 				end = resolve_cpuid(id);
 			else if (end < 0)
 				end = start;
-			if (start < 0 || start >= nr_cpus ||
-			    end < 0 || end >= nr_cpus)
+			if (start < 0 || start >= max_cpus ||
+			    end < 0 || end >= max_cpus)
 				goto fail;
 		} else {
 			start = 0;
-			end = nr_cpus - 1;
+			end = max_cpus - 1;
 		}
 		for (cpu = start; cpu <= end; cpu++)
 			CPU_SET(cpu, &cpu_affinity);
@@ -1135,8 +1137,9 @@ int main(int argc, const char *argv[])
 	pthread_attr_t rt_attr;
 	struct cpu_tasks *cpus;
 	struct sched_param sp;
+	char buf[BUFSIZ];
 	sigset_t mask;
-	int sig;
+	int sig, fd;
 
 	status = EXIT_SUCCESS;
 	main_tid = pthread_self();
@@ -1215,13 +1218,16 @@ int main(int argc, const char *argv[])
 		}
 	}
 
+	/* Set a reasonable default if -c not given. */
 	nr_cpus = CPU_COUNT(&cpu_affinity);
 	if (nr_cpus == 0) {
-		nr_cpus = sysconf(_SC_NPROCESSORS_ONLN);
-		if (nr_cpus < 0)
-			error(1, errno, "sysconf(_SC_NPROCESSORS_ONLN)");
-		for (i = 0; i < nr_cpus; i++)
-			CPU_SET(i, &cpu_affinity);
+		*buf = '\0';
+		fd = open(OOBCPUS_LIST, O_RDONLY);
+		if (fd < 0 || read(fd, buf, sizeof(buf)) < 0)
+			error(1, errno, "cannot read %s", OOBCPUS_LIST);
+		close(fd);
+		build_cpu_mask(buf);
+		nr_cpus = CPU_COUNT(&cpu_affinity);
 	}
 
 	if (setvbuf(stdout, NULL, _IOLBF, 0)) {
