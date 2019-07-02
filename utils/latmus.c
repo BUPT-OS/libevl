@@ -48,6 +48,8 @@ static int sampler_priority = 90;
 
 static int sampler_cpu = -1;
 
+static int sampler_cpu_state;
+
 static sigset_t sigmask;
 
 static int latmus_fd = -1;
@@ -323,11 +325,12 @@ static void log_results(struct latmus_measurement *meas,
 		time(&now);
 		dt = now - start_time - 1; /* -1s warmup time */
 		printf("RTT|  %.2ld:%.2ld:%.2ld  "
-			"(%s, %u us period, priority %d, CPU%d)\n",
+			"(%s, %u us period, priority %d, CPU%d%s)\n",
 			dt / 3600, (dt / 60) % 60, dt % 60,
 			context_labels[context_type], period,
 			sampler_priority,
-			sampler_cpu);
+			sampler_cpu,
+			sampler_cpu_state & EVL_CPU_ISOL ? "" : "-noisol");
 		printf("RTH|%11s|%11s|%11s|%8s|%6s|%11s|%11s\n",
 		       "----lat min", "----lat avg",
 		       "----lat max", "-overrun", "---msw",
@@ -367,13 +370,18 @@ static void log_results(struct latmus_measurement *meas,
 static void *logger_thread(void *arg)
 {
 	struct latmus_measurement meas;
+	const char *cpu_s = "";
 	ssize_t ret, round = 0;
 
+	ret = evl_get_cpustate(sampler_cpu, &sampler_cpu_state);
+	if (!ret && !(sampler_cpu_state & EVL_CPU_ISOL))
+		cpu_s = " (not isolated)";
+
 	if (verbosity > 0)
-		fprintf(stderr, "warming up on CPU%d...\n", sampler_cpu);
+		fprintf(stderr, "warming up on CPU%d%s...\n", sampler_cpu, cpu_s);
 	else
-		fprintf(stderr, "running quietly for %ld seconds on CPU%d\n",
-			timeout, sampler_cpu);
+		fprintf(stderr, "running quietly for %ld seconds on CPU%d%s\n",
+			timeout, sampler_cpu, cpu_s);
 
 	for (;;) {
 		ret = read(lat_xfd, &meas, sizeof(meas));
@@ -459,7 +467,9 @@ static void dump_gnuplot(time_t duration)
 	fprintf(plot_fp, "# context: %s\n", context_labels[context_type]);
 	if (test_klat || test_ulat) {
 		fprintf(plot_fp, "# thread priority: %d\n", sampler_priority);
-		fprintf(plot_fp, "# thread affinity: CPU%d\n", sampler_cpu);
+		fprintf(plot_fp, "# thread affinity: CPU%d%s\n",
+			sampler_cpu,
+			sampler_cpu_state & EVL_CPU_ISOL ? "" : "-noisol");
 	}
 	fprintf(plot_fp, "# duration (hhmmss): %.2ld:%.2ld:%.2ld\n",
 		duration / 3600, (duration / 60) % 60, duration % 60);
@@ -640,6 +650,19 @@ static void sigdebug_handler(int sig, siginfo_t *si, void *context)
 	}
 }
 
+static void set_cpu_affinity(void)
+{
+	cpu_set_t cpu_set;
+	int ret;
+
+	CPU_ZERO(&cpu_set);
+	CPU_SET(sampler_cpu, &cpu_set);
+	ret = sched_setaffinity(0, sizeof(cpu_set), &cpu_set);
+	if (ret)
+		error(1, errno, "cannot set affinity to CPU%d",
+		      sampler_cpu);
+}
+
 static void usage(void)
 {
         fprintf(stderr, "usage: latmus [options]:\n");
@@ -674,7 +697,6 @@ int main(int argc, char *const argv[])
 	char *endptr, buf[BUFSIZ];
 	struct sigaction sa;
 	pthread_t loadgen;
-	cpu_set_t cpu_set;
 
 	opterr = 0;
 
@@ -824,12 +846,11 @@ int main(int argc, char *const argv[])
 		plot_fp = NULL;
 	}
 
-	CPU_ZERO(&cpu_set);
-	CPU_SET(sampler_cpu, &cpu_set);
-	ret = sched_setaffinity(0, sizeof(cpu_set), &cpu_set);
+	ret = evl_init();
 	if (ret)
-		error(1, errno, "cannot set affinity to CPU%d",
-		      sampler_cpu);
+		error(1, -ret, "evl_init()");
+
+	set_cpu_affinity();
 
 	if (background) {
 		signal(SIGHUP, SIG_IGN);
