@@ -62,8 +62,13 @@ static inline int generic_init(void)
 	 * to give a clear hint about this.
 	 */
 	ctlfd = open(EVL_CONTROL_DEV, O_RDWR);
-	if (ctlfd < 0)
-		return errno == -ENOENT ? -ENOSYS : -errno;
+	if (ctlfd < 0) {
+		if (errno == ENOENT) {
+			fprintf(stderr,	"evl: core not enabled in kernel\n");
+			return -ENOSYS;
+		}
+		return -errno;
+	}
 
 	ret = fcntl(ctlfd, F_GETFD, 0);
 	if (ret < 0) {

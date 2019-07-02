@@ -834,6 +834,10 @@ int main(int argc, char *const argv[])
 		return 1;
 	}
 
+	ret = evl_init();
+	if (ret)
+		error(1, -ret, "evl_init()");
+
 	if (sampler_cpu < 0) {	/* Pick a default. */
 		*buf = '\0';
 		fd = open(OOBCPUS_LIST, O_RDONLY);
@@ -862,10 +866,6 @@ int main(int argc, char *const argv[])
 		plot_filename = NULL;
 		plot_fp = NULL;
 	}
-
-	ret = evl_init();
-	if (ret)
-		error(1, -ret, "evl_init()");
 
 	set_cpu_affinity();
 	restrict_c_state();

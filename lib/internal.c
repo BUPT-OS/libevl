@@ -11,9 +11,21 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include <linux/types.h>
 #include <uapi/evl/factory.h>
 #include "internal.h"
+
+static void do_lart_once(void)
+{
+	fprintf(stderr,	"evl: core not present but stopped\n");
+}
+
+static void lart_once(void)
+{
+	static pthread_once_t lart_once = PTHREAD_ONCE_INIT;
+	pthread_once(&lart_once, do_lart_once);
+}
 
 /*
  * Creating an EVL element is done by the following steps:
@@ -51,6 +63,8 @@ int create_evl_element(const char *type, const char *name,
 	ret = ioctl(ffd, EVL_IOC_CLONE, &clone);
 	if (ret) {
 		ret = -errno;
+		if (ret == -ENXIO)
+			lart_once();
 		goto out_new;
 	}
 
