@@ -28,6 +28,8 @@
 #include <uapi/evl/devices/latmus.h>
 #include <uapi/evl/signal.h>
 
+#define OOBCPUS_LIST  "/sys/devices/virtual/evl/control/cpus"
+
 static int test_irqlat, test_klat, test_ulat;
 
 static int reset, load = -1, background,
@@ -44,7 +46,7 @@ static unsigned int period = 1000; /* 1ms */
 
 static int sampler_priority = 90;
 
-static int sampler_cpu;
+static int sampler_cpu = -1;
 
 static sigset_t sigmask;
 
@@ -321,10 +323,11 @@ static void log_results(struct latmus_measurement *meas,
 		time(&now);
 		dt = now - start_time - 1; /* -1s warmup time */
 		printf("RTT|  %.2ld:%.2ld:%.2ld  "
-		       "(%s, %u us period, priority %d)\n",
-		       dt / 3600, (dt / 60) % 60, dt % 60,
-		       context_labels[context_type], period,
-		       sampler_priority);
+			"(%s, %u us period, priority %d, CPU%d)\n",
+			dt / 3600, (dt / 60) % 60, dt % 60,
+			context_labels[context_type], period,
+			sampler_priority,
+			sampler_cpu);
 		printf("RTH|%11s|%11s|%11s|%8s|%6s|%11s|%11s\n",
 		       "----lat min", "----lat avg",
 		       "----lat max", "-overrun", "---msw",
@@ -367,10 +370,10 @@ static void *logger_thread(void *arg)
 	ssize_t ret, round = 0;
 
 	if (verbosity > 0)
-		fprintf(stderr, "warming up...\n");
+		fprintf(stderr, "warming up on CPU%d...\n", sampler_cpu);
 	else
-		fprintf(stderr, "running quietly for %ld seconds\n",
-			timeout);
+		fprintf(stderr, "running quietly for %ld seconds on CPU%d\n",
+			timeout, sampler_cpu);
 
 	for (;;) {
 		ret = read(lat_xfd, &meas, sizeof(meas));
@@ -667,11 +670,11 @@ static void usage(void)
 int main(int argc, char *const argv[])
 {
 	const char *plot_filename = NULL;
-	int ret, c, spec, type, max_prio;
+	int ret, c, spec, type, max_prio, fd;
+	char *endptr, buf[BUFSIZ];
 	struct sigaction sa;
 	pthread_t loadgen;
 	cpu_set_t cpu_set;
-	char *endptr;
 
 	opterr = 0;
 
@@ -790,6 +793,16 @@ int main(int argc, char *const argv[])
 	if (optind < argc) {
 		usage();
 		return 1;
+	}
+
+	if (sampler_cpu < 0) {	/* Pick a default. */
+		*buf = '\0';
+		fd = open(OOBCPUS_LIST, O_RDONLY);
+		if (fd < 0 || read(fd, buf, sizeof(buf)) < 0)
+			error(1, errno, "cannot read %s", OOBCPUS_LIST);
+		close(fd);
+		/* Pick the first one of the list or range. */
+		sampler_cpu = atoi(buf);
 	}
 
 	setlinebuf(stdout);
