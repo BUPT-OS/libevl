@@ -54,6 +54,8 @@ static sigset_t sigmask;
 
 static int latmus_fd = -1;
 
+static bool c_state_restricted;
+
 #define short_optlist "ikurLNqbamtp:A:T:v:l:g:H:P:c:"
 
 static const struct option options[] = {
@@ -471,6 +473,8 @@ static void dump_gnuplot(time_t duration)
 			sampler_cpu,
 			sampler_cpu_state & EVL_CPU_ISOL ? "" : "-noisol");
 	}
+	if (c_state_restricted)
+		fprintf(plot_fp, "# C-state restricted\n");
 	fprintf(plot_fp, "# duration (hhmmss): %.2ld:%.2ld:%.2ld\n",
 		duration / 3600, (duration / 60) % 60, duration % 60);
 	if (all_overruns > 0)
@@ -663,6 +667,19 @@ static void set_cpu_affinity(void)
 		      sampler_cpu);
 }
 
+static void restrict_c_state(void)
+{
+	__s32 val = 0;
+	int fd;
+
+	fd = open("/dev/cpu_dma_latency", O_WRONLY);
+	if (fd < 0)
+		return;
+
+	if (write(fd, &val, sizeof(val) == sizeof(val)))
+		c_state_restricted = true;
+}
+
 static void usage(void)
 {
         fprintf(stderr, "usage: latmus [options]:\n");
@@ -851,6 +868,7 @@ int main(int argc, char *const argv[])
 		error(1, -ret, "evl_init()");
 
 	set_cpu_affinity();
+	restrict_c_state();
 
 	if (background) {
 		signal(SIGHUP, SIG_IGN);
