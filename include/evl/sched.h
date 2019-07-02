@@ -23,6 +23,8 @@ int evl_sched_control(int policy,
 		union evl_sched_ctlinfo *info,
 		int cpu);
 
+int evl_get_cpustate(int cpu, int *state_r);
+
 #ifdef __cplusplus
 }
 #endif
