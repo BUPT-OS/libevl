@@ -527,7 +527,7 @@ static char *format_state(struct thread_info *ti, char *buf)
 
 static void display_state(struct thread_info *ti)
 {
-	char buf[UINT_WIDTH];
+	char buf[CHAR_BIT * sizeof(int) + 1]; /* UINT_WIDTH+1 */
 
 	if (display_format & DISPLAY_NUMERIC)
 		printf(" %-8x", ti->state);
