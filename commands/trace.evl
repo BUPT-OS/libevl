@@ -25,7 +25,7 @@ enable=false
 disable=false
 print=true
 full=false
-bufsz=64
+bufsz=128
 pcpu=
 help=false
 
@@ -67,11 +67,18 @@ if test x$enable = xtrue; then
    test -r snapshot && echo 0 > snapshot
    echo $bufsz > ${pcpu}buffer_size_kb
    if test x$full = xfalse; then
-       echo 1 > events/irq/enable
+       echo 1 > events/irq/irq_pipeline_entry/enable
+       echo 1 > events/irq/irq_pipeline_exit/enable
+       echo 1 > events/irq/irq_handler_entry/enable
+       echo 1 > events/irq/irq_handler_exit/enable
        echo 1 > events/power/cpu_idle/enable
        echo 1 > events/evl/enable
+       if test -r events/exceptions; then
+	   echo 1 > events/exceptions/enable
+       fi
    elif cat available_tracers | grep -qw function; then
        echo function > current_tracer
+       echo 1 > events/enable
    else
        echo >&2 "kernel function tracer is not available"
        exit 2
