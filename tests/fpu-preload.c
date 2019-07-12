@@ -51,12 +51,12 @@ int main(int argc, char *argv[])
 	__Tcall_assert(tfd, evl_attach_self("fpu-preload:%d", getpid()));
 
 	mode = T_WOSS;
-	__Tcall_assert(ret, oob_ioctl(tfd, EVL_THRIOC_SET_MODE, &mode));
+	__Tcall_errno_assert(ret, oob_ioctl(tfd, EVL_THRIOC_SET_MODE, &mode));
 	f = get_float() * get_float();
-	__Tcall_assert(ret, oob_ioctl(tfd, EVL_THRIOC_CLEAR_MODE, &mode));
+	__Tcall_errno_assert(ret, oob_ioctl(tfd, EVL_THRIOC_CLEAR_MODE, &mode));
 	if (fork() == 0) {
 		__Tcall_assert(tfd, evl_attach_self("fpu-preload-child:%d", getpid()));
-		__Tcall_assert(ret, oob_ioctl(tfd, EVL_THRIOC_SET_MODE, &mode));
+		__Tcall_errno_assert(ret, oob_ioctl(tfd, EVL_THRIOC_SET_MODE, &mode));
 		f = get_float() * get_float();
 	}
 

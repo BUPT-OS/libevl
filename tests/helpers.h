@@ -55,11 +55,11 @@
 #define __Tcall_errno(__ret, __call)			\
 	({						\
 		(__ret) = (__call);			\
-		if (__ret)				\
+		if (__ret < 0)				\
 			warn_failed("%s (=%s)",		\
 				__stringify(__call),	\
 				strerror(errno));	\
-		(__ret) == 0;				\
+		(__ret) >= 0;				\
 	})
 
 #define __Tcall_errno_assert(__ret, __call)			\

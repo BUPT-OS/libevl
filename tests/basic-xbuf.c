@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
 			fcntl(xfd, F_GETFL)|O_NONBLOCK));
 
 	for (n = 0; n < 8; n++) {
-		__Tcall_assert(ret, oob_read(xfd, buf, 1));
+		__Tcall_errno_assert(ret, oob_read(xfd, buf, 1));
 		printf("oob_read[%d]<-write: %zd => %#x\n",
 		       n, ret, *buf);
 	}

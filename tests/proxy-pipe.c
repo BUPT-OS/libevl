@@ -31,12 +31,12 @@ static void *writer(void *arg)
 
 	for (n = 0; n < TEST_COUNT; n++) {
 		c = 'A' + (n % 26);
-		__Tcall_assert(ret, oob_write(logfd, &c, 1));
+		__Tcall_errno_assert(ret, oob_write(logfd, &c, 1));
 	}
 
 	/* End of test. */
 	c = '\0';
-	__Tcall_assert(ret, oob_write(logfd, &c, 1));
+	__Tcall_errno_assert(ret, oob_write(logfd, &c, 1));
 
 	return NULL;
 }

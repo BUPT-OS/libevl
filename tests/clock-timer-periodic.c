@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 	__Tcall_assert(ret, evl_set_timer(tmfd, &value, &ovalue));
 
 	for (n = 0; n < 200; n++) {
-		__Tcall_assert(ret, oob_read(tmfd, &ticks, sizeof(ticks)));
+		__Tcall_errno_assert(ret, oob_read(tmfd, &ticks, sizeof(ticks)));
 		__Texpr_assert(ticks == 1);
 	}
 
