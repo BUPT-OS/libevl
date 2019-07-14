@@ -11,6 +11,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <pthread.h>
+#include <evl/thread.h>
 #include "helpers.h"
 
 char *get_unique_name_and_path(const char *type,
@@ -38,6 +39,7 @@ void new_thread(pthread_t *tid, int policy, int prio,
 
 	pthread_attr_init(&attr);
 	param.sched_priority = prio;
+	pthread_attr_setstacksize(&attr, EVL_STACK_DEFAULT);
 	pthread_attr_setschedpolicy(&attr, policy);
 	pthread_attr_setschedparam(&attr, &param);
 	pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
