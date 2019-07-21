@@ -2,7 +2,7 @@
 
 include config.mk
 
-TARGETS := include lib tests benchmarks commands
+TARGETS := include lib tests benchmarks utils
 
 $(MAIN_GOALS): output-Makefile
 	@for target in $(TARGETS); do						\
@@ -11,4 +11,4 @@ $(MAIN_GOALS): output-Makefile
 
 lib: include
 
-tests benchmarks commands: lib
+tests benchmarks utils: lib

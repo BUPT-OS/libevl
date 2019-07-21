@@ -18,7 +18,7 @@ $(TARGETS):
 all: output-Makefile $(TARGETS)
 
 install: all
-	$(call inst-cmd,commands,						\
+	$(call inst-cmd,utilities,						\
 		for bin in $(COMMANDS); do					\
 		$(INSTALL) -D $(O_DIR)/$$bin $(DESTDIR)/$(bindir)/$$bin; done)
 	$(call inst-cmd,helpers,						\
