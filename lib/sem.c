@@ -262,10 +262,12 @@ int evl_put_sem(struct evl_sem *sem)
 	return 0;
 }
 
-int evl_peek_sem(struct evl_sem *sem)
+int evl_peek_sem(struct evl_sem *sem, int *r_val)
 {
 	if (sem->magic != __SEM_ACTIVE_MAGIC)
 		return -EINVAL;
 
-	return atomic_read(&sem->active.state->u.event.value);
+	*r_val = atomic_read(&sem->active.state->u.event.value);
+
+	return 0;
 }

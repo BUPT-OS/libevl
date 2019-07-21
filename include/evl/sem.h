@@ -64,7 +64,8 @@ int evl_put_sem(struct evl_sem *sem);
 
 int evl_tryget_sem(struct evl_sem *sem);
 
-int evl_peek_sem(struct evl_sem *sem);
+int evl_peek_sem(struct evl_sem *sem,
+		int *r_val);
 
 #ifdef __cplusplus
 }
