@@ -286,6 +286,8 @@ static int64_t all_sum;
 
 static int64_t all_samples;
 
+static time_t peak_time;
+
 static FILE *plot_fp;
 
 static int context_type = EVL_LAT_USER;
@@ -301,6 +303,7 @@ static void __log_results(struct latmus_measurement *meas)
 	if (meas->min_lat < all_minlat)
 		all_minlat = meas->min_lat;
 	if (meas->max_lat > all_maxlat) {
+		peak_time = time(NULL) - start_time - 1;
 		all_maxlat = meas->max_lat;
 		if (abort_threshold && all_maxlat > abort_threshold) {
 			fprintf(stderr, "latency threshold is exceeded"
@@ -439,7 +442,7 @@ static void *measurement_thread(void *arg)
 	return NULL;
 }
 
-static void dump_procinfo(const char *path)
+static void paste_file_in(const char *path, const char *header)
 {
 	char buf[BUFSIZ];
 	FILE *fp;
@@ -448,8 +451,10 @@ static void dump_procinfo(const char *path)
 	if (fp == NULL)
 		return;
 
+	fprintf(plot_fp, "# %s", header ?: "");
+
 	while (fgets(buf, sizeof(buf), fp))
-		fprintf(plot_fp, "# %s", buf);
+		fputs(buf, plot_fp);
 
 	fclose(fp);
 }
@@ -462,10 +467,12 @@ static void dump_gnuplot(time_t duration)
 	if (all_samples == 0)
 		return;
 
-	dump_procinfo("/proc/version");
-	dump_procinfo("/proc/cmdline");
+	paste_file_in("/proc/version", NULL);
+	paste_file_in("/proc/cmdline", NULL);
 	fprintf(plot_fp, "# libevl version: %s\n", libevl_version_string);
 	fprintf(plot_fp, "# sampling period: %u microseconds\n", period);
+	paste_file_in("/sys/devices/virtual/clock/monotonic/gravity",
+		"clock gravity: ");
 	fprintf(plot_fp, "# context: %s\n", context_labels[context_type]);
 	if (test_klat || test_ulat) {
 		fprintf(plot_fp, "# thread priority: %d\n", sampler_priority);
@@ -477,6 +484,8 @@ static void dump_gnuplot(time_t duration)
 		fprintf(plot_fp, "# C-state restricted\n");
 	fprintf(plot_fp, "# duration (hhmmss): %.2ld:%.2ld:%.2ld\n",
 		duration / 3600, (duration / 60) % 60, duration % 60);
+	fprintf(plot_fp, "# peak (hhmmss): %.2ld:%.2ld:%.2ld\n",
+		peak_time / 3600, (peak_time / 60) % 60, peak_time % 60);
 	if (all_overruns > 0)
 		fprintf(plot_fp, "# OVERRUNS: %u\n", all_overruns);
 	if (all_switches > 0)
