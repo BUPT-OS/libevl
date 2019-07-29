@@ -14,6 +14,7 @@
 #include <ctype.h>
 #include <libgen.h>
 #include <getopt.h>
+#include <uapi/evl/control.h>
 
 static char *find_command_dir(const char *arg0)
 {
@@ -40,15 +41,21 @@ static void usage(void)
 {
 	fprintf(stderr, "usage: evl [options] <command> [<args>]\n");
         fprintf(stderr, "-P --prefix=<path>   set command path prefix\n");
+        fprintf(stderr, "-A                   print required EVL core ABI version\n");
 }
 
-#define short_optlist "+P:"
+#define short_optlist "+P:A"
 
 static const struct option options[] = {
 	{
 		.name = "prefix",
 		.has_arg = required_argument,
 		.val = 'P'
+	},
+	{
+		.name = "abi",
+		.has_arg = no_argument,
+		.val = 'A'
 	},
 	{ /* Sentinel */ }
 };
@@ -68,6 +75,9 @@ int main(int argc, char *const argv[])
 		case 'P':
 			cmddir = optarg;
 			break;
+		case 'A':
+			printf("%d\n", EVL_ABI_LEVEL);
+			exit(0);
 		case '?':
 			usage();
 			return 2;
