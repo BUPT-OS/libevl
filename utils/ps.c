@@ -41,6 +41,7 @@ static int display_format;
 #define SORT_BY_ISW      2
 #define SORT_BY_CPUTIME  4
 #define SORT_BY_CTXSW    8
+#define SORT_BY_RWA      16
 #define SORT_REVERSE     128
 
 static int sort_key;
@@ -110,6 +111,7 @@ static struct thread_info {
 	unsigned long nr_inbandsw;
 	unsigned long nr_ctxsw;
 	unsigned long nr_syscalls;
+	unsigned long nr_rwakeups;
 	unsigned long long cpu_time;
 	unsigned long long timeout;
 	int percent_cpu;
@@ -132,10 +134,11 @@ static bool collect_sched_info(struct thread_info *ti, char *buf)
 
 static bool collect_statistics(struct thread_info *ti, char *buf)
 {
-	int ret = sscanf(buf, "%lu %lu %lu %Lu %d",
+	int ret = sscanf(buf, "%lu %lu %lu %lu %Lu %d",
 			&ti->nr_inbandsw,
 			&ti->nr_ctxsw,
 			&ti->nr_syscalls,
+			&ti->nr_rwakeups,
 			&ti->cpu_time,
 			&ti->percent_cpu);
 
@@ -274,6 +277,9 @@ static int compare_info(const void *lhs, const void *rhs)
 		break;
 	case SORT_BY_CTXSW:
 		ret = (int)((long)til->nr_ctxsw - (long)tir->nr_ctxsw);
+		break;
+	case SORT_BY_RWA:
+		ret = (int)((long)til->nr_rwakeups - (long)tir->nr_rwakeups);
 		break;
 	case SORT_BY_CPUTIME:
 		ret = (int)((long long)til->cpu_time - (long)tir->cpu_time);
@@ -574,6 +580,17 @@ static struct display_handler syscall_handler = {
 	.display_data = display_syscall,
 };
 
+static void display_rwakeups(struct thread_info *ti)
+{
+	printf("%-10ld", ti->nr_rwakeups);
+}
+
+static struct display_handler rwakeups_handler = {
+	.header = "RWA",
+	.header_fmt = "%-10s",
+	.display_data = display_rwakeups,
+};
+
 static void print_thread_info(void)
 {
 	int nr_restrict = CPU_COUNT(&cpu_restrict);
@@ -600,6 +617,8 @@ static void print_thread_info(void)
 		h = &ctxsw_handler;
 		h->next = &syscall_handler;
 		h = &syscall_handler;
+		h->next = &rwakeups_handler;
+		h = &rwakeups_handler;
 		h->next = &state_handler;
 		h = &state_handler;
 	}
@@ -637,7 +656,7 @@ static void usage(char *arg0)
         fprintf(stderr, "-p --policy            display scheduling policy\n");
         fprintf(stderr, "-l --long              long format, same as -stp\n");
         fprintf(stderr, "-n --numeric           numeric output for STAT\n");
-        fprintf(stderr, "-S --sort=<c|i|t|x>    sort key: c=%%CPU, i=ISW, t=CPUTIME, x=CTXSW\n");
+        fprintf(stderr, "-S --sort=<c|i|t|x>    sort key: c=%%CPU, i=ISW, t=CPUTIME, x=CTXSW, w=RWA\n");
         fprintf(stderr, "-h --help              this help\n");
 }
 
@@ -744,6 +763,9 @@ int main(int argc, char *const argv[])
 					break;
 				case 'x':
 					sort_key = SORT_BY_CTXSW;
+					break;
+				case 'w':
+					sort_key = SORT_BY_RWA;
 					break;
 				case 'r':
 					reverse_sort = true;
