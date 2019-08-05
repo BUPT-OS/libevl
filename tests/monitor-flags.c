@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <evl/compiler.h>
 #include <evl/thread.h>
 #include <evl/flags.h>
 #include <evl/sem.h>
@@ -50,12 +51,14 @@ static void *flags_receiver(void *arg)
 	if (!__Texpr(bits == 0x12121212))
 		goto fail;
 
+#ifndef __ESHI__
 	/* Flag group should be cleared. */
 	if (!__Tcall(ret, evl_peek_flags(&p->flags, &bits)))
 		goto fail;
 
 	if (!__Texpr(bits == 0))
 		goto fail;
+#endif
 
 	/* Trywait should fail with -EAGAIN. */
 	if (!__Fcall(ret, evl_trywait_flags(&p->flags, &bits)))
@@ -82,7 +85,7 @@ fail:
 
 int main(int argc, char *argv[])
 {
-	int tfd, ffd, sfd, ret, bits;
+	int tfd, ffd, sfd, ret, bits __maybe_unused;
 	struct sched_param param;
 	struct test_context c;
 	void *status = NULL;
@@ -111,8 +114,10 @@ int main(int argc, char *argv[])
 	__Tcall_assert(ret, evl_put_sem(&c.start));
 	__Tcall_assert(ret, evl_get_sem(&c.sem));
 	__Tcall_assert(ret, evl_post_flags(&c.flags, 0x12121212));
+#ifndef __ESHI__
 	__Tcall_assert(ret, evl_peek_flags(&c.flags, &bits));
 	__Texpr_assert(bits == 0x12121212);
+#endif
 	__Tcall_assert(ret, evl_get_sem(&c.sem));
 	__Tcall_assert(ret, evl_udelay(1000));
 	__Tcall_assert(ret, evl_post_flags(&c.flags, 0x76767676));

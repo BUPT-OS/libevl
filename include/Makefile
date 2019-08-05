@@ -33,3 +33,5 @@ install: all
 	$(Q)$(MKDIR_P) $(DESTDIR)/$(includedir)/uapi
 	$(call inst-cmd,uapi-headers,cd $(O_UAPI) && find -L evl \! \( -name '*~' \) -type f | $(CPIO) -Lpdum --quiet $(DESTDIR)/$(includedir)/uapi)
 	$(call inst-cmd,interface-headers,find evl \! \( -name '*~' \) -type f | $(CPIO) -Lpdum --quiet $(DESTDIR)/$(includedir))
+	$(call inst-cmd,eshi-headers,find eshi \! \( -name '*~' \) -type f | $(CPIO) -Lpdum --quiet $(DESTDIR)/$(includedir))
+	$(call inst-cmd,eshi-headers,$(CP) evl/atomic.h evl/list.h evl/heap.h $(DESTDIR)/$(includedir)/eshi/evl)

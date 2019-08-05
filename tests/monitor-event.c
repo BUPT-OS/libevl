@@ -136,7 +136,11 @@ int main(int argc, char *argv[])
 
 	__Tcall_assert(ret, evl_lock_mutex(&c.lock));
 	c.condition = 3;
+#ifdef __ESHI__
+	__Tcall_assert(ret, evl_signal_event(&c.event));
+#else
 	__Tcall_assert(ret, evl_signal_thread(&c.event, receiverfd));
+#endif
 	__Tcall_assert(ret, evl_unlock_mutex(&c.lock));
 
 	__Texpr_assert(pthread_join(receiver, &status) == 0);

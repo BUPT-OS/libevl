@@ -2,7 +2,7 @@
 
 include config.mk
 
-TARGETS := include lib tests benchmarks utils
+TARGETS := include lib benchmarks utils eshi tests
 
 $(MAIN_GOALS): output-Makefile
 	@for target in $(TARGETS); do						\
