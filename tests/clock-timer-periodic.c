@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
 	struct itimerspec value, ovalue;
 	struct timespec now;
 	int tmfd, ret, n;
-	__u32 ticks;
+	__u64 ticks;
 
 	ret = evl_attach_self("periodic-timer:%d", getpid());
 	/*
