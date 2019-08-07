@@ -13,8 +13,6 @@
 #include <uapi/evl/types.h>
 #include <uapi/evl/monitor.h>
 
-struct evl_thread;
-
 struct evl_flags {
 	unsigned int magic;
 	union {
