@@ -203,6 +203,9 @@ int evl_timedwait_event(struct evl_event *evt,
 	struct unwait_data unwait;
 	int ret;
 
+	if (mutex->magic != __MUTEX_ACTIVE_MAGIC)
+		return -EINVAL;
+
 	ret = check_event_sanity(evt);
 	if (ret)
 		return ret;

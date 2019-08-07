@@ -34,6 +34,7 @@ struct evl_mutex {
 };
 
 #define __MUTEX_UNINIT_MAGIC	0xfe11fe11
+#define __MUTEX_ACTIVE_MAGIC	0xab12ab12
 
 #define EVL_MUTEX_INITIALIZER(__name, __clock)  {	\
 		.magic = __MUTEX_UNINIT_MAGIC,		\

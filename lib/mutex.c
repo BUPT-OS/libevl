@@ -26,7 +26,6 @@
 #include <uapi/evl/mutex.h>
 #include "internal.h"
 
-#define __MUTEX_ACTIVE_MAGIC	0xab12ab12
 #define __MUTEX_DEAD_MAGIC	0
 
 static int init_mutex_vargs(struct evl_mutex *mutex,
