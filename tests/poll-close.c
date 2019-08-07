@@ -30,13 +30,13 @@ static void *polling_thread(void *arg)
 
 int main(int argc, char *argv[])
 {
-	char *name, *path;
+	char *name;
 	pthread_t poller;
 	int tfd, ret;
 
 	__Tcall_assert(tfd, evl_attach_self("poller-close:%d", getpid()));
 
-	name = get_unique_name_and_path(EVL_XBUF_DEV, 0, &path);
+	name = get_unique_name(EVL_XBUF_DEV, 0);
 	__Tcall_assert(xfd, evl_new_xbuf(1024, 1024, name));
 
 	__Tcall_assert(pfd, evl_new_poll());
