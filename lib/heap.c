@@ -21,6 +21,7 @@
 #include <string.h>
 #include <assert.h>
 #include <unistd.h>
+#include <evl/atomic.h>
 #include <evl/heap.h>
 #include <evl/mutex.h>
 #include <evl/clock.h>
