@@ -21,7 +21,7 @@ install: all
 	$(call inst-cmd,utilities,						\
 		for bin in $(COMMANDS); do					\
 		$(INSTALL) -D $(O_DIR)/$$bin $(DESTDIR)/$(bindir)/$$bin; done)
-	$(call inst-cmd,helpers,						\
+	$(call inst-cmd,command-helpers,					\
 		for hlp in $(HELPER_SCRIPTS); do				\
 		name=evl-$$(basename $$hlp .evl);				\
 		$(INSTALL) -D $$hlp $(DESTDIR)/$(libexecdir)/$$name; done;	\

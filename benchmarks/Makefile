@@ -22,9 +22,9 @@ override LDFLAGS := $(UTIL_LDFLAGS) $(LDFLAGS)
 all: output-Makefile $(TARGETS)
 
 install: all
-	$(Q)for bin in $(BINARIES); do						\
+	$(call inst-cmd,benchmarks,$(Q)for bin in $(BINARIES); do		\
 		$(INSTALL) -D $(O_DIR)/$$bin $(DESTDIR)/$(bindir)/$$bin;	\
-	done
+	done)
 
 clean clobber mrproper: output-Makefile
 	$(Q)$(RM) -f $(TARGETS) $(DEPFILES)
