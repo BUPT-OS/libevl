@@ -36,24 +36,24 @@ struct evl_mutex {
 #define __MUTEX_UNINIT_MAGIC	0xfe11fe11
 #define __MUTEX_ACTIVE_MAGIC	0xab12ab12
 
-#define EVL_MUTEX_INITIALIZER(__name, __clock)  {	\
+#define EVL_MUTEX_INITIALIZER(__name, __clockfd)  {	\
 		.magic = __MUTEX_UNINIT_MAGIC,		\
 		.uninit = {				\
 			.type = EVL_MONITOR_GATE,	\
 			.protocol = EVL_GATE_PI,	\
 			.name = (__name),		\
-			.clockfd = (__clock),		\
+			.clockfd = (__clockfd),		\
 			.ceiling = 0,			\
 		}					\
 	}
 
-#define EVL_MUTEX_CEILING_INITIALIZER(__name, __clock, __ceiling)  {	\
+#define EVL_MUTEX_CEILING_INITIALIZER(__name, __clockfd, __ceiling)  {	\
 		.magic = __MUTEX_UNINIT_MAGIC,				\
 		.uninit = {						\
 			.type = EVL_MONITOR_GATE,			\
 			.protocol = EVL_GATE_PP,			\
 			.name = (__name),				\
-			.clockfd = (__clock),				\
+			.clockfd = (__clockfd),				\
 			.ceiling = (__ceiling),				\
 		}							\
 	}
