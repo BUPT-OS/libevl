@@ -42,6 +42,8 @@ static void *flags_receiver(void *arg)
 	__Tcall_assert(ret, evl_put_sem(&p->sem));
 
 	/* Sender should have sent 0x12121212. */
+	evl_read_clock(EVL_CLOCK_MONOTONIC, &now);
+	timespec_add_ns(&timeout, &now, 400000000); /* 400ms */
 	if (!__Tcall(ret, evl_timedwait_flags(&p->flags, &timeout, &bits)))
 		goto fail;
 
