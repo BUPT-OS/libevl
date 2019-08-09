@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 	__Tcall_assert(ret, evl_add_pollfd(pfd4, pfd5, POLLIN));
 
 	__Fcall_assert(ret, evl_add_pollfd(pfd5, pfd1, POLLIN));
-	__Texpr_assert(ret == -EINVAL);
+	__Texpr_assert(ret == -ELOOP);
 
 	close(pfd5);
 	close(pfd4);
