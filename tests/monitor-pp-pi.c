@@ -74,10 +74,11 @@ int main(int argc, char *argv[])
 	__Tcall_assert(tfd, evl_attach_self("monitor-pp-pi:%d", getpid()));
 
 	name = get_unique_name(EVL_MONITOR_DEV, 0);
-	__Tcall_assert(gfd, evl_new_mutex(&c.lock, EVL_CLOCK_MONOTONIC, name));
+	__Tcall_assert(gfd, evl_new_mutex(&c.lock, EVL_MUTEX_NORMAL,
+						EVL_CLOCK_MONOTONIC, name));
 
 	name = get_unique_name(EVL_MONITOR_DEV, 1);
-	__Tcall_assert(gfd, evl_new_mutex_ceiling(&lock_pp,
+	__Tcall_assert(gfd, evl_new_mutex_ceiling(&lock_pp, EVL_MUTEX_NORMAL,
 				EVL_CLOCK_MONOTONIC, MEDIUM_PRIO, name));
 
 	name = get_unique_name(EVL_MONITOR_DEV, 2);

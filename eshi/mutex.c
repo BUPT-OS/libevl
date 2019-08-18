@@ -13,10 +13,11 @@
 #define __MUTEX_ACTIVE_MAGIC	0xab12ab12
 #define __MUTEX_DEAD_MAGIC	0
 
-static int create_mutex(struct evl_mutex *mutex, int clockfd, int ceiling)
+static int create_mutex(struct evl_mutex *mutex, int type,
+			int clockfd, int ceiling)
 {
+	int ret, fd, protocol, ptype;
 	pthread_mutexattr_t attr;
-	int ret, fd, protocol;
 
 	if (!eshi_is_initialized())
 		return -ENXIO;
@@ -32,12 +33,23 @@ static int create_mutex(struct evl_mutex *mutex, int clockfd, int ceiling)
 		return -EINVAL;
 	}
 
+	switch (type) {
+	case EVL_MUTEX_NORMAL:
+		ptype = PTHREAD_MUTEX_NORMAL;
+		break;
+	case EVL_MUTEX_RECURSIVE:
+		ptype = PTHREAD_MUTEX_RECURSIVE;
+		break;
+	default:
+		return -EINVAL;
+	}
+
 	fd = eventfd(1, EFD_CLOEXEC); /* Set to always readable. */
 	if (fd < 0)
 		return -errno;
 
 	pthread_mutexattr_init(&attr);
-	pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
+	pthread_mutexattr_settype(&attr, ptype);
 	protocol = PTHREAD_PRIO_INHERIT;
 	if (ceiling) {
 		protocol = PTHREAD_PRIO_PROTECT;
@@ -58,18 +70,18 @@ static int create_mutex(struct evl_mutex *mutex, int clockfd, int ceiling)
 	return 0;
 }
 
-int evl_new_mutex(struct evl_mutex *mutex,
+int evl_new_mutex(struct evl_mutex *mutex, int type,
 		int clockfd, const char *fmt, ...)
 {
-	return create_mutex(mutex, clockfd, 0) ?:
+	return create_mutex(mutex, type, clockfd, 0) ?:
 		mutex->active.fd;
 }
 
-int evl_new_mutex_ceiling(struct evl_mutex *mutex,
+int evl_new_mutex_ceiling(struct evl_mutex *mutex, int type,
 			int clockfd, unsigned int ceiling,
 			const char *fmt, ...)
 {
-	return create_mutex(mutex, clockfd, ceiling) ?:
+	return create_mutex(mutex, type, clockfd, ceiling) ?:
 		mutex->active.fd;
 }
 
@@ -79,6 +91,7 @@ static int check_sanity(struct evl_mutex *mutex)
 
 	if (mutex->magic == __MUTEX_UNINIT_MAGIC)
 		ret = create_mutex(mutex,
+				mutex->uninit.type,
 				mutex->uninit.clockfd,
 				mutex->uninit.ceiling);
 	else if (mutex->magic != __MUTEX_ACTIVE_MAGIC)

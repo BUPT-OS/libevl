@@ -11,6 +11,12 @@
 #include <pthread.h>
 #include <evl/clock.h>
 
+#define EVL_MUTEX_NORMAL     0
+#define EVL_MUTEX_RECURSIVE  1
+
+#define __MUTEX_ACTIVE_MAGIC	0xab12ab12
+#define __MUTEX_UNINIT_MAGIC	0xfe11fe11
+
 struct evl_mutex {
 	unsigned int magic;
 	union {
@@ -23,28 +29,28 @@ struct evl_mutex {
 			const char *name;
 			int clockfd;
 			unsigned int ceiling;
+			int type;
 		} uninit;
 	};
 };
 
-#define __MUTEX_ACTIVE_MAGIC	0xab12ab12
-#define __MUTEX_UNINIT_MAGIC	0xfe11fe11
-
-#define EVL_MUTEX_INITIALIZER(__name, __clockfd)  {	\
-		.magic = __MUTEX_UNINIT_MAGIC,		\
-		.uninit = {				\
-			.name = (__name),		\
-			.clockfd = (__clockfd),		\
-			.ceiling = 0,			\
-		}					\
+#define EVL_MUTEX_INITIALIZER(__name, __clockfd, __type)  {	\
+		.magic = __MUTEX_UNINIT_MAGIC,			\
+			.uninit = {				\
+			.name = (__name),			\
+			.clockfd = (__clockfd),			\
+			.ceiling = 0,				\
+			.type = (__type),			\
+		}						\
 	}
 
-#define EVL_MUTEX_CEILING_INITIALIZER(__name, __clockfd, __ceiling)  {	\
+#define EVL_MUTEX_CEILING_INITIALIZER(__name, __clockfd, __ceiling, __type)  {	\
 		.magic = __MUTEX_UNINIT_MAGIC,				\
-		.uninit = {						\
+			.uninit = {					\
 			.name = (__name),				\
 			.clockfd = (__clockfd),				\
 			.ceiling = (__ceiling),				\
+			.type = (__type),				\
 		}							\
 	}
 
@@ -52,10 +58,10 @@ struct evl_mutex {
 extern "C" {
 #endif
 
-int evl_new_mutex(struct evl_mutex *mutex,
+int evl_new_mutex(struct evl_mutex *mutex, int type,
 		int clockfd, const char *fmt, ...);
 
-int evl_new_mutex_ceiling(struct evl_mutex *mutex,
+int evl_new_mutex_ceiling(struct evl_mutex *mutex, int type,
 			int clockfd, unsigned int ceiling,
 			const char *fmt, ...);
 

@@ -29,17 +29,21 @@
 #define __MUTEX_DEAD_MAGIC	0
 
 static int init_mutex_vargs(struct evl_mutex *mutex,
-			int protocol, int clockfd,
+			int type, int protocol, int clockfd,
 			unsigned int ceiling,
 			const char *fmt, va_list ap)
 {
 	struct evl_monitor_attrs attrs;
+	struct evl_monitor_state *gst;
 	struct evl_element_ids eids;
 	int efd, ret;
 	char *name;
 
 	if (evl_shared_memory == NULL)
 		return -ENXIO;
+
+	if (type != EVL_MUTEX_NORMAL && type != EVL_MUTEX_RECURSIVE)
+		return -EINVAL;
 
 	/*
 	 * We align on the in-band SCHED_FIFO priority range. Although
@@ -67,9 +71,11 @@ static int init_mutex_vargs(struct evl_mutex *mutex,
 	if (efd < 0)
 		return efd;
 
-	mutex->active.state = evl_shared_memory + eids.state_offset;
+	gst = evl_shared_memory + eids.state_offset;
+	gst->u.gate.recursive = type == EVL_MUTEX_RECURSIVE;
+	mutex->active.state = gst;
 	mutex->active.fundle = eids.fundle;
-	mutex->active.type = EVL_MONITOR_GATE;
+	mutex->active.monitor = EVL_MONITOR_GATE;
 	mutex->active.protocol = protocol;
 	mutex->active.efd = efd;
 	mutex->magic = __MUTEX_ACTIVE_MAGIC;
@@ -78,14 +84,15 @@ static int init_mutex_vargs(struct evl_mutex *mutex,
 }
 
 static int init_mutex(struct evl_mutex *mutex,
-		int protocol, int clockfd, unsigned int ceiling,
-		const char *fmt, ...)
+		int type, int protocol, int clockfd,
+		unsigned int ceiling, const char *fmt, ...)
 {
 	va_list ap;
 	int efd;
 
 	va_start(ap, fmt);
-	efd = init_mutex_vargs(mutex, protocol, clockfd, ceiling, fmt, ap);
+	efd = init_mutex_vargs(mutex, type, protocol, clockfd,
+			ceiling, fmt, ap);
 	va_end(ap);
 
 	return efd;
@@ -114,7 +121,7 @@ static int open_mutex_vargs(struct evl_mutex *mutex,
 
 	mutex->active.state = evl_shared_memory + bind.eids.state_offset;
 	mutex->active.fundle = bind.eids.fundle;
-	mutex->active.type = bind.type;
+	mutex->active.monitor = bind.type;
 	mutex->active.protocol = bind.protocol;
 	mutex->active.efd = efd;
 	mutex->magic = __MUTEX_ACTIVE_MAGIC;
@@ -126,28 +133,30 @@ fail:
 	return ret;
 }
 
-int evl_new_mutex(struct evl_mutex *mutex, int clockfd,
-		const char *fmt, ...)
+int evl_new_mutex(struct evl_mutex *mutex, int type,
+		int clockfd, const char *fmt, ...)
 {
 	va_list ap;
 	int efd;
 
 	va_start(ap, fmt);
-	efd = init_mutex_vargs(mutex, EVL_GATE_PI, clockfd, 0, fmt, ap);
+	efd = init_mutex_vargs(mutex, type, EVL_GATE_PI,
+			clockfd, 0, fmt, ap);
 	va_end(ap);
 
 	return efd;
 }
 
-int evl_new_mutex_ceiling(struct evl_mutex *mutex, int clockfd,
-			unsigned int ceiling,
+int evl_new_mutex_ceiling(struct evl_mutex *mutex, int type,
+			int clockfd, unsigned int ceiling,
 			const char *fmt, ...)
 {
 	va_list ap;
 	int efd;
 
 	va_start(ap, fmt);
-	efd = init_mutex_vargs(mutex, EVL_GATE_PP, clockfd, ceiling, fmt, ap);
+	efd = init_mutex_vargs(mutex, type, EVL_GATE_PP,
+			clockfd, ceiling, fmt, ap);
 	va_end(ap);
 
 	return efd;
@@ -200,8 +209,9 @@ static int try_lock(struct evl_mutex *mutex)
 		return -EPERM;
 
 	if (mutex->magic == __MUTEX_UNINIT_MAGIC &&
-		mutex->uninit.type == EVL_MONITOR_GATE) {
+		mutex->uninit.monitor == EVL_MONITOR_GATE) {
 		ret = init_mutex(mutex,
+				mutex->uninit.type,
 				mutex->uninit.protocol,
 				mutex->uninit.clockfd,
 				mutex->uninit.ceiling,
@@ -232,6 +242,7 @@ static int try_lock(struct evl_mutex *mutex)
 		}
 		ret = evl_fast_lock_mutex(&gst->u.gate.owner, current);
 		if (ret == 0) {
+			gst->u.gate.nesting = 1;
 			gst->flags &= ~EVL_MONITOR_SIGNALED;
 			return 0;
 		}
@@ -246,6 +257,14 @@ static int try_lock(struct evl_mutex *mutex)
 		if (protect)
 			u_window->pp_pending = EVL_NO_HANDLE;
 
+		if (gst->u.gate.recursive) {
+			if (++gst->u.gate.nesting == 0) {
+				gst->u.gate.nesting = ~0;
+				return -EAGAIN;
+			}
+			return 0;
+		}
+
 		return -EDEADLK;
 	}
 
@@ -256,6 +275,7 @@ int evl_timedlock_mutex(struct evl_mutex *mutex,
 			const struct timespec *timeout)
 {
 	struct evl_monitor_lockreq lreq;
+	struct evl_monitor_state *gst;
 	int ret;
 
 	ret = try_lock(mutex);
@@ -267,6 +287,11 @@ int evl_timedlock_mutex(struct evl_mutex *mutex,
 	do
 		ret = oob_ioctl(mutex->active.efd, EVL_MONIOC_ENTER, &lreq);
 	while (ret && errno == EINTR);
+
+	if (ret == 0) {
+		gst = mutex->active.state;
+		gst->u.gate.nesting = 1;
+	}
 
 	return ret ? -errno : 0;
 }
@@ -308,6 +333,11 @@ int evl_unlock_mutex(struct evl_mutex *mutex)
 	if (!evl_is_mutex_owner(&gst->u.gate.owner, current))
 		return -EPERM;
 
+	if (gst->u.gate.nesting > 1) {
+		gst->u.gate.nesting--;
+		return 0;
+	}
+
 	/* Do we have waiters on a signaled event we are gating? */
 	if (gst->flags & EVL_MONITOR_SIGNALED)
 		goto slow_path;
@@ -348,7 +378,7 @@ int evl_set_mutex_ceiling(struct evl_mutex *mutex,
 		return -EINVAL;
 
 	if (mutex->magic == __MUTEX_UNINIT_MAGIC) {
-		if (mutex->uninit.type != EVL_MONITOR_GATE ||
+		if (mutex->uninit.monitor != EVL_MONITOR_GATE ||
 			mutex->uninit.protocol != EVL_GATE_PP)
 			return -EINVAL;
 		mutex->uninit.ceiling = ceiling;
@@ -356,7 +386,7 @@ int evl_set_mutex_ceiling(struct evl_mutex *mutex,
 	}
 
 	if (mutex->magic != __MUTEX_ACTIVE_MAGIC ||
-		mutex->active.type != EVL_MONITOR_GATE ||
+		mutex->active.monitor != EVL_MONITOR_GATE ||
 		mutex->active.protocol != EVL_GATE_PP) {
 		return -EINVAL;
 	}
@@ -369,7 +399,7 @@ int evl_set_mutex_ceiling(struct evl_mutex *mutex,
 int evl_get_mutex_ceiling(struct evl_mutex *mutex)
 {
 	if (mutex->magic == __MUTEX_UNINIT_MAGIC) {
-		if (mutex->uninit.type != EVL_MONITOR_GATE ||
+		if (mutex->uninit.monitor != EVL_MONITOR_GATE ||
 			mutex->uninit.protocol != EVL_GATE_PP)
 			return -EINVAL;
 
@@ -377,7 +407,7 @@ int evl_get_mutex_ceiling(struct evl_mutex *mutex)
 	}
 
 	if (mutex->magic != __MUTEX_ACTIVE_MAGIC ||
-		mutex->active.type != EVL_MONITOR_GATE ||
+		mutex->active.monitor != EVL_MONITOR_GATE ||
 		mutex->active.protocol != EVL_GATE_PP)
 		return -EINVAL;
 

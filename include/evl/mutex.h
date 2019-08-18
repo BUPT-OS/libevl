@@ -13,6 +13,12 @@
 #include <uapi/evl/types.h>
 #include <uapi/evl/monitor.h>
 
+#define EVL_MUTEX_NORMAL     0
+#define EVL_MUTEX_RECURSIVE  1
+
+#define __MUTEX_UNINIT_MAGIC	0xfe11fe11
+#define __MUTEX_ACTIVE_MAGIC	0xab12ab12
+
 struct evl_mutex {
 	unsigned int magic;
 	union {
@@ -20,38 +26,38 @@ struct evl_mutex {
 			fundle_t fundle;
 			struct evl_monitor_state *state;
 			int efd;
-			int type : 2,
+			int monitor : 2,
 			    protocol : 4;
 		} active;
 		struct {
 			const char *name;
 			int clockfd;
 			unsigned int ceiling;
-			int type : 2,
-			    protocol : 4;
+			int monitor : 2,
+			    protocol : 4,
+			    type : 1;
 		} uninit;
 	};
 };
 
-#define __MUTEX_UNINIT_MAGIC	0xfe11fe11
-#define __MUTEX_ACTIVE_MAGIC	0xab12ab12
-
-#define EVL_MUTEX_INITIALIZER(__name, __clockfd)  {	\
-		.magic = __MUTEX_UNINIT_MAGIC,		\
-		.uninit = {				\
-			.type = EVL_MONITOR_GATE,	\
-			.protocol = EVL_GATE_PI,	\
-			.name = (__name),		\
-			.clockfd = (__clockfd),		\
-			.ceiling = 0,			\
-		}					\
+#define EVL_MUTEX_INITIALIZER(__type, __name, __clockfd)  {	\
+		.magic = __MUTEX_UNINIT_MAGIC,			\
+			.uninit = {				\
+			.monitor = EVL_MONITOR_GATE,		\
+			.protocol = EVL_GATE_PI,		\
+			.type = (__type),			\
+			.name = (__name),			\
+			.clockfd = (__clockfd),			\
+			.ceiling = 0,				\
+		}						\
 	}
 
-#define EVL_MUTEX_CEILING_INITIALIZER(__name, __clockfd, __ceiling)  {	\
+#define EVL_MUTEX_CEILING_INITIALIZER(__type, __name, __clockfd, __ceiling)  { \
 		.magic = __MUTEX_UNINIT_MAGIC,				\
-		.uninit = {						\
-			.type = EVL_MONITOR_GATE,			\
+			.uninit = {					\
+			.monitor = EVL_MONITOR_GATE,			\
 			.protocol = EVL_GATE_PP,			\
+			.type = (__type),				\
 			.name = (__name),				\
 			.clockfd = (__clockfd),				\
 			.ceiling = (__ceiling),				\
@@ -62,10 +68,10 @@ struct evl_mutex {
 extern "C" {
 #endif
 
-int evl_new_mutex(struct evl_mutex *mutex,
+int evl_new_mutex(struct evl_mutex *mutex, int type,
 		int clockfd, const char *fmt, ...);
 
-int evl_new_mutex_ceiling(struct evl_mutex *mutex,
+int evl_new_mutex_ceiling(struct evl_mutex *mutex, int type,
 			int clockfd, unsigned int ceiling,
 			const char *fmt, ...);
 
