@@ -34,19 +34,9 @@ struct evl_mutex {
 	};
 };
 
-#define EVL_MUTEX_INITIALIZER(__name, __clockfd, __type)  {	\
-		.magic = __MUTEX_UNINIT_MAGIC,			\
-			.uninit = {				\
-			.name = (__name),			\
-			.clockfd = (__clockfd),			\
-			.ceiling = 0,				\
-			.type = (__type),			\
-		}						\
-	}
-
-#define EVL_MUTEX_CEILING_INITIALIZER(__name, __clockfd, __ceiling, __type)  {	\
+#define EVL_MUTEX_ANY_INITIALIZER(__type, __name, __clockfd, __ceiling)  { \
 		.magic = __MUTEX_UNINIT_MAGIC,				\
-			.uninit = {					\
+		.uninit = {						\
 			.name = (__name),				\
 			.clockfd = (__clockfd),				\
 			.ceiling = (__ceiling),				\
@@ -54,16 +44,21 @@ struct evl_mutex {
 		}							\
 	}
 
+#define EVL_MUTEX_INITIALIZER(__name)				\
+	EVL_MUTEX_ANY_INITIALIZER(EVL_MUTEX_NORMAL, __name,	\
+				EVL_CLOCK_MONOTONIC, 0)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int evl_new_mutex(struct evl_mutex *mutex, int type,
-		int clockfd, const char *fmt, ...);
+int evl_new_mutex_any(struct evl_mutex *mutex, int type,
+		int clockfd, unsigned int ceiling,
+		const char *fmt, ...);
 
-int evl_new_mutex_ceiling(struct evl_mutex *mutex, int type,
-			int clockfd, unsigned int ceiling,
-			const char *fmt, ...);
+#define evl_new_mutex(__mutex, __fmt, __args...)		\
+	evl_new_mutex_any(__mutex, EVL_MUTEX_NORMAL,		\
+			EVL_CLOCK_MONOTONIC, 0, __fmt, ##__args)
 
 int evl_lock_mutex(struct evl_mutex *mutex);
 

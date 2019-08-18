@@ -55,7 +55,13 @@ static int create_mutex(struct evl_mutex *mutex, int type,
 		protocol = PTHREAD_PRIO_PROTECT;
 		pthread_mutexattr_setprioceiling(&attr, ceiling);
 	}
-	pthread_mutexattr_setprotocol(&attr, protocol);
+	ret = pthread_mutexattr_setprotocol(&attr, protocol);
+	if (ret) {
+		pthread_mutexattr_destroy(&attr);
+		close(fd);
+		return -ret;
+	}
+
 	pthread_mutexattr_setpshared(&attr, PTHREAD_PROCESS_PRIVATE);
 	ret = pthread_mutex_init(&mutex->active.mutex, &attr);
 	pthread_mutexattr_destroy(&attr);
@@ -70,16 +76,9 @@ static int create_mutex(struct evl_mutex *mutex, int type,
 	return 0;
 }
 
-int evl_new_mutex(struct evl_mutex *mutex, int type,
-		int clockfd, const char *fmt, ...)
-{
-	return create_mutex(mutex, type, clockfd, 0) ?:
-		mutex->active.fd;
-}
-
-int evl_new_mutex_ceiling(struct evl_mutex *mutex, int type,
-			int clockfd, unsigned int ceiling,
-			const char *fmt, ...)
+int evl_new_mutex_any(struct evl_mutex *mutex, int type,
+		int clockfd, unsigned int ceiling,
+		const char *fmt, ...)
 {
 	return create_mutex(mutex, type, clockfd, ceiling) ?:
 		mutex->active.fd;

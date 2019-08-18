@@ -54,7 +54,7 @@ static int init_mutex_vargs(struct evl_mutex *mutex,
 	 */
 	if (protocol == EVL_GATE_PP) {
 		ret = sched_get_priority_max(SCHED_FIFO);
-		if (ret < 0 || ceiling > ret)
+		if (ret < 0 || ceiling == 0 || ceiling > ret)
 			return -EINVAL;
 	}
 
@@ -83,12 +83,12 @@ static int init_mutex_vargs(struct evl_mutex *mutex,
 	return efd;
 }
 
-static int init_mutex(struct evl_mutex *mutex,
-		int type, int protocol, int clockfd,
-		unsigned int ceiling, const char *fmt, ...)
+static int init_mutex_static(struct evl_mutex *mutex,
+			int type, int clockfd, unsigned int ceiling,
+			const char *fmt, ...)
 {
+	int efd, protocol = ceiling ? EVL_GATE_PP : EVL_GATE_PI;
 	va_list ap;
-	int efd;
 
 	va_start(ap, fmt);
 	efd = init_mutex_vargs(mutex, type, protocol, clockfd,
@@ -133,29 +133,16 @@ fail:
 	return ret;
 }
 
-int evl_new_mutex(struct evl_mutex *mutex, int type,
-		int clockfd, const char *fmt, ...)
+int evl_new_mutex_any(struct evl_mutex *mutex, int type,
+		int clockfd, unsigned int ceiling,
+		const char *fmt, ...)
 {
+	int efd, protocol;
 	va_list ap;
-	int efd;
 
+	protocol = ceiling ? EVL_GATE_PP : EVL_GATE_PI;
 	va_start(ap, fmt);
-	efd = init_mutex_vargs(mutex, type, EVL_GATE_PI,
-			clockfd, 0, fmt, ap);
-	va_end(ap);
-
-	return efd;
-}
-
-int evl_new_mutex_ceiling(struct evl_mutex *mutex, int type,
-			int clockfd, unsigned int ceiling,
-			const char *fmt, ...)
-{
-	va_list ap;
-	int efd;
-
-	va_start(ap, fmt);
-	efd = init_mutex_vargs(mutex, type, EVL_GATE_PP,
+	efd = init_mutex_vargs(mutex, type, protocol,
 			clockfd, ceiling, fmt, ap);
 	va_end(ap);
 
@@ -210,9 +197,8 @@ static int try_lock(struct evl_mutex *mutex)
 
 	if (mutex->magic == __MUTEX_UNINIT_MAGIC &&
 		mutex->uninit.monitor == EVL_MONITOR_GATE) {
-		ret = init_mutex(mutex,
+		ret = init_mutex_static(mutex,
 				mutex->uninit.type,
-				mutex->uninit.protocol,
 				mutex->uninit.clockfd,
 				mutex->uninit.ceiling,
 				mutex->uninit.name);
@@ -379,7 +365,7 @@ int evl_set_mutex_ceiling(struct evl_mutex *mutex,
 
 	if (mutex->magic == __MUTEX_UNINIT_MAGIC) {
 		if (mutex->uninit.monitor != EVL_MONITOR_GATE ||
-			mutex->uninit.protocol != EVL_GATE_PP)
+			mutex->uninit.ceiling == 0)
 			return -EINVAL;
 		mutex->uninit.ceiling = ceiling;
 		return 0;
@@ -400,7 +386,7 @@ int evl_get_mutex_ceiling(struct evl_mutex *mutex)
 {
 	if (mutex->magic == __MUTEX_UNINIT_MAGIC) {
 		if (mutex->uninit.monitor != EVL_MONITOR_GATE ||
-			mutex->uninit.protocol != EVL_GATE_PP)
+			mutex->uninit.ceiling == 0)
 			return -EINVAL;
 
 		return mutex->uninit.ceiling;

@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 	__Tcall_assert(ret, evl_set_schedattr(tfd, &attrs));
 
 	name = get_unique_name(EVL_MONITOR_DEV, 0);
-	__Tcall_assert(gfd, evl_new_mutex_ceiling(&lock, EVL_MUTEX_NORMAL,
+	__Tcall_assert(gfd, evl_new_mutex_any(&lock, EVL_MUTEX_NORMAL,
 				EVL_CLOCK_MONOTONIC, HIGH_PRIO, name));
 
 	__Tcall_assert(ret, evl_lock_mutex(&lock));

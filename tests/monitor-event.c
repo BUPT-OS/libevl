@@ -111,8 +111,7 @@ int main(int argc, char *argv[])
 	__Tcall_assert(evfd, evl_new_event(&c.event, EVL_CLOCK_MONOTONIC, name));
 
 	name = get_unique_name(EVL_MONITOR_DEV, 3);
-	__Tcall_assert(mfd, evl_new_mutex(&c.lock, EVL_MUTEX_NORMAL,
-						EVL_CLOCK_MONOTONIC, name));
+	__Tcall_assert(mfd, evl_new_mutex(&c.lock, name));
 
 	new_thread(&receiver, SCHED_FIFO, LOW_PRIO, event_receiver, &c);
 
