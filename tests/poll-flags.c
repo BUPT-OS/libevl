@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 	__Tcall_assert(tfd, evl_attach_self("poll-flags:%d", getpid()));
 
 	name = get_unique_name(EVL_MONITOR_DEV, 0);
-	__Tcall_assert(ffd, evl_new_flags(&flags, EVL_CLOCK_MONOTONIC, 0, name));
+	__Tcall_assert(ffd, evl_new_flags(&flags, name));
 
 	__Tcall_assert(pollfd_in, evl_new_poll());
 	__Tcall_assert(ret, evl_add_pollfd(pollfd_in, ffd, POLLIN));

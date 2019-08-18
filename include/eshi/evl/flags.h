@@ -27,7 +27,7 @@ struct evl_flags {
 
 #define __FLAGS_UNINIT_MAGIC	0xfebcfebc
 
-#define EVL_FLAGS_INITIALIZER(__name, __clockfd, __initval)  {		\
+#define EVL_FLAGS_ANY_INITIALIZER(__name, __clockfd, __initval)  {	\
 		.magic = __FLAGS_UNINIT_MAGIC,				\
 			.uninit = {					\
 			.name = (__name),				\
@@ -36,13 +36,19 @@ struct evl_flags {
 		}							\
 	}
 
+#define EVL_FLAGS_INITIALIZER(__name)  {				\
+	EVL_FLAGS_ANY_INITIALIZER(__name, EVL_CLOCK_MONOTONIC, 0)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int evl_new_flags(struct evl_flags *flg,
+int evl_new_flags_any(struct evl_flags *flg,
 		int clockfd, int initval,
 		const char *fmt, ...);
+
+#define evl_new_flags(__flg, __fmt, __args...)	\
+	evl_new_flags_any(__flg, EVL_CLOCK_MONOTONIC, 0, __fmt, ##__args)
 
 int evl_open_flags(struct evl_flags *flg,
 		const char *fmt, ...);

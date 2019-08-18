@@ -17,7 +17,7 @@
 #define __FLAGS_ACTIVE_MAGIC	0xb42bb42b
 #define __FLAGS_DEAD_MAGIC	0
 
-int evl_new_flags(struct evl_flags *flg, int clockfd, int initval,
+int evl_new_flags_any(struct evl_flags *flg, int clockfd, int initval,
 		const char *fmt, ...)
 {
 	int fd;
@@ -65,7 +65,7 @@ static int check_sanity(struct evl_flags *flg)
 	int efd;
 
 	if (flg->magic == __FLAGS_UNINIT_MAGIC) {
-		efd = evl_new_flags(flg,
+		efd = evl_new_flags_any(flg,
 				flg->uninit.clockfd,
 				flg->uninit.initval,
 				flg->uninit.name);

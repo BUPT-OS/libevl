@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
 	__Tcall_assert(sfd, evl_new_sem(&c.start, EVL_CLOCK_MONOTONIC, 0, name));
 
 	name = get_unique_name(EVL_MONITOR_DEV, 2);
-	__Tcall_assert(ffd, evl_new_flags(&c.flags, EVL_CLOCK_MONOTONIC, 0, name));
+	__Tcall_assert(ffd, evl_new_flags(&c.flags, name));
 
 	new_thread(&receiver, SCHED_FIFO, LOW_PRIO,
 			flags_receiver, &c);
