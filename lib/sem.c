@@ -27,7 +27,7 @@
 #define __SEM_ACTIVE_MAGIC	0xcb13cb13
 #define __SEM_DEAD_MAGIC	0
 
-int evl_new_sem(struct evl_sem *sem, int clockfd, int initval,
+int evl_new_sem_any(struct evl_sem *sem, int clockfd, int initval,
 		const char *fmt, ...)
 {
 	struct evl_monitor_attrs attrs;
@@ -124,7 +124,7 @@ static int check_sanity(struct evl_sem *sem)
 	int efd;
 
 	if (sem->magic == __SEM_UNINIT_MAGIC) {
-		efd = evl_new_sem(sem,
+		efd = evl_new_sem_any(sem,
 				sem->uninit.clockfd,
 				sem->uninit.initval,
 				sem->uninit.name);

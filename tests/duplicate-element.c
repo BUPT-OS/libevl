@@ -21,10 +21,10 @@ int main(int argc, char *argv[])
 	__Tcall_assert(ret, evl_init());
 
 	name = get_unique_name(EVL_MONITOR_DEV, 0);
-	__Tcall_assert(sfd, evl_new_sem(&sem, EVL_CLOCK_MONOTONIC, 0, name));
+	__Tcall_assert(sfd, evl_new_sem(&sem, name));
 
 	name = get_unique_name(EVL_MONITOR_DEV, 0);
-	__Fcall_assert(sfd, evl_new_sem(&sem, EVL_CLOCK_MONOTONIC, 0, name));
+	__Fcall_assert(sfd, evl_new_sem(&sem, name));
 	__Texpr_assert(sfd == -EEXIST);
 
 	return 0;

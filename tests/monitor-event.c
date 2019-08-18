@@ -102,10 +102,10 @@ int main(int argc, char *argv[])
 	__Tcall_assert(tfd, evl_attach_self("monitor-event:%d", getpid()));
 
 	name = get_unique_name(EVL_MONITOR_DEV, 0);
-	__Tcall_assert(sfd, evl_new_sem(&c.sem, EVL_CLOCK_MONOTONIC, 0, name));
+	__Tcall_assert(sfd, evl_new_sem(&c.sem, name));
 
 	name = get_unique_name(EVL_MONITOR_DEV, 1);
-	__Tcall_assert(sfd, evl_new_sem(&c.start, EVL_CLOCK_MONOTONIC, 0, name));
+	__Tcall_assert(sfd, evl_new_sem(&c.start, name));
 
 	name = get_unique_name(EVL_MONITOR_DEV, 2);
 	__Tcall_assert(evfd, evl_new_event(&c.event, EVL_CLOCK_MONOTONIC, name));
