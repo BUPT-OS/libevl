@@ -13,7 +13,7 @@
 #define __EVENT_ACTIVE_MAGIC	0xef55ef55
 #define __EVENT_DEAD_MAGIC	0
 
-int evl_new_event(struct evl_event *evt, int clockfd,
+int evl_new_event_any(struct evl_event *evt, int clockfd,
 		const char *fmt, ...)
 {
 	pthread_condattr_t attr;
@@ -51,7 +51,7 @@ static int check_sanity(struct evl_event *evt)
 	int ret = 0, fd;
 
 	if (evt->magic == __EVENT_UNINIT_MAGIC) {
-		fd = evl_new_event(evt,
+		fd = evl_new_event_any(evt,
 				evt->uninit.clockfd,
 				evt->uninit.name);
 		return fd < 0 ? fd : 0;

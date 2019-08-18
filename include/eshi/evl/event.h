@@ -28,7 +28,7 @@ struct evl_event {
 
 #define __EVENT_UNINIT_MAGIC	0x01770177
 
-#define EVL_EVENT_INITIALIZER(__name, __clockfd)  {	\
+#define EVL_EVENT_ANY_INITIALIZER(__name, __clockfd)  {	\
 		.magic = __EVENT_UNINIT_MAGIC,		\
 		.uninit = {				\
 			.name = (__name),		\
@@ -36,13 +36,19 @@ struct evl_event {
 		}					\
 	}
 
+#define EVL_EVENT_INITIALIZER(__name)	\
+	EVL_EVENT_ANY_INITIALIZER(__name, EVL_CLOCK_MONOTONIC)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int evl_new_event(struct evl_event *evt,
+int evl_new_event_any(struct evl_event *evt,
 		int clockfd,
 		const char *fmt, ...);
+
+#define evl_new_event(__evt, __fmt, __args...)	\
+	evl_new_event_any(__evt, EVL_CLOCK_MONOTONIC, __fmt, ##__args)
 
 int evl_open_event(struct evl_event *evt,
 		const char *fmt, ...);

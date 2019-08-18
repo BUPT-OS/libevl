@@ -61,7 +61,7 @@ static int init_event_vargs(struct evl_event *evt,
 	return efd;
 }
 
-static int init_event(struct evl_event *evt,
+static int init_event_static(struct evl_event *evt,
 		int clockfd, const char *fmt, ...)
 {
 	va_list ap;
@@ -108,7 +108,7 @@ fail:
 	return ret;
 }
 
-int evl_new_event(struct evl_event *evt,
+int evl_new_event_any(struct evl_event *evt,
 		int clockfd, const char *fmt, ...)
 {
 	va_list ap;
@@ -160,7 +160,8 @@ static int check_event_sanity(struct evl_event *evt)
 	int efd;
 
 	if (evt->magic == __EVENT_UNINIT_MAGIC) {
-		efd = init_event(evt, evt->uninit.clockfd, evt->uninit.name);
+		efd = init_event_static(evt, evt->uninit.clockfd,
+					evt->uninit.name);
 		if (efd < 0)
 			return efd;
 	} else if (evt->magic != __EVENT_ACTIVE_MAGIC)
