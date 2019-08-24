@@ -385,17 +385,18 @@ int evl_set_mutex_ceiling(struct evl_mutex *mutex,
 int evl_get_mutex_ceiling(struct evl_mutex *mutex)
 {
 	if (mutex->magic == __MUTEX_UNINIT_MAGIC) {
-		if (mutex->uninit.monitor != EVL_MONITOR_GATE ||
-			mutex->uninit.ceiling == 0)
+		if (mutex->uninit.monitor != EVL_MONITOR_GATE)
 			return -EINVAL;
 
 		return mutex->uninit.ceiling;
 	}
 
 	if (mutex->magic != __MUTEX_ACTIVE_MAGIC ||
-		mutex->active.monitor != EVL_MONITOR_GATE ||
-		mutex->active.protocol != EVL_GATE_PP)
+		mutex->active.monitor != EVL_MONITOR_GATE)
 		return -EINVAL;
+
+	if (mutex->active.protocol != EVL_GATE_PP)
+		return 0;
 
 	return mutex->active.state->u.gate.ceiling;
 }
