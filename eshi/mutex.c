@@ -177,19 +177,15 @@ int evl_get_mutex_ceiling(struct evl_mutex *mutex)
 {
 	int ret, ceiling;
 
-	if (mutex->magic == __MUTEX_UNINIT_MAGIC) {
-		if (mutex->uninit.ceiling == 0)
-			return -EINVAL;
-
+	if (mutex->magic == __MUTEX_UNINIT_MAGIC)
 		return mutex->uninit.ceiling;
-	}
 
 	if (mutex->magic != __MUTEX_ACTIVE_MAGIC)
 		return -EINVAL;
 
 	ret = pthread_mutex_getprioceiling(&mutex->active.mutex, &ceiling);
 	if (ret)
-		return -ret;
+		return ret == EINVAL ? 0 : -ret;
 
 	return ceiling;
 }
