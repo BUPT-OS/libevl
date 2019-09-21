@@ -1,0 +1,60 @@
+#! /bin/sh
+# SPDX-License-Identifier: MIT
+
+if test \! -d $EVL_TESTDIR; then
+   echo >&2 "$EVL_TESTDIR not found - broken installation?"
+   exit 2
+fi
+
+usage() {
+   echo >&2 "usage: $(basename $1) [test-list]"
+}
+
+args=$(getopt -n $(basename $0) 'h@k' "$@")
+if [ $? -ne 0 ]; then
+   usage $0
+   exit 1
+fi
+
+help=false
+keep_going=y
+
+set -- $args
+for opt
+do
+case "$opt" in
+   -k) keep_going=y;
+       shift;;
+   -h) help=true;
+       shift;;
+   -@) echo "run EVL tests"
+       exit 0;;
+   --) shift; break;;
+   esac
+done
+
+if test x$help = xtrue; then
+   usage $0
+   exit 0
+fi
+
+for t in "$@"; do
+    test_list="$test_list $(eval echo $EVL_TESTDIR/$t)"
+done
+
+if test -z "$@"; then
+   test_list=$(find $EVL_TESTDIR -type f)
+   if test -z "$test_list"; then
+      echo >&2 "$EVL_TESTDIR is empty - broken installation?"
+      exit 2
+   fi
+fi
+
+for t in $test_list; do
+    $t && echo "$(basename $t): OK" && continue
+    c=$?
+    echo "** $(basename $t): BROKEN"
+    test $keep_going = n && exit $c
+done
+
+exit 0

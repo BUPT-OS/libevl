@@ -12,7 +12,7 @@ if test \! -d $EVL_TRACEDIR/events/evl; then
 fi
 
 usage() {
-   echo >&2 "usage: $(basename $1) [-e [-s <buffer_size>]] [-d] [-p] [-f] [-h] [-c <cpu>]"
+   echo >&2 "usage: $(basename $1) [-e [-s <buffer_size>]] [-d] [-p] [-f] [-h] [-c <cpu>] [-h]"
 }
 
 args=$(getopt -n $(basename $0) 'es:dc:pfh@' "$@")

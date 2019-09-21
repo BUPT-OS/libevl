@@ -16,9 +16,9 @@
 #include <getopt.h>
 #include <uapi/evl/control.h>
 
-static char *find_command_dir(const char *arg0)
+static char *find_install_dir(const char *arg0, const char *subdir)
 {
-	char *exepath, *bindir, *cmddir;
+	char *exepath, *bindir, *ipath;
 	int ret;
 
 	exepath = malloc(PATH_MAX);
@@ -30,11 +30,11 @@ static char *find_command_dir(const char *arg0)
 		error(1, errno, "readlink");
 
 	bindir = dirname(exepath);
-	ret = asprintf(&cmddir, "%s/libexec", dirname(bindir));
+	ret = asprintf(&ipath, "%s/%s", dirname(bindir), subdir);
 	if (ret < 0)
 		error(1, errno, "malloc");
 
-	return cmddir;
+	return ipath;
 }
 
 static void usage(void)
@@ -62,7 +62,7 @@ static const struct option options[] = {
 
 int main(int argc, char *const argv[])
 {
-	char *cmddir = NULL, *cmdpath, **cmdargv, *cmd;
+	char *cmddir = NULL, *cmdpath, **cmdargv, *cmd, *testdir;
 	const char *arg0 = argv[0];
 	int ret, c, n, cmdargc;
 
@@ -98,13 +98,16 @@ int main(int argc, char *const argv[])
 	}
 
 	if (cmddir == NULL)
-		cmddir = find_command_dir(arg0);
+		cmddir = find_install_dir(arg0, "libexec");
 
 	ret = asprintf(&cmdpath, "%s/evl-%s", cmddir, cmd);
 	if (ret < 0)
 		error(1, ENOMEM, "%s", arg0);
 
+	testdir = find_install_dir(arg0, "tests");
+
 	setenv("EVL_CMDDIR", cmddir, 1);
+	setenv("EVL_TESTDIR", testdir, 1);
 	setenv("EVL_SYSDIR", "/sys/devices/virtual", 1);
 	setenv("EVL_TRACEDIR", "/sys/kernel/debug/tracing", 1);
 
