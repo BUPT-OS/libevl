@@ -444,12 +444,12 @@ static struct display_handler time_handler = {
 
 static void display_percent_cpu(struct thread_info *ti)
 {
-	printf("%3d   ", ti->percent_cpu);
+	printf("%3u.%u  ", ti->percent_cpu / 10, ti->percent_cpu % 10);
 }
 
 static struct display_handler percent_cpu_handler = {
 	.header = "%CPU",
-	.header_fmt = "%-6s",
+	.header_fmt = "%-7s",
 	.display_data = display_percent_cpu,
 };
 
