@@ -17,14 +17,14 @@ if [ $? -ne 0 ]; then
 fi
 
 help=false
-keep_going=y
+keep_going=false
 do_list=false
 
 set -- $args
 for opt
 do
 case "$opt" in
-   -k) keep_going=y;
+   -k) keep_going=true;
        shift;;
    -h) help=true;
        shift;;
@@ -64,7 +64,7 @@ for t in $test_list; do
     $t && echo "$(basename $t): OK" && continue
     c=$?
     echo "** $(basename $t): BROKEN"
-    test $keep_going = n && exit $c
+    test x$keep_going = xfalse && exit $c
 done
 
 exit 0
