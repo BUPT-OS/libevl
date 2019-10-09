@@ -231,6 +231,7 @@ int evl_timedwait_event(struct evl_event *evt,
 	if (ret && errno == EINTR) {
 		unwait_event(&unwait);
 		pthread_testcancel();
+		return req.status;
 	}
 
 	return ret ? -errno : req.status;
