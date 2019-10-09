@@ -2,6 +2,7 @@ clock-timer-periodic.c
 detach-self.c
 heap-torture.c
 monitor-event.c
+monitor-wait-multiple.c
 monitor-flags.c
 poll-nested.c
 poll-sem.c
