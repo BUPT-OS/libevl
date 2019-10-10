@@ -61,6 +61,7 @@ if test x$do_list = xtrue; then
 fi
 
 for t in $test_list; do
+    test \! -x $t && echo "$(basename $t): no such test" && exit 2
     $t && echo "$(basename $t): OK" && continue
     c=$?
     echo "** $(basename $t): BROKEN"
