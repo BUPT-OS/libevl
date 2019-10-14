@@ -41,11 +41,12 @@ if test x$help = xtrue; then
    exit 0
 fi
 
+test_list=
 for t in "$@"; do
     test_list="$test_list $(eval echo $EVL_TESTDIR/$t)"
 done
 
-if test -z "$@"; then
+if test -z "$test_list"; then
    test_list=$(find $EVL_TESTDIR -type f)
    if test -z "$test_list"; then
       echo >&2 "$EVL_TESTDIR is empty - broken installation?"
