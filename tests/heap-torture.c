@@ -82,17 +82,12 @@ static int max_results = 4;
 
 static inline void breathe(int loops)
 {
-	struct timespec idle = {
-		.tv_sec = 0,
-		.tv_nsec = 300000,
-	};
-
 	/*
 	 * We need to leave some cycles free for the inband activity
 	 * to progress, let's nap a bit during the test.
 	 */
 	if ((loops % 1000) == 0)
-		evl_sleep(EVL_CLOCK_MONOTONIC, &idle);
+		evl_udelay(300);
 }
 
 static inline long diff_ts(struct timespec *left, struct timespec *right)
