@@ -68,7 +68,7 @@ int evl_adjust_clock(int clockfd, struct timex *tx)
 	return do_call(clockfd, EVL_CLKIOC_ADJ_TIME, tx);
 }
 
-int evl_sleep(int clockfd, const struct timespec *timeout)
+int evl_sleep_until(int clockfd, const struct timespec *timeout)
 {
 	struct evl_clock_sleepreq req = {
 		.timeout = *timeout,
@@ -105,7 +105,7 @@ int evl_udelay(unsigned int usecs)
 	evl_read_clock(EVL_CLOCK_MONOTONIC, &now);
 	timespec_add_ns(&next, &now, usecs * 1000);
 
-	return evl_sleep(evl_mono_clockfd, &next);
+	return evl_sleep_until(evl_mono_clockfd, &next);
 }
 
 int attach_evl_clocks(void)

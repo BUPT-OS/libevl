@@ -42,7 +42,7 @@ int evl_set_clock(int clockfd, const struct timespec *tp);
 
 int evl_get_clock_resolution(int clockfd, struct timespec *tp);
 
-int evl_sleep(int clockfd, const struct timespec *timeout);
+int evl_sleep_until(int clockfd, const struct timespec *timeout);
 
 int evl_udelay(unsigned int usecs);
 
