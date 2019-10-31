@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <evl/proxy.h>
+#include "helpers.h"
 
 static inline int do_memfd_create(const char *name, int flags)
 {
@@ -34,7 +35,6 @@ int main(int argc, char *argv[])
 			 MAP_SHARED, efd, 0);
 		if (p == MAP_FAILED)
 			error(1, errno, "mmap child");
-		printf("%s child reading: %s\n", argv[0], (const char *)p);
 		return 0;
 	}
 
@@ -55,8 +55,7 @@ int main(int argc, char *argv[])
 
 	ret = asprintf(&name, "proxy:%d", getpid());
 	(void)ret;
-	efd = evl_new_proxy(memfd, 0, 0, "%s", name);
-	printf("file proxy has efd=%d\n", efd);
+	__Tcall_assert(efd, evl_new_proxy(memfd, 0, 0, "%s", name));
 
 	switch (fork()) {
 	case 0:
@@ -64,7 +63,7 @@ int main(int argc, char *argv[])
 		return 0;
 	default:
 		execlp(argv[0], "mapfd", name, NULL);
-		printf("exec() failed for pid %d\n", getpid());
+		return 1;
 	}
 
 	return 0;

@@ -17,12 +17,13 @@
 #include <evl/clock.h>
 #include <evl/thread.h>
 #include <evl/heap.h>
+#include <evl/proxy.h>
 #include "helpers.h"
 
-#define do_trace(__fmt, __args...)			\
-	do {						\
-		if (verbose)				\
-			printf(__fmt "\n", ##__args);	\
+#define do_trace(__fmt, __args...)				\
+	do {							\
+		if (verbose)					\
+			evl_printf(__fmt "\n", ##__args);	\
 	} while (0)
 
 #define do_warn(__fmt, __args...)	\
