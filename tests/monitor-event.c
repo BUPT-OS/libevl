@@ -35,6 +35,16 @@ static void *event_receiver(void *arg)
 	int ret;
 
 	__Tcall_assert(receiverfd, evl_attach_self("monitor-event-receiver:%d", getpid()));
+#ifndef __ESHI__
+	/*
+	 * Disable WOLI in case CONFIG_EVL_DEBUG_WOLI is set, as we
+	 * are about to sleep while holding a mutex.
+	 */
+	{
+		int mode = T_WOLI;
+		__Tcall_errno_assert(ret, oob_ioctl(receiverfd, EVL_THRIOC_CLEAR_MODE, &mode));
+	}
+#endif
 	__Tcall_assert(ret, evl_get_sem(&p->start));
 	evl_read_clock(EVL_CLOCK_MONOTONIC, &now);
 	timespec_add_ns(&timeout, &now, 200000000); /* 200ms */
