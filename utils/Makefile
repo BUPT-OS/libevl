@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MIT
 
 include ../config.mk
+include ../libversion.mk
 
 SRCFILES := $(wildcard *.c)
 TARGETS = $(SRCFILES:%.c=$(O_DIR)/%)
@@ -9,9 +10,12 @@ COMMANDS = evl
 HELPER_SCRIPTS = $(wildcard *.evl)
 HELPER_PROGRAMS = ps
 
-CMD_CPPFLAGS := $(BASE_CPPFLAGS) -I. -I$(O_DIR)/../include
+CMD_CPPFLAGS := $(BASE_CPPFLAGS) -I. -I../include -I$(O_DIR)/../include
 CMD_CFLAGS := $(CMD_CPPFLAGS) $(BASE_CFLAGS)
 override CFLAGS := $(CMD_CFLAGS) $(CFLAGS)
+
+CMD_LDFLAGS := $(O_DIR)/../lib/libevl.so.$(EVL_IVERSION) -lpthread -lrt
+override LDFLAGS := $(CMD_LDFLAGS) $(LDFLAGS)
 
 $(TARGETS):
 

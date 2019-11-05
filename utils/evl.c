@@ -14,6 +14,7 @@
 #include <ctype.h>
 #include <libgen.h>
 #include <getopt.h>
+#include <evl/evl.h>
 #include <uapi/evl/control.h>
 
 static char *find_install_dir(const char *arg0, const char *subdir)
@@ -41,10 +42,10 @@ static void usage(void)
 {
 	fprintf(stderr, "usage: evl [options] <command> [<args>]\n");
         fprintf(stderr, "-P --prefix=<path>   set command path prefix\n");
-        fprintf(stderr, "-A                   print required EVL core ABI version\n");
+        fprintf(stderr, "-V --version         print version and required ABI revision\n");
 }
 
-#define short_optlist "+P:A"
+#define short_optlist "+P:V"
 
 static const struct option options[] = {
 	{
@@ -53,9 +54,9 @@ static const struct option options[] = {
 		.val = 'P'
 	},
 	{
-		.name = "abi",
+		.name = "version",
 		.has_arg = no_argument,
-		.val = 'A'
+		.val = 'V'
 	},
 	{ /* Sentinel */ }
 };
@@ -75,8 +76,9 @@ int main(int argc, char *const argv[])
 		case 'P':
 			cmddir = optarg;
 			break;
-		case 'A':
-			printf("%d\n", EVL_ABI_LEVEL);
+		case 'V':
+			printf("%s [ABI %d]\n", libevl_version_string,
+				EVL_ABI_LEVEL);
 			exit(0);
 		case '?':
 			usage();
