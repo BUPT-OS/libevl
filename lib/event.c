@@ -16,6 +16,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <sched.h>
+#include <evl/compiler.h>
 #include <evl/evl.h>
 #include <evl/mutex.h>
 #include <evl/event.h>
@@ -54,6 +55,7 @@ static int init_event_vargs(struct evl_event *evt,
 		return efd;
 
 	evt->active.state = evl_shared_memory + eids.state_offset;
+	__force_read_access(evt->active.state->flags);
 	evt->active.fundle = eids.fundle;
 	evt->active.efd = efd;
 	evt->magic = __EVENT_ACTIVE_MAGIC;
@@ -97,6 +99,7 @@ static int open_event_vargs(struct evl_event *evt,
 	}
 
 	evt->active.state = evl_shared_memory + bind.eids.state_offset;
+	__force_read_access(evt->active.state->flags);
 	evt->active.fundle = bind.eids.fundle;
 	evt->active.efd = efd;
 	evt->magic = __EVENT_ACTIVE_MAGIC;

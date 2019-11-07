@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
+#include <evl/compiler.h>
 #include <evl/atomic.h>
 #include <evl/evl.h>
 #include <evl/flags.h>
@@ -55,6 +56,8 @@ int evl_new_flags_any(struct evl_flags *flg, int clockfd, int initval,
 		return efd;
 
 	flg->active.state = evl_shared_memory + eids.state_offset;
+	/* Force sync the PTE. */
+	atomic_set(&flg->active.state->u.event.value, initval);
 	flg->active.fundle = eids.fundle;
 	flg->active.efd = efd;
 	flg->magic = __FLAGS_ACTIVE_MAGIC;
@@ -87,6 +90,7 @@ int evl_open_flags(struct evl_flags *flg, const char *fmt, ...)
 	}
 
 	flg->active.state = evl_shared_memory + bind.eids.state_offset;
+	__force_read_access(flg->active.state->u.event.value);
 	flg->active.fundle = bind.eids.fundle;
 	flg->active.efd = efd;
 	flg->magic = __FLAGS_ACTIVE_MAGIC;

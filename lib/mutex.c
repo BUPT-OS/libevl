@@ -16,6 +16,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <sched.h>
+#include <evl/compiler.h>
 #include <evl/atomic.h>
 #include <evl/evl.h>
 #include <evl/mutex.h>
@@ -74,6 +75,9 @@ static int init_mutex_vargs(struct evl_mutex *mutex,
 	gst = evl_shared_memory + eids.state_offset;
 	gst->u.gate.recursive = type == EVL_MUTEX_RECURSIVE;
 	mutex->active.state = gst;
+	/* Force sync the PTE. */
+	atomic_set(&gst->u.gate.owner, EVL_NO_HANDLE);
+	__force_read_access(gst->flags);
 	mutex->active.fundle = eids.fundle;
 	mutex->active.monitor = EVL_MONITOR_GATE;
 	mutex->active.protocol = protocol;
@@ -102,6 +106,7 @@ static int open_mutex_vargs(struct evl_mutex *mutex,
 			const char *fmt, va_list ap)
 {
 	struct evl_monitor_binding bind;
+	struct evl_monitor_state *gst;
 	int ret, efd;
 
 	efd = open_evl_element_vargs(EVL_MONITOR_DEV, fmt, ap);
@@ -119,7 +124,10 @@ static int open_mutex_vargs(struct evl_mutex *mutex,
 		goto fail;
 	}
 
-	mutex->active.state = evl_shared_memory + bind.eids.state_offset;
+	gst = evl_shared_memory + bind.eids.state_offset;
+	mutex->active.state = gst;
+	__force_read_access(gst->flags);
+	__force_read_access(gst->u.gate.owner);
 	mutex->active.fundle = bind.eids.fundle;
 	mutex->active.monitor = bind.type;
 	mutex->active.protocol = bind.protocol;

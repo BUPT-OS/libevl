@@ -81,4 +81,10 @@
 		__builtin_ctzl((long)__x)		\
 		: __builtin_ctzll(__x))
 
+#define __force_read_access(__var)					\
+	do {								\
+		__typeof(__var) __v = *((volatile typeof(__var) *)&(__var)); \
+		(void)__v;						\
+	} while (0)
+
 #endif /* _EVL_COMPILER_H */

@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
+#include <evl/compiler.h>
 #include <evl/atomic.h>
 #include <evl/evl.h>
 #include <evl/sem.h>
@@ -55,6 +56,8 @@ int evl_new_sem_any(struct evl_sem *sem, int clockfd, int initval,
 		return efd;
 
 	sem->active.state = evl_shared_memory + eids.state_offset;
+	/* Force sync the PTE. */
+	atomic_set(&sem->active.state->u.event.value, initval);
 	sem->active.fundle = eids.fundle;
 	sem->active.efd = efd;
 	sem->magic = __SEM_ACTIVE_MAGIC;
@@ -87,6 +90,7 @@ int evl_open_sem(struct evl_sem *sem, const char *fmt, ...)
 	}
 
 	sem->active.state = evl_shared_memory + bind.eids.state_offset;
+	__force_read_access(sem->active.state->u.event.value);
 	sem->active.fundle = bind.eids.fundle;
 	sem->active.efd = efd;
 	sem->magic = __SEM_ACTIVE_MAGIC;
