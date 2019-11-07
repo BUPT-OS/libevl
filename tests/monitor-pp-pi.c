@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 	 */
 	__Tcall_errno_assert(ret, oob_ioctl(tfd, EVL_THRIOC_CLEAR_MODE, &mode));
 	__Tcall_assert(ret, evl_lock_mutex(&lock_pp));
-	__Tcall_assert(ret, evl_udelay(1000)); /* Commit PP boost. */
+	__Tcall_assert(ret, evl_udelay(5000)); /* Commit PP boost. */
 	__Texpr_assert(check_priority(tfd, MEDIUM_PRIO));
 	__Tcall_assert(ret, evl_lock_mutex(&c.lock));
 	__Tcall_assert(ret, evl_put_sem(&c.start));
