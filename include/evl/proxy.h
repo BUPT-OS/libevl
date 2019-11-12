@@ -16,7 +16,8 @@
 extern "C" {
 #endif
 
-int evl_new_proxy(int fd, size_t bufsz,	size_t granularity,
+int evl_new_proxy(int targetfd, size_t bufsz,
+		size_t granularity,
 		const char *fmt, ...);
 
 ssize_t evl_send_proxy(int proxyfd,

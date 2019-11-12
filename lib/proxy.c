@@ -34,7 +34,7 @@ void init_proxy_streams(void)
 		"stderr:%d", getpid());
 }
 
-int evl_new_proxy(int fd, size_t bufsz, size_t granularity,
+int evl_new_proxy(int targetfd, size_t bufsz, size_t granularity,
 		const char *fmt, ...)
 {
 	struct evl_proxy_attrs attrs;
@@ -48,7 +48,7 @@ int evl_new_proxy(int fd, size_t bufsz, size_t granularity,
 	if (ret < 0)
 		return -ENOMEM;
 
-	attrs.fd = fd;
+	attrs.fd = targetfd;
 	attrs.bufsz = bufsz;
 	attrs.granularity = granularity;
 	efd = create_evl_element(EVL_PROXY_DEV, name, &attrs, NULL);
