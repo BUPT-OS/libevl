@@ -16,9 +16,15 @@ char fmt_buf[1024];
 
 int evl_vprint_proxy(int proxyfd, const char *fmt, va_list ap)
 {
-	ssize_t len = vsnprintf(fmt_buf, sizeof(fmt_buf), fmt, ap);
+	ssize_t count, ret;
 
-	return write(proxyfd, fmt_buf, len);
+	count = vsnprintf(fmt_buf, sizeof(fmt_buf), fmt, ap);
+	if (count < 0)
+		return -errno;	/* Assume POSIX beahvior. */
+
+	ret = write(proxyfd, fmt_buf, count);
+
+	return ret < 0 ? -errno : ret;
 }
 
 int evl_print_proxy(int proxyfd, const char *fmt, ...)

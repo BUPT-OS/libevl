@@ -9,6 +9,7 @@
 
 #include <stdarg.h>
 #include <unistd.h>
+#include <errno.h>
 #include <stdio.h>
 #include <sys/types.h>
 #include <evl/uapi.h>
@@ -25,9 +26,10 @@ int evl_new_proxy(int fd, size_t bufsz, size_t granularity,
 }
 
 static inline
-ssize_t evl_send_proxy(int proxyfd, const void *buf, size_t len)
+ssize_t evl_send_proxy(int proxyfd, const void *buf, size_t count)
 {
-	return write(proxyfd, buf, len);
+	ssize_t ret = write(proxyfd, buf, count);
+	return ret < 0 ? -errno : ret;
 }
 
 int evl_vprint_proxy(int proxyfd,
@@ -36,7 +38,11 @@ int evl_vprint_proxy(int proxyfd,
 int evl_print_proxy(int proxyfd,
 		const char *fmt, ...);
 
-#define evl_printf(__fmt, __args...)	printf(__fmt, ##__args)
+#define evl_printf(__fmt, __args...)			\
+	({						\
+		int __ret = printf(__fmt, ##__args);	\
+		__ret < 0 ? -errno : __ret;		\
+	})
 
 #define proxy_outfd  fileno(stdout)
 #define	proxy_errfd  fileno(stderr)

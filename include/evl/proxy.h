@@ -21,7 +21,7 @@ int evl_new_proxy(int targetfd, size_t bufsz,
 		const char *fmt, ...);
 
 ssize_t evl_send_proxy(int proxyfd,
-		const void *buf, size_t len);
+		const void *buf, size_t count);
 
 int evl_vprint_proxy(int proxyfd,
 		const char *fmt, va_list ap);

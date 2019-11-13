@@ -57,19 +57,26 @@ int evl_new_proxy(int targetfd, size_t bufsz, size_t granularity,
 	return efd;
 }
 
-ssize_t evl_send_proxy(int proxyfd, const void *buf, size_t len)
+ssize_t evl_send_proxy(int proxyfd, const void *buf, size_t count)
 {
-	if (evl_is_inband())
-		return write(proxyfd, buf, len);
+	ssize_t ret;
 
-	return oob_write(proxyfd, buf, len);
+	if (evl_is_inband())
+		ret = write(proxyfd, buf, count);
+	else
+		ret = oob_write(proxyfd, buf, count);
+
+	return ret < 0 ? -errno : ret;
 }
 
 int evl_vprint_proxy(int proxyfd, const char *fmt, va_list ap)
 {
-	ssize_t len = vsnprintf(fmt_buf, sizeof(fmt_buf), fmt, ap);
+	ssize_t count = vsnprintf(fmt_buf, sizeof(fmt_buf), fmt, ap);
 
-	return evl_send_proxy(proxyfd, fmt_buf, len);
+	if (count < 0)
+		return -errno;	/* assume POSIX behavior. */
+
+	return (int)evl_send_proxy(proxyfd, fmt_buf, count);
 }
 
 int evl_print_proxy(int proxyfd, const char *fmt, ...)
@@ -95,9 +102,11 @@ int evl_printf(const char *fmt, ...)
 	 * If evl_init() has not run yet, we can resort to vprintf()
 	 * since latency is not an issue.
 	 */
-	if (evl_ctlfd < 0)
+	if (evl_ctlfd < 0) {
 		ret = vprintf(fmt, ap);
-	else
+		if (ret < 0)
+			ret = -errno;
+	} else
 		ret = evl_vprint_proxy(proxy_outfd, fmt, ap);
 
 	va_end(ap);
