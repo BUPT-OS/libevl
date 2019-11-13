@@ -20,7 +20,12 @@
 #include <evl/poll.h>
 #include <evl/proxy.h>
 
-#define __EVL__  6	/* API revision */
+#define __EVL__  7	/* API version */
+
+struct evl_version {
+	int api_level;	/* libevl.so: __EVL__ */
+	int abi_level;	/* core: EVL_ABI_LEVEL, -1 for ESHI */
+};
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,6 +40,8 @@ void evl_sigdebug_handler(int sig, siginfo_t *si, void *ctxt);
 unsigned int evl_detect_fpu(void);
 
 extern const char *libevl_version_string;
+
+struct evl_version evl_get_version(void);
 
 #ifdef __cplusplus
 }

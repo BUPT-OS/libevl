@@ -43,3 +43,11 @@ bool eshi_is_initialized(void)
 {
 	return init_status == 0;
 }
+
+struct evl_version evl_get_version(void)
+{
+	return (struct evl_version){
+		.api_level = __EVL__,
+		.abi_level = -1,
+		};
+}

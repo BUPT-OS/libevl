@@ -42,7 +42,7 @@ static void usage(void)
 {
 	fprintf(stderr, "usage: evl [options] <command> [<args>]\n");
         fprintf(stderr, "-P --prefix=<path>   set command path prefix\n");
-        fprintf(stderr, "-V --version         print version and required ABI revision\n");
+        fprintf(stderr, "-V --version         print library and required ABI versions\n");
 }
 
 #define short_optlist "+P:V"

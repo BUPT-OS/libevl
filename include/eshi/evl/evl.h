@@ -9,13 +9,20 @@
 
 #include <evl/syscall.h>
 
-#define __EVL__  5	/* API revision */
+#define __EVL__  6	/* API version */
+
+struct evl_version {
+	int api_level;	/* libevl.so: __EVL__ */
+	int abi_level;	/* core: EVL_ABI_LEVEL, -1 for ESHI */
+};
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 int evl_init(void);
+
+struct evl_version evl_get_version(void);
 
 #ifdef __cplusplus
 }
