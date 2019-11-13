@@ -14,6 +14,7 @@
 struct evl_version {
 	int api_level;	/* libevl.so: __EVL__ */
 	int abi_level;	/* core: EVL_ABI_LEVEL, -1 for ESHI */
+	const char *version_string;
 };
 
 #ifdef __cplusplus

@@ -77,7 +77,8 @@ int main(int argc, char *const argv[])
 			cmddir = optarg;
 			break;
 		case 'V':
-			printf("%s [ABI %d]\n", libevl_version_string,
+			printf("%s [ABI %d]\n",
+				evl_get_version().version_string,
 				EVL_ABI_LEVEL);
 			exit(0);
 		case '?':

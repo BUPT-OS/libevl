@@ -52,19 +52,6 @@ $(O_DIR)/syscall-pic.o $(O_DIR)/syscall.o: override CFLAGS := $(CFLAGS) -fomit-f
 $(O_DIR)/version-pic.o $(O_DIR)/version.o: override CFLAGS := $(CFLAGS) -DLIBSERIAL=\"$(EVL_SERIAL)\"
 version.c: $(O_DIR)/git-stamp.h
 
-$(O_DIR)/git-stamp.h: git-stamp
-	@if test -r ../.git; then							\
-	  stamp=`git --git-dir=../.git rev-list --abbrev-commit -1 HEAD`;		\
-	  if test \! -s $@ || grep -wvq $$stamp $@; then				\
-		date=`git --git-dir=../.git log -1 $$stamp --pretty=format:%ci`;	\
-		echo "#define GIT_STAMP \"#$$stamp ($$date)\"" > $@;			\
-	  fi;										\
-	elif test \! -r $@ -o -s $@; then						\
-	    $(RM) -f $@ && touch $@;							\
-	fi; true
-
-.PHONY: git-stamp
-
 $(O_DIR)/%-pic.o: %.c
 	$(call cc-pic-cmd,$@,$(CC) $(CFLAGS) -fPIC -c -o $@ $<)
 

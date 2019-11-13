@@ -25,6 +25,7 @@
 struct evl_version {
 	int api_level;	/* libevl.so: __EVL__ */
 	int abi_level;	/* core: EVL_ABI_LEVEL, -1 for ESHI */
+	const char *version_string;
 };
 
 #ifdef __cplusplus
@@ -38,8 +39,6 @@ int evl_sigevl_handler(int sig, siginfo_t *si, void *ctxt);
 void evl_sigdebug_handler(int sig, siginfo_t *si, void *ctxt);
 
 unsigned int evl_detect_fpu(void);
-
-extern const char *libevl_version_string;
 
 struct evl_version evl_get_version(void);
 

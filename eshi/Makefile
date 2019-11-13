@@ -14,10 +14,11 @@ PIC_OBJFILES = $(SRCFILES:%.c=$(O_DIR)/%-pic.o)
 OBJFILES = $(SRCFILES:%.c=$(O_DIR)/%.o)
 DEPFILES = $(SRCFILES:%.c=$(O_DIR)/%.d)
 
-LIB_CPPFLAGS :=  $(BASE_CPPFLAGS)		\
-		 -I.				\
-		 -I../include/eshi		\
-		 -I../include
+LIB_CPPFLAGS :=  $(BASE_CPPFLAGS)	\
+		 -I.			\
+		 -I../include/eshi	\
+		 -I../include		\
+		 -I$(O_DIR)
 
 LIB_CFLAGS := $(LIB_CPPFLAGS) $(BASE_CFLAGS)
 
@@ -34,7 +35,8 @@ install: all
 	$(call inst-cmd,$(ARLIBNAME),$(INSTALL) -D $(O_DIR)/$(ARLIBNAME) $(DESTDIR)/$(libdir)/$(ARLIBNAME))
 
 clean clobber mrproper: output-Makefile
-	$(Q)$(RM) -f $(PIC_OBJFILES) $(OBJFILES) $(TARGETS) $(O_DIR)/$(DTSONAME) $(DEPFILES)
+	$(Q)$(RM) -f $(O_DIR)/git-stamp.h $(PIC_OBJFILES) $(OBJFILES) \
+		$(TARGETS) $(O_DIR)/$(DTSONAME) $(DEPFILES)
 
 $(O_DIR)/$(SOLIBNAME): $(PIC_OBJFILES)
 	$(call ld-cmd,$@,$(CC) -shared -Wl$(comma)-soname$(comma)$(DTSONAME) -o $(@) \
@@ -43,6 +45,9 @@ $(O_DIR)/$(SOLIBNAME): $(PIC_OBJFILES)
 
 $(O_DIR)/$(ARLIBNAME): $(OBJFILES)
 	$(call ar-cmd,$@,$(AR) ru $@ $(OBJFILES))
+
+$(O_DIR)/version-pic.o $(O_DIR)/version.o: override CFLAGS := $(CFLAGS) -DLIBSERIAL=\"$(EVL_SERIAL)\"
+version.c: $(O_DIR)/git-stamp.h
 
 $(O_DIR)/%-pic.o: %.c
 	$(call cc-pic-cmd,$@,$(CC) $(CFLAGS) -fPIC -c -o $@ $<)

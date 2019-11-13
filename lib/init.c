@@ -251,11 +251,3 @@ unsigned int evl_detect_fpu(void)
 
 	return core_info.fpu_features;
 }
-
-struct evl_version evl_get_version(void)
-{
-	return (struct evl_version){
-		.api_level = __EVL__,
-		.abi_level = EVL_ABI_LEVEL,
-		};
-}

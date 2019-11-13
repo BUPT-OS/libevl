@@ -469,7 +469,7 @@ static void dump_gnuplot(time_t duration)
 
 	paste_file_in("/proc/version", NULL);
 	paste_file_in("/proc/cmdline", NULL);
-	fprintf(plot_fp, "# libevl version: %s\n", libevl_version_string);
+	fprintf(plot_fp, "# libevl version: %s\n", evl_get_version().version_string);
 	fprintf(plot_fp, "# sampling period: %u microseconds\n", period);
 	paste_file_in("/sys/devices/virtual/clock/monotonic/gravity",
 		"clock gravity: ");
