@@ -1138,8 +1138,8 @@ int main(int argc, const char *argv[])
 	struct cpu_tasks *cpus;
 	struct sched_param sp;
 	char buf[BUFSIZ];
+	int sig, fd, c;
 	sigset_t mask;
-	int sig, fd;
 
 	status = EXIT_SUCCESS;
 	main_tid = pthread_self();
@@ -1164,9 +1164,8 @@ int main(int argc, const char *argv[])
 			{ "cpu", 1, NULL, 'c' },
 			{ NULL,      0, NULL, 0   }
 		};
-		int i = 0;
-		int c = getopt_long(argc, (char *const *) argv, "hl:nqQs:T:c:",
-				    long_options, &i);
+		c = getopt_long(argc, (char *const *) argv, "hl:nqQs:T:c:",
+				long_options, NULL);
 
 		if (c == -1)
 			break;
