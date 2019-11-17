@@ -61,7 +61,7 @@ BASE_CPPFLAGS := -D_GNU_SOURCE -D_REENTRANT $(DEBUG_CPPFLAGS)
 
 BASE_CFLAGS :=	-fasynchronous-unwind-tables -pipe -fstrict-aliasing	 	\
 		-Wall -Wstrict-prototypes -Wmissing-prototypes -Wno-long-long	\
-		-Wno-unused-parameter -Werror $(DEBUG_CFLAGS)
+		-Wno-unused-parameter -Wshadow=local -Werror $(DEBUG_CFLAGS)
 
 # Easy way to hide commas in args from $(call ...) invocations
 comma := ,
