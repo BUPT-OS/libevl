@@ -87,4 +87,6 @@
 		(void)__v;						\
 	} while (0)
 
+#define compiler_barrier()  __asm__ __volatile__("": : :"memory")
+
 #endif /* _EVL_COMPILER_H */

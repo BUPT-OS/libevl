@@ -37,6 +37,4 @@ static inline void atomic_set(atomic_t *ptr, long val)
 #define smp_mb()  __sync_synchronize()
 #endif
 
-#define compiler_barrier()  __asm__ __volatile__("": : :"memory")
-
 #endif /* _EVL_ATOMIC_H */
