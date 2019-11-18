@@ -7,6 +7,7 @@
 #ifndef _EVL_COMPILER_H
 #define _EVL_COMPILER_H
 
+#include <sys/types.h>
 #include <stddef.h>
 #include <limits.h>
 
@@ -88,5 +89,8 @@
 	} while (0)
 
 #define compiler_barrier()  __asm__ __volatile__("": : :"memory")
+
+#define __memoff(__base, __addr)	((uintptr_t)((caddr_t)(__addr) - (caddr_t)(__base)))
+#define __memptr(__base, __off)		((void *)((caddr_t)(__base) + (__off)))
 
 #endif /* _EVL_COMPILER_H */
