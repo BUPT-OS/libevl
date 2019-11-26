@@ -15,7 +15,8 @@
 #include <uapi/evl/clock.h>
 #include "internal.h"
 
-int evl_mono_clockfd, evl_real_clockfd;
+int evl_mono_clockfd = -ENXIO,
+	evl_real_clockfd = -ENXIO;
 
 #define do_call(__clockfd, __args...)				\
 	({							\

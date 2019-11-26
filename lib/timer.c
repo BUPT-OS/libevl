@@ -25,6 +25,9 @@ int evl_new_timer(int clockfd)
 {
 	int ret, efd;
 
+	if (evl_mono_clockfd < 0)
+		return -ENXIO;
+
 	if (clockfd == EVL_CLOCK_MONOTONIC)
 		clockfd = evl_mono_clockfd;
 	else if (clockfd == EVL_CLOCK_REALTIME)
