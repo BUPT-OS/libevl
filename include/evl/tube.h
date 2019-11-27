@@ -58,7 +58,7 @@
 #define tube_push_finish(__desc, __new, __free)		\
 	do {						\
 		smp_mb();	/* (1) */		\
-		(__new)->next = (__free);		\
+		atomic_store(&(__new)->next, __free);	\
 	} while (0)
 
 #define tube_push(__desc, __free)				\
@@ -199,10 +199,10 @@
 		__memptr(__base, __old_qp);				\
 	})
 
-#define tube_push_finish_rel(__base, __desc, __new, __free)	\
-	do {							\
-		smp_mb();	/* (1) */			\
-		(__new)->next = __memoff(__base, __free);	\
+#define tube_push_finish_rel(__base, __desc, __new, __free)		\
+	do {								\
+		smp_mb();	/* (1) */				\
+		atomic_store(&(__new)->next, __memoff(__base, __free));	\
 	} while (0)
 
 #define tube_push_rel(__base, __desc, __free)				\

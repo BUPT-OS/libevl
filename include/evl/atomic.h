@@ -33,6 +33,12 @@ static inline void atomic_set(atomic_t *ptr, long val)
 	__sync_add_and_fetch(&(__ptr)->val, __n)
 #endif
 
+/* For scalar types only! */
+#define atomic_store(__ptr, __val)				\
+	do {							\
+		(*(volatile typeof(__ptr))(ptr)) = (__val);	\
+	} while (0)
+
 #ifndef smp_mb
 #define smp_mb()  __sync_synchronize()
 #endif
