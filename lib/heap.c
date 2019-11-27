@@ -1174,7 +1174,7 @@ static ssize_t add_extent(void *mem, size_t size)
 
 	/*
 	 * @size must include the overhead memory we need for storing
-	 * our meta data as calculated by EVL_HEAP_ARENA_SIZE(), find
+	 * our meta-data as calculated by EVL_HEAP_RAW_SIZE(), find
 	 * this amount back.
 	 *
 	 * o = overhead
@@ -1265,7 +1265,7 @@ int evl_init_heap(struct evl_heap *heap, void *mem, size_t size)
 	}
 
 	list_append(&ext->next, &heap->extents);
-	heap->arena_size = size;
+	heap->raw_size = size;
 	heap->usable_size = ret;
 	heap->used_size = 0;
 
@@ -1283,7 +1283,7 @@ int evl_extend_heap(struct evl_heap *heap, void *mem, size_t size)
 
 	evl_lock_mutex(&heap->lock);
 	list_append(&ext->next, &heap->extents);
-	heap->arena_size += size;
+	heap->raw_size += size;
 	heap->usable_size += ret;
 	evl_unlock_mutex(&heap->lock);
 

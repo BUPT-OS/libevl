@@ -89,7 +89,7 @@ struct evl_heap_extent {
 struct evl_heap {
 	struct evl_mutex lock;
 	struct list_head extents;
-	size_t arena_size;
+	size_t raw_size;
 	size_t usable_size;
 	size_t used_size;
 	/* Heads of page lists for log2-sized blocks. */
@@ -99,19 +99,19 @@ struct evl_heap {
 #define __EVL_HEAP_MAP_SIZE(__nrpages)					\
 	((__nrpages) * EVL_HEAP_PGMAP_BYTES)
 
-#define __EVL_HEAP_ARENA_SIZE(__size)					\
+#define __EVL_HEAP_RAW_SIZE(__size)					\
 	(__size +							\
 	 __align_to(sizeof(struct evl_heap_extent) +			\
 		    __EVL_HEAP_MAP_SIZE((__size) >> EVL_HEAP_PAGE_SHIFT),\
 		    EVL_HEAP_MIN_ALIGN))
 
 /*
- * Calculate the minimal size of the memory arena needed to contain a
- * heap of __user_size bytes, including our meta data for managing it.
- * Usable at build time if __user_size is constant.
+ * Calculate the size of the memory area needed to contain a heap of
+ * __user_size bytes, including our meta-data for managing it.  Usable
+ * at build time if __user_size is constant.
  */
-#define EVL_HEAP_ARENA_SIZE(__user_size)	\
-	__EVL_HEAP_ARENA_SIZE(__align_to(__user_size, EVL_HEAP_PAGE_SIZE))
+#define EVL_HEAP_RAW_SIZE(__user_size)	\
+	__EVL_HEAP_RAW_SIZE(__align_to(__user_size, EVL_HEAP_PAGE_SIZE))
 
 #ifdef __cplusplus
 extern "C" {
@@ -137,7 +137,7 @@ ssize_t evl_check_block(struct evl_heap *heap,
 static inline
 size_t evl_heap_raw_size(const struct evl_heap *heap)
 {
-	return heap->arena_size;
+	return heap->raw_size;
 }
 
 static inline

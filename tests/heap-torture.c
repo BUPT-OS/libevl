@@ -377,7 +377,7 @@ static size_t find_largest_free(size_t free_size, size_t block_size)
 
 static int test_seq(size_t heap_size, size_t block_size, int flags)
 {
-	size_t arena_size, user_size, largest_free, maximum_free, freed;
+	size_t raw_size, user_size, largest_free, maximum_free, freed;
 	long alloc_sum_ns, alloc_avg_ns, free_sum_ns, free_avg_ns,
 		alloc_max_ns, free_max_ns, d;
 	int ret, n, k, maxblocks, nrblocks;
@@ -392,17 +392,17 @@ static int test_seq(size_t heap_size, size_t block_size, int flags)
 	pthread_setschedparam(pthread_self(), SCHED_FIFO, &param);
 	ret = evl_attach_self("heap-torture:%d", getpid());
 
-	arena_size = EVL_HEAP_ARENA_SIZE(heap_size);
-	mem = malloc(arena_size);
+	raw_size = EVL_HEAP_RAW_SIZE(heap_size);
+	mem = malloc(raw_size);
 	if (mem == NULL)
 		return -ENOMEM;
 
 	maxblocks = heap_size / block_size;
 
-	ret = evl_init_heap(&heap, mem, arena_size);
+	ret = evl_init_heap(&heap, mem, raw_size);
 	if (ret) {
-		do_trace("cannot init heap with arena size %zu",
-			     arena_size);
+		do_trace("cannot init heap with raw size %zu",
+			     raw_size);
 		goto out;
 	}
 
@@ -649,8 +649,8 @@ out:
 			     flags & MEMCHECK_PATTERN ? "" : "no ",
 			     flags & MEMCHECK_HOT ? "" : "no ",
 			     heap_size / 1024, block_size,
-			     arena_size - heap_size,
-			     (arena_size * 100.0 / heap_size) - 100.0);
+			     raw_size - heap_size,
+			     (raw_size * 100.0 / heap_size) - 100.0);
 oom:
 	free(mem);
 
