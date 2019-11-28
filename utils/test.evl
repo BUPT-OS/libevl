@@ -7,10 +7,10 @@ if test \! -d $EVL_TESTDIR; then
 fi
 
 usage() {
-   echo >&2 "usage: $(basename $1) [-l] [test-list]"
+   echo >&2 "usage: $(basename $1) [-l][-L] [test-list]"
 }
 
-args=$(getopt -n $(basename $0) 'h@kl' "$@")
+args=$(getopt -n $(basename $0) 'h@klL' "$@")
 if [ $? -ne 0 ]; then
    usage $0
    exit 1
@@ -19,6 +19,7 @@ fi
 help=false
 keep_going=false
 do_list=false
+full_path=false
 
 set -- $args
 for opt
@@ -29,6 +30,9 @@ case "$opt" in
    -h) help=true;
        shift;;
    -l) do_list=true;
+       shift;;
+   -L) full_path=true;
+       do_list=true;
        shift;;
    -@) echo "run EVL tests"
        exit 0;;
@@ -56,7 +60,11 @@ fi
 
 if test x$do_list = xtrue; then
    for t in $test_list; do
-       echo "$(basename $t)"
+       if test x$full_path = xtrue; then
+	   echo "$t";
+       else
+	   echo "$(basename $t)"
+       fi
    done
    exit 0
 fi
