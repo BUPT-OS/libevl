@@ -37,7 +37,7 @@
 #define tube_push_prepare(__desc, __free)			\
 	({							\
 		typeof((__desc)->tail) __old_qp;		\
-		(__free)->next = NULL;				\
+		atomic_store(&(__free)->next, NULL);		\
 		smp_mb();	/* (1) */			\
 		do {						\
 			__old_qp = (__desc)->tail;		\
@@ -189,7 +189,7 @@
 	({								\
 		typeof((__desc)->tail) __old_qp;			\
 		uintptr_t __off_qp = __memoff(__base, __free);		\
-		(__free)->next = 0;					\
+		atomic_store(&(__free)->next, 0);			\
 		smp_mb();	/* (1) */				\
 		do {							\
 			__old_qp = (__desc)->tail;			\

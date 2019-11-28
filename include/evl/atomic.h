@@ -36,7 +36,7 @@ static inline void atomic_set(atomic_t *ptr, long val)
 /* For scalar types only! */
 #define atomic_store(__ptr, __val)				\
 	do {							\
-		(*(volatile typeof(__ptr))(ptr)) = (__val);	\
+		(*(volatile typeof(__ptr))(__ptr)) = (__val);	\
 	} while (0)
 
 #ifndef smp_mb
