@@ -157,12 +157,6 @@
  * Position-independent variant.
  */
 
-#define DECLARE_TUBE_CANISTER_REL(__can_struct, __payload)	\
-	struct __can_struct {					\
-		typeof(__payload) payload;			\
-		uintptr_t next;					\
-	}							\
-
 #define DECLARE_CANISTER_QUEUE_REL(__can_struct)		\
 	struct {						\
 		uintptr_t head;					\
@@ -234,8 +228,13 @@
 		__next_dq ? __old_dqptr : NULL;				\
 	})
 
+#define DECLARE_EVL_TUBE_CANISTER_REL(__can_struct, __payload)	\
+	struct __can_struct {					\
+		typeof(__payload) payload;			\
+		uintptr_t next;					\
+	}							\
+
 #define DECLARE_EVL_TUBE_REL(__name, __can_struct, __payload)		\
-	DECLARE_TUBE_CANISTER_REL(__can_struct, __payload);		\
 	struct __name {							\
 		DECLARE_CANISTER_QUEUE_REL(__can_struct) pending;	\
 		DECLARE_CANISTER_QUEUE_REL(__can_struct) free;		\
