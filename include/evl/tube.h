@@ -88,7 +88,7 @@
 		__next_dq ? __old_dq : NULL;				\
 	})
 
-#define DECLARE_EVL_TUBE_CANISTER(__can_struct, __payload)	\
+#define DECLARE_EVL_CANISTER(__can_struct, __payload)		\
 	struct __can_struct {					\
 		typeof(__payload) payload;			\
 		struct __can_struct *next;			\
@@ -228,7 +228,7 @@
 		__next_dq ? __old_dqptr : NULL;				\
 	})
 
-#define DECLARE_EVL_TUBE_CANISTER_REL(__can_struct, __payload)	\
+#define DECLARE_EVL_CANISTER_REL(__can_struct, __payload)	\
 	struct __can_struct {					\
 		typeof(__payload) payload;			\
 		uintptr_t next;					\
