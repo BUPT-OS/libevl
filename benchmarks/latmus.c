@@ -588,9 +588,9 @@ static void do_measurement(int type)
 			(timeout / 60) % 60, timeout % 60);
 
 	if (all_switches > 0)
-		printf("WARNING: unexpected switches to in-band"
-		       " mode detected, latency figures may not "
-		       " be reliable. Please report.\n");
+		printf("\n*** WARNING: unexpected switches to in-band mode detected,\n"
+		       "             those latency figures are NOT reliable.\n"
+		       "             Please submit a bug report upstream.\n");
 
 	abort_on_switch = 0;
 
