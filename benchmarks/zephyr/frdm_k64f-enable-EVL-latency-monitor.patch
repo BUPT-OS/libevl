@@ -1,0 +1,64 @@
+From 09f3918f91f6dfd5bbf20bb04f9518187d79b445 Mon Sep 17 00:00:00 2001
+From: Philippe Gerum <rpm@xenomai.org>
+Date: Sat, 4 Jan 2020 13:22:59 +0100
+Subject: [PATCH] frdm_k64f: enable EVL latency monitor
+
+Use GPIO24 for issuing the pulse signal to the device under test,
+GPIO25 for receiving the acknowledge.
+---
+ boards/arm/frdm_k64f/frdm_k64f.dts | 10 ++++++++++
+ boards/arm/frdm_k64f/pinmux.c      |  3 +++
+ 2 files changed, 13 insertions(+)
+
+diff --git a/boards/arm/frdm_k64f/frdm_k64f.dts b/boards/arm/frdm_k64f/frdm_k64f.dts
+index 432482db6c..8e67a25dc8 100644
+--- a/boards/arm/frdm_k64f/frdm_k64f.dts
++++ b/boards/arm/frdm_k64f/frdm_k64f.dts
+@@ -37,6 +37,8 @@
+ 		sw1 = &user_button_2;
+ 		eth = &eth;
+ 		can-0 = &can0;
++		latmon-pulse = &pulse_gpio;
++		latmon-ack = &ack_gpio;
+ 	};
+ 
+ 	chosen {
+@@ -62,6 +64,10 @@
+ 			gpios = <&gpiob 21 0>;
+ 			label = "User LD3";
+ 		};
++		pulse_gpio: latmon_out {
++			gpios = <&gpioe 24 0>;
++			label = "Latmon pulse";
++		};
+ 	};
+ 
+ 	gpio_keys {
+@@ -74,6 +80,10 @@
+ 			label = "User SW3";
+ 			gpios = <&gpioa 4 (GPIO_INT_ACTIVE_LOW | GPIO_PUD_PULL_UP)>;
+ 		};
++		ack_gpio: latmon_in {
++			gpios = <&gpioe 25 GPIO_INT_ACTIVE_HIGH>;
++			label = "Latmon ACK";
++		};
+ 	};
+ 
+ 	arduino_header: connector {
+diff --git a/boards/arm/frdm_k64f/pinmux.c b/boards/arm/frdm_k64f/pinmux.c
+index 35f3c9e44c..f1c341fe9e 100644
+--- a/boards/arm/frdm_k64f/pinmux.c
++++ b/boards/arm/frdm_k64f/pinmux.c
+@@ -115,6 +115,9 @@ static int frdm_k64f_pinmux_init(struct device *dev)
+ 					| PORT_PCR_ODE_MASK);
+ 	pinmux_pin_set(porte, 25, PORT_PCR_MUX(kPORT_MuxAlt5)
+ 					| PORT_PCR_ODE_MASK);
++#else
++	pinmux_pin_set(porte, 24, PORT_PCR_MUX(kPORT_MuxAsGpio));
++	pinmux_pin_set(porte, 25, PORT_PCR_MUX(kPORT_MuxAsGpio));
+ #endif
+ 
+ #if CONFIG_ADC_1
+-- 
+2.24.1
+

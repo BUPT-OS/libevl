@@ -3,21 +3,23 @@
 include ../config.mk
 include ../libversion.mk
 
-UTILFILES := $(wildcard *.c)
-BINARIES = $(UTILFILES:%.c=%)
-TARGETS = $(UTILFILES:%.c=$(O_DIR)/%)
-DEPFILES = $(UTILFILES:%.c=$(O_DIR)/%.d)
+BENCHFILES := $(wildcard *.c)
+BINARIES = $(BENCHFILES:%.c=%)
+TARGETS = $(BENCHFILES:%.c=$(O_DIR)/%)
+DEPFILES = $(BENCHFILES:%.c=$(O_DIR)/%.d)
 
-UTIL_CPPFLAGS := $(BASE_CPPFLAGS)		\
+BENCH_CPPFLAGS := $(BASE_CPPFLAGS)		\
 		 -I.				\
 		 -I../include			\
 		 -I$(O_DIR)/../include
 
-UTIL_CFLAGS := $(UTIL_CPPFLAGS) $(BASE_CFLAGS)
-override CFLAGS := $(UTIL_CFLAGS) $(CFLAGS)
+BENCH_CFLAGS := $(BENCH_CPPFLAGS) $(BASE_CFLAGS)
+override CFLAGS := $(BENCH_CFLAGS) $(CFLAGS)
 
-UTIL_LDFLAGS := $(O_DIR)/../lib/libevl.so.$(EVL_IVERSION) -lpthread -lrt
-override LDFLAGS := $(UTIL_LDFLAGS) $(LDFLAGS)
+BENCH_LDFLAGS := $(O_DIR)/../lib/libevl.so.$(EVL_IVERSION) -lpthread -lrt
+override LDFLAGS := $(BENCH_LDFLAGS) $(LDFLAGS)
+
+$(O_DIR)/latmus: override CFLAGS := -I zephyr/latmon/src $(CFLAGS)
 
 all: output-Makefile $(TARGETS)
 
