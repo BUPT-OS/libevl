@@ -49,7 +49,7 @@ static cpu_set_t isolated_cpus;
 static int test_irqlat, test_klat,
 	test_ulat, test_gpiolat;
 
-static int reset, load = -1, background,
+static int reset, background,
 	verbosity = 1, abort_on_switch,
 	abort_threshold;
 
@@ -88,7 +88,7 @@ static sem_t logger_done;
 
 static bool c_state_restricted;
 
-#define short_optlist "ikurLNqbamtp:A:T:v:l:g:H:P:c:Z:z:I:O:"
+#define short_optlist "ikurqbamtp:A:T:v:l:g:H:P:c:Z:z:I:O:"
 
 static const struct option options[] = {
 	{
@@ -110,16 +110,6 @@ static const struct option options[] = {
 		.name = "reset",
 		.has_arg = no_argument,
 		.val = 'r'
-	},
-	{
-		.name = "load",
-		.has_arg = no_argument,
-		.val = 'L'
-	},
-	{
-		.name = "noload",
-		.has_arg = no_argument,
-		.val = 'N'
 	},
 	{
 		.name = "quiet",
@@ -231,57 +221,6 @@ static void create_responder(pthread_t *tid, void *(*responder)(void *))
 	pthread_attr_destroy(&attr);
 	if (ret)
 		error(1, ret, "sampling thread");
-}
-
-static void *load_thread(void *arg)
-{
-	ssize_t nbytes, ret;
-	struct timespec rqt;
-	int fdi, fdo;
-	char buf[512];
-
-	fdi = open("/dev/zero", O_RDONLY);
-	if (fdi < 0)
-		error(1, errno, "/dev/zero");
-
-	fdo = open("/dev/null", O_WRONLY);
-	if (fdi < 0)
-		error(1, errno, "/dev/null");
-
-	rqt.tv_sec = 0;
-	rqt.tv_nsec = 2000000;
-
-	for (;;) {
-		clock_nanosleep(CLOCK_MONOTONIC, 0, &rqt, NULL);
-		nbytes = read(fdi, buf, sizeof(buf));
-		if (nbytes <= 0)
-			error(1, EIO, "load streaming");
-		if (nbytes > 0) {
-			ret = write(fdo, buf, nbytes);
-			(void)ret;
-		}
-	}
-
-	return NULL;
-}
-
-static void create_load(pthread_t *tid)
-{
-	struct sched_param param;
-	pthread_attr_t attr;
-	int ret;
-
-	pthread_attr_init(&attr);
-	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-	pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
-	pthread_attr_setschedpolicy(&attr, SCHED_FIFO);
-	param.sched_priority = 1;
-	pthread_attr_setschedparam(&attr, &param);
-	pthread_attr_setstacksize(&attr, EVL_STACK_DEFAULT);
-	ret = pthread_create(tid, &attr, load_thread, NULL);
-	pthread_attr_destroy(&attr);
-	if (ret)
-		error(1, ret, "load thread");
 }
 
 #define ONE_BILLION	1000000000
@@ -1169,8 +1108,6 @@ static void usage(void)
         fprintf(stderr, "-P --priority=<prio>    responder thread priority [=90]\n");
         fprintf(stderr, "-c --cpu=<n>            pin responder thread to CPU [=0]\n");
         fprintf(stderr, "-r --reset              reset core timer gravity to factory default\n");
-        fprintf(stderr, "-L --load               enable load generation [on if tuning]\n");
-        fprintf(stderr, "-n --noload             disable load generation\n");
         fprintf(stderr, "-b --background         run in the background (daemon mode)\n");
         fprintf(stderr, "-a --mode-abort         abort upon unexpected switch to in-band mode\n");
         fprintf(stderr, "-A --max-abort=<us>     abort if maximum latency exceeds threshold\n");
@@ -1193,7 +1130,6 @@ int main(int argc, char *const argv[])
 	int ret, c, spec, type, max_prio;
 	const char *plot_filename = NULL;
 	struct sigaction sa;
-	pthread_t loadgen;
 	char *endptr;
 
 	opterr = 0;
@@ -1217,12 +1153,6 @@ int main(int argc, char *const argv[])
 			break;
 		case 'r':
 			reset = 1;
-			break;
-		case 'L':
-			load = 1;
-			break;
-		case 'N':
-			load = 0;
 			break;
 		case 'q':
 			verbosity = 0;
@@ -1410,12 +1340,6 @@ int main(int argc, char *const argv[])
 		}
 	}
 
-	/* Force load if tuning, otherwise consider option. */
-	if (load > 0 || tuning) {
-		load = 1;
-		create_load(&loadgen);
-	}
-
 	time(&start_time);
 
 	if (!tuning) {
@@ -1454,9 +1378,6 @@ int main(int argc, char *const argv[])
 			printf("== tuning completed after %ds\n",
 			       (int)(time(NULL) - start_time));
 	}
-
-	if (load > 0)
-		pthread_cancel(loadgen);
 
 	return 0;
 }
