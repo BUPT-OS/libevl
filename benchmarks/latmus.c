@@ -1008,7 +1008,7 @@ static void parse_cpu_list(const char *path, cpu_set_t *cpuset)
 	p = buf;
 	while ((range = strtok_r(p, ",", &range_p)) != NULL) {
 		if (*range == '\0' || *range == '\n')
-			continue;
+			goto next;
 		end = -1;
 		id = strtok_r(range, "-", &id_r);
 		if (id) {
@@ -1021,6 +1021,7 @@ static void parse_cpu_list(const char *path, cpu_set_t *cpuset)
 			for (cpu = start; cpu <= end; cpu++)
 				CPU_SET(cpu, cpuset);
 		}
+	next:
 		p = NULL;
 	}
 out:
