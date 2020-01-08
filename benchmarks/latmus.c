@@ -88,7 +88,7 @@ static sem_t logger_done;
 
 static bool c_state_restricted;
 
-#define short_optlist "ikurqbamtp:A:T:v:l:g:H:P:c:Z:z:I:O:"
+#define short_optlist "ikurqbamtp:A:T:v::l:g::H:P:c:Z:z:I:O:"
 
 static const struct option options[] = {
 	{
