@@ -40,7 +40,7 @@ static char *find_install_dir(const char *arg0, const char *subdir)
 
 static void usage(void)
 {
-	fprintf(stderr, "usage: evl [options] <command> [<args>]\n");
+	fprintf(stderr, "usage: evl [options] [<command> [<args>]]\n");
         fprintf(stderr, "-P --prefix=<path>   set command path prefix\n");
         fprintf(stderr, "-V --version         print library and required ABI versions\n");
 }
