@@ -1,16 +1,6 @@
 #! /bin/sh
 # SPDX-License-Identifier: MIT
 
-if test \! -d $EVL_TRACEDIR; then
-   echo >&2 "no kernel support for tracing"
-   exit 2
-fi
-
-if test \! -d $EVL_TRACEDIR/events/evl; then
-   echo >&2 "no EVL core in kernel"
-   exit 2
-fi
-
 usage() {
    echo >&2 "usage: $(basename $1) [-e [-s <buffer_size>]] [-d] [-p] [-f] [-h] [-c <cpu>] [-h]"
 }
@@ -58,6 +48,16 @@ done
 if test x$help = xtrue; then
    usage $0
    exit 0
+fi
+
+if test \! -d $EVL_TRACEDIR; then
+   echo >&2 "no kernel support for tracing"
+   exit 2
+fi
+
+if test \! -d $EVL_TRACEDIR/events/evl; then
+   echo >&2 "no EVL core in kernel"
+   exit 2
 fi
 
 cd $EVL_TRACEDIR
