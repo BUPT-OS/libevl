@@ -8,7 +8,7 @@ fi
 
 cd $EVL_CMDDIR || exit 1
 
-echo "evl [-P <cmddir>] <command> [command-args], with <command> in:"
+echo "evl [-V] [-P <cmddir>] [<command> [command-args]], with <command> in:"
 
 for cmd in evl-*; do
     case "$cmd" in
