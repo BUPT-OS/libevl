@@ -1126,9 +1126,16 @@ static void usage(void)
         fprintf(stderr, "   with <spec> = gpiochip-devname,pin-number\n");
 }
 
+static void bad_usage(int argc, char *const argv[])
+{
+	int last = optind < argc ? optind : argc - 1;
+	printf("** Uh, you lost me somewhere near '%s' (arg #%d)\n", argv[last], last);
+	usage();
+}
+
 int main(int argc, char *const argv[])
 {
-	int ret, c, spec, type, max_prio;
+	int ret, c, spec, type, max_prio, lindex;
 	const char *plot_filename = NULL;
 	struct sigaction sa;
 	char *endptr;
@@ -1136,7 +1143,7 @@ int main(int argc, char *const argv[])
 	opterr = 0;
 
 	for (;;) {
-		c = getopt_long(argc, argv, short_optlist, options, NULL);
+		c = getopt_long(argc, argv, short_optlist, options, &lindex);
 		if (c == EOF)
 			break;
 
@@ -1249,13 +1256,13 @@ int main(int argc, char *const argv[])
 			break;
 		case '?':
 		default:
-			usage();
+			bad_usage(argc, argv);
 			return 1;
 		}
 	}
 
 	if (optind < argc) {
-		usage();
+		bad_usage(argc, argv);
 		return 1;
 	}
 
