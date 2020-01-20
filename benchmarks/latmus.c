@@ -722,6 +722,10 @@ static void dump_gnuplot(time_t duration)
 	fprintf(plot_fp, "# sampling period: %u microseconds\n", period_usecs);
 	paste_file_in("/sys/devices/virtual/clock/monotonic/gravity",
 		"clock gravity: ");
+	paste_file_in("/sys/devices/system/clocksource/clocksource0/current_clocksource",
+		"clocksource: ");
+	paste_file_in("/sys/devices/system/clocksource/clocksource0/vdso_clocksource",
+		"vDSO access: ");
 	fprintf(plot_fp, "# context: %s\n", context_labels[context_type]);
 	if (!test_irqlat) {
 		fprintf(plot_fp, "# thread priority: %d\n", responder_priority);
