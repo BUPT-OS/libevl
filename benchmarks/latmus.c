@@ -49,8 +49,10 @@ static cpu_set_t isolated_cpus;
 static int test_irqlat, test_klat,
 	test_ulat, test_gpiolat;
 
-static int reset, background,
-	verbosity = 1, abort_on_switch,
+static bool reset, background,
+	abort_on_switch = true;
+
+static int verbosity = 1,
 	abort_threshold;
 
 static int tuning;
@@ -88,7 +90,7 @@ static sem_t logger_done;
 
 static bool c_state_restricted;
 
-#define short_optlist "ikurqbamtp:A:T:v::l:g::H:P:c:Z:z:I:O:"
+#define short_optlist "ikurqbKmtp:A:T:v::l:g::H:P:c:Z:z:I:O:"
 
 static const struct option options[] = {
 	{
@@ -122,9 +124,9 @@ static const struct option options[] = {
 		.val = 'b'
 	},
 	{
-		.name = "mode-abort",
+		.name = "keep-going",
 		.has_arg = no_argument,
-		.val = 'a'
+		.val = 'K'
 	},
 	{
 		.name = "measure",
@@ -820,12 +822,17 @@ static void do_measurement(int type)
 			duration % 60, duration / 3600,
 			(timeout / 60) % 60, timeout % 60);
 
-	if (spurious_inband_switches > 0)
-		printf("\n*** WARNING: unexpected switches to in-band mode detected,\n"
-		       "             those latency figures are NOT reliable.\n"
+	if (spurious_inband_switches > 0) {
+		if (all_samples > 0)
+			fputc('\n', stderr);
+		fprintf(stderr, "*** WARNING: unexpected switches to in-band mode detected,\n"
+		       "             latency figures displayed are NOT reliable.\n"
 		       "             Please submit a bug report upstream.\n");
-
-	abort_on_switch = 0;
+		if (abort_on_switch) {
+			abort_on_switch = false;
+			fprintf(stderr, "*** OOPS: aborting upon spurious switch to in-band mode.\n");
+		}
+	}
 
 	if (responder)
 		pthread_cancel(responder);
@@ -883,9 +890,9 @@ static void sigdebug_handler(int sig, siginfo_t *si, void *context)
 		case SIGDEBUG_MIGRATE_SYSCALL:
 		case SIGDEBUG_MIGRATE_FAULT:
 		case SIGDEBUG_MIGRATE_PRIOINV:
-			if (abort_on_switch)
-				exit(100);
 			spurious_inband_switches++;
+			if (abort_on_switch)
+				kill(getpid(), SIGHUP);
 			break;
 		case SIGDEBUG_WATCHDOG:
 		case SIGDEBUG_MUTEX_IMBALANCE:
@@ -1110,7 +1117,7 @@ static void usage(void)
         fprintf(stderr, "-c --cpu=<n>            pin responder thread to CPU [=0]\n");
         fprintf(stderr, "-r --reset              reset core timer gravity to factory default\n");
         fprintf(stderr, "-b --background         run in the background (daemon mode)\n");
-        fprintf(stderr, "-a --mode-abort         abort upon unexpected switch to in-band mode\n");
+        fprintf(stderr, "-K --keep-going         keep going on unexpected switch to in-band mode\n");
         fprintf(stderr, "-A --max-abort=<us>     abort if maximum latency exceeds threshold\n");
         fprintf(stderr, "-T --timeout=<t>[dhms]  stop measurement after <t> [d(ays)|h(ours)|m(inutes)|s(econds)]\n");
         fprintf(stderr, "-v --verbose[=level]    set verbosity level [=1]\n");
@@ -1160,16 +1167,16 @@ int main(int argc, char *const argv[])
 			test_ulat = 1;
 			break;
 		case 'r':
-			reset = 1;
+			reset = true;
 			break;
 		case 'q':
 			verbosity = 0;
 			break;
 		case 'b':
-			background = 1;
+			background = true;
 			break;
-		case 'a':
-			abort_on_switch = 1;
+		case 'K':
+			abort_on_switch = false;
 			break;
 		case 'm':
 			tuning = 0;
