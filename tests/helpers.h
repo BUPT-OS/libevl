@@ -11,6 +11,8 @@
 #include <errno.h>
 #include <pthread.h>
 
+#define EXIT_NO_SUPPORT  42
+
 #define __stringify_1(x...)	#x
 #define __stringify(x...)	__stringify_1(x)
 

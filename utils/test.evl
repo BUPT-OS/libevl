@@ -73,8 +73,12 @@ for t in $test_list; do
     test \! -x $t && echo "$(basename $t): no such test" && exit 2
     $t && echo "$(basename $t): OK" && continue
     c=$?
-    echo "** $(basename $t): BROKEN"
-    test x$keep_going = xfalse && exit $c
+    if test $c = 42; then
+	echo "$(basename $t): no kernel support"
+    else
+	echo "** $(basename $t): BROKEN"
+	test x$keep_going = xfalse && exit $c
+    fi
 done
 
 exit 0
