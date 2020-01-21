@@ -62,7 +62,7 @@ int evl_sleep_until(int clockfd, const struct timespec *timeout)
 	return 0;
 }
 
-int evl_udelay(unsigned int usecs)
+int evl_usleep(useconds_t usecs)
 {
 	struct timespec delay;
 	int ret;

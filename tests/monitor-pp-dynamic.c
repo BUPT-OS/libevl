@@ -47,13 +47,13 @@ int main(int argc, char *argv[])
 				EVL_CLOCK_MONOTONIC, LOW_PRIO, name));
 	__Tcall_assert(ret, evl_lock_mutex(&lock));
 	/* Commit PP boost, no priority change expected. */
-	__Tcall_assert(ret, evl_udelay(1000));
+	__Tcall_assert(ret, evl_usleep(1000));
 	__Texpr_assert(check_priority(tfd, LOW_PRIO));
 	__Tcall_assert(ret, evl_unlock_mutex(&lock));
 	__Tcall_assert(ret, evl_set_mutex_ceiling(&lock, HIGH_PRIO));
 	__Tcall_assert(ret, evl_lock_mutex(&lock));
 	/* Commit PP boost, should be boosted to HIGH_PRIO. */
-	__Tcall_assert(ret, evl_udelay(1000));
+	__Tcall_assert(ret, evl_usleep(1000));
 	__Texpr_assert(check_priority(tfd, HIGH_PRIO));
 	__Tcall_assert(ret, evl_unlock_mutex(&lock));
 

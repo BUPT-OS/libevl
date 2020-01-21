@@ -76,7 +76,7 @@ static void test_steal(bool do_steal)
 	 * Wait for the victim to block on the lock. Sleep for 200ms
 	 * (for slow VMs)
 	 */
-	evl_udelay(200000);
+	evl_usleep(200000);
 
 	/*
 	 * Pass the lock ownership to the victim, but we have higher
@@ -89,7 +89,7 @@ static void test_steal(bool do_steal)
 		__Tcall_assert(ret, evl_lock_mutex(&c.lock));	/* Steal it. */
 		__Fexpr_assert(c.acquired);
 	} else {
-		evl_udelay(200000);
+		evl_usleep(200000);
 		__Tcall_assert(ret, evl_lock_mutex(&c.lock));
 		__Texpr_assert(c.acquired);
 	}

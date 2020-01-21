@@ -99,7 +99,7 @@ static void timespec_add_ns(struct timespec *__restrict r,
 	}
 }
 
-int evl_udelay(unsigned int usecs)
+int evl_usleep(useconds_t usecs)
 {
 	struct timespec now, next;
 

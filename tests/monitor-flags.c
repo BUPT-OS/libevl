@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
 	__Texpr_assert(bits == 0x12121212);
 #endif
 	__Tcall_assert(ret, evl_get_sem(&c.sem));
-	__Tcall_assert(ret, evl_udelay(1000));
+	__Tcall_assert(ret, evl_usleep(1000));
 	__Tcall_assert(ret, evl_post_flags(&c.flags, 0x76767676));
 	__Tcall_assert(ret, evl_get_sem(&c.sem));
 	__Texpr_assert(pthread_join(receiver, &status) == 0);

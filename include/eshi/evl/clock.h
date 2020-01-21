@@ -44,7 +44,7 @@ int evl_get_clock_resolution(int clockfd, struct timespec *tp);
 
 int evl_sleep_until(int clockfd, const struct timespec *timeout);
 
-int evl_udelay(unsigned int usecs);
+int evl_usleep(useconds_t usecs);
 
 #ifdef __cplusplus
 }

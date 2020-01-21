@@ -53,11 +53,11 @@ int main(int argc, char *argv[])
 
 	__Tcall_assert(ret, evl_lock_mutex(&lock_medium));
 	/* Commit PP, expected switch to medium priority. */
-	__Tcall_assert(ret, evl_udelay(1000));
+	__Tcall_assert(ret, evl_usleep(1000));
 	__Texpr_assert(check_priority(tfd, MEDIUM_PRIO));
 	__Tcall_assert(ret, evl_lock_mutex(&lock_high));
 	/* Commit PP, expected switch to high priority. */
-	__Tcall_assert(ret, evl_udelay(1000));
+	__Tcall_assert(ret, evl_usleep(1000));
 	__Texpr_assert(check_priority(tfd, HIGH_PRIO));
 	__Tcall_assert(ret, evl_unlock_mutex(&lock_high));
 	__Texpr_assert(check_priority(tfd, MEDIUM_PRIO));

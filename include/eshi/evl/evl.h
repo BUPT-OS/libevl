@@ -9,7 +9,7 @@
 
 #include <evl/syscall.h>
 
-#define __EVL__  6	/* API version */
+#define __EVL__  7	/* API version */
 
 struct evl_version {
 	int api_level;	/* libevl.so: __EVL__ */

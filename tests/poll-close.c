@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 	new_thread(&poller, SCHED_FIFO, 1, polling_thread, NULL);
 
 	/* Wait for evl_poll() to start, then close the polled fd. */
-	__Tcall_assert(ret, evl_udelay(200000));
+	__Tcall_assert(ret, evl_usleep(200000));
 	close(xfd);
 	__Texpr_assert(pthread_join(poller, NULL) == 0);
 	close(pfd);

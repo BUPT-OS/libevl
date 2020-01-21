@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 
 	__Tcall_assert(ret, evl_lock_mutex(&lock));
 	/* Commit PP, we should have inherited SCHED_FIFO, HIGH_PRIO. */
-	__Tcall_assert(ret, evl_udelay(1000));
+	__Tcall_assert(ret, evl_usleep(1000));
 	__Texpr_assert(check_priority(tfd, SCHED_FIFO, HIGH_PRIO));
 	__Tcall_assert(ret, evl_unlock_mutex(&lock));
 	__Texpr_assert(check_priority(tfd, SCHED_WEAK, LOW_PRIO));

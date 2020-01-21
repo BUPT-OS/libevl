@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
 	__Tcall_assert(ret, evl_get_sem(&c.sem));
 
 	/* Wait for the receiver to enter evl_wait_event() */
-	__Tcall_assert(ret, evl_udelay(1000));
+	__Tcall_assert(ret, evl_usleep(1000));
 
 	__Tcall_assert(ret, evl_lock_mutex(&c.lock));
 	c.condition = 3;

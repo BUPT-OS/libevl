@@ -40,7 +40,7 @@ int evl_adjust_clock(int clockfd, struct timex *tx);
 
 int evl_sleep_until(int clockfd, const struct timespec *timeout);
 
-int evl_udelay(unsigned int usecs);
+int evl_usleep(useconds_t usecs);
 
 #ifdef __cplusplus
 }

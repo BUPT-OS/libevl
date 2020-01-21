@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 	__Tcall_assert(ret, evl_switch_oob());
 	__Tcall_assert(ret, evl_lock_mutex(&lock));
 	__Texpr_assert(evl_trylock_mutex(&lock) == -EDEADLK);
-	__Tcall_assert(ret, evl_udelay(1000)); /* Commit PP boost. */
+	__Tcall_assert(ret, evl_usleep(1000)); /* Commit PP boost. */
 	__Texpr_assert(check_priority(tfd, HIGH_PRIO));
 	__Tcall_assert(ret, evl_unlock_mutex(&lock));
 	__Texpr_assert(check_priority(tfd, LOW_PRIO));

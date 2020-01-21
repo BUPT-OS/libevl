@@ -88,7 +88,7 @@ static inline void breathe(int loops)
 	 * to progress, let's nap a bit during the test.
 	 */
 	if ((loops % 1000) == 0)
-		evl_udelay(300);
+		evl_usleep(300);
 }
 
 static inline long diff_ts(struct timespec *left, struct timespec *right)
