@@ -9,18 +9,29 @@
 
 #include <linux/types.h>
 
-typedef struct { __u32 val; } atomic_t;
+typedef struct { __s32 val; } atomic_t;
 
 #define ATOMIC_INIT(__val) { (__val) }
 
+/* For scalar types only! */
+#define atomic_store(__ptr, __val)				\
+	do {							\
+		(*(volatile typeof(__ptr))(__ptr)) = (__val);	\
+	} while (0)
+
+#define atomic_load(__ptr)					\
+	({							\
+		(*(volatile typeof(__ptr))(__ptr));		\
+	})
+
 static inline int atomic_read(const atomic_t *ptr)
 {
-	return ptr->val;
+	return atomic_load(&ptr->val);
 }
 
-static inline void atomic_set(atomic_t *ptr, long val)
+static inline void atomic_set(atomic_t *ptr, int val)
 {
-	ptr->val = val;
+	atomic_store(&ptr->val, val);
 }
 
 #ifndef atomic_cmpxchg
@@ -32,12 +43,6 @@ static inline void atomic_set(atomic_t *ptr, long val)
 #define atomic_add_return(__ptr, __n)	\
 	__sync_add_and_fetch(&(__ptr)->val, __n)
 #endif
-
-/* For scalar types only! */
-#define atomic_store(__ptr, __val)				\
-	do {							\
-		(*(volatile typeof(__ptr))(__ptr)) = (__val);	\
-	} while (0)
 
 #ifndef smp_mb
 #define smp_mb()  __sync_synchronize()
