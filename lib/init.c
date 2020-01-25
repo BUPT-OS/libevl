@@ -145,6 +145,7 @@ static const char *sigdebug_msg[] = {
 	"watchdog triggered\n",
 	"mutex lock/unlock imbalance\n",
 	"goes to sleep while holding a mutex\n",
+	"locked out from out-of-band stage (stax)\n",
 };
 
 /* A basic SIGDEBUG handler which only prints out the cause. */
@@ -161,6 +162,7 @@ void evl_sigdebug_handler(int sig, siginfo_t *si, void *ctxt)
 		case SIGDEBUG_WATCHDOG:
 		case SIGDEBUG_MUTEX_IMBALANCE:
 		case SIGDEBUG_MUTEX_SLEEP:
+		case SIGDEBUG_STAGE_LOCKED:
 			raw_write_out(sigdebug_msg[sigdebug_cause(si)]);
 			break;
 		}
