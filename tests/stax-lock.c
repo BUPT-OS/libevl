@@ -197,6 +197,7 @@ int main(int argc, char *argv[])
 	ret = ioctl(drvfd, EVL_HECIOC_UNLOCK_STAX);
 	__Texpr_assert(ret == 0);
 
+	sigemptyset(&sigmask);
 	sigaddset(&sigmask, SIGINT);
 	sigaddset(&sigmask, SIGTERM);
 	sigaddset(&sigmask, SIGHUP);
