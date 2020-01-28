@@ -8,6 +8,7 @@
 #include <error.h>
 #include <errno.h>
 #include <unistd.h>
+#include <pthread.h>
 #include <evl/thread.h>
 #include <evl/timer.h>
 #include <evl/clock.h>
@@ -16,10 +17,15 @@
 int main(int argc, char *argv[])
 {
 	struct itimerspec value, ovalue;
+	struct sched_param param;
 	struct timespec now;
 	int tmfd, ret, n;
 	__u64 ticks;
 
+	param.sched_priority = 1;
+	__Texpr_assert(pthread_setschedparam(pthread_self(),
+				SCHED_FIFO, &param) == 0);
+	/* EVL inherits the inband scheduling params upon attachment. */
 	ret = evl_attach_self("periodic-timer:%d", getpid());
 	/*
 	 * evl_init() was indirectly called when attaching, so we may
