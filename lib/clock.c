@@ -103,6 +103,9 @@ int evl_usleep(useconds_t usecs)
 {
 	struct timespec now, next;
 
+	if (usecs < 1 || usecs > 1000000)
+		return -EINVAL;
+
 	evl_read_clock(EVL_CLOCK_MONOTONIC, &now);
 	timespec_add_ns(&next, &now, usecs * 1000);
 
