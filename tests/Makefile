@@ -6,6 +6,7 @@ include ../libversion.mk
 ALLSRC := $(wildcard *.c)
 HELPSRC := helpers.c
 HELPOBJ := $(O_DIR)/helpers.o
+HELPOBJ_ESHI := $(O_DIR)/helpers-eshi.o
 TESTSRC := $(filter-out $(HELPSRC),$(ALLSRC))
 FPSRC := fault.c
 ESHISRC := $(shell cat eshi.list)
@@ -34,7 +35,7 @@ ESHI_CFLAGS := $(ESHI_CPPFLAGS) $(BASE_CFLAGS)
 
 all: output-Makefile $(TARGETS)
 
-$(TARGETS): $(HELPOBJ)
+$(TARGETS): $(HELPOBJ) $(HELPOBJ_ESHI)
 
 install: all
 	$(call inst-cmd,tests,$(Q)for bin in $(TESTSRC:%.c=%); do		\
@@ -47,6 +48,9 @@ install: all
 clean clobber mrproper:
 	$(Q)$(RM) -f $(TARGETS) $(DEPFILES) $(HELPOBJ)
 
+$(HELPOBJ_ESHI): $(HELPSRC)
+	$(call cc-cmd,$@,$(Q)$(CC) -o $(@) $< -c $(ESHI_CFLAGS))
+
 $(O_DIR)/%.o: %.c
 	$(call cc-cmd,$@,$(Q)$(CC) -o $(@) $< -c $(CFLAGS))
 
@@ -54,6 +58,6 @@ $(O_DIR)/%: %.c
 	$(call ccld-cmd,$@,$(Q)$(CC) -o $(@) $< $(HELPOBJ) $(TEST_CFLAGS) $(TEST_LDFLAGS))
 
 $(O_DIR)/%.eshi: %.c
-	$(call ccld-cmd,$@,$(Q)$(CC) -o $(@) $< $(HELPOBJ) $(ESHI_CFLAGS) $(ESHI_LDFLAGS))
+	$(call ccld-cmd,$@,$(Q)$(CC) -o $(@) $< $(HELPOBJ_ESHI) $(ESHI_CFLAGS) $(ESHI_LDFLAGS))
 
 -include $(DEPFILES)

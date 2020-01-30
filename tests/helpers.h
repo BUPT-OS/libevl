@@ -10,14 +10,23 @@
 #include <string.h>
 #include <errno.h>
 #include <pthread.h>
+#include <linux/ioctl.h>
+#include <evl/proxy.h>
 
 #define EXIT_NO_SUPPORT  42
 
 #define __stringify_1(x...)	#x
 #define __stringify(x...)	__stringify_1(x)
 
-#define warn_failed(__fmt, __args...)	\
-	fprintf(stderr, "%s:%d: FAILED: " __fmt "\n", __FILE__, __LINE__, ##__args)
+#ifdef __ESHI__
+#define warn_failed(__fmt, __args...)					\
+	fprintf(stderr, "%s:%d: FAILED: " __fmt "\n",			\
+			__FILE__, __LINE__, ##__args)
+#else
+#define warn_failed(__fmt, __args...)					\
+	evl_print_proxy(proxy_errfd, "%s:%d: FAILED: " __fmt "\n",	\
+			__FILE__, __LINE__, ##__args)
+#endif
 
 #define abort_test()	exit(1)
 
