@@ -22,8 +22,6 @@
 #include <uapi/evl/signal.h>
 #include "internal.h"
 
-#define STDLOG_SIZE	32768
-
 static pthread_once_t init_once = PTHREAD_ONCE_INIT;
 
 static int init_status;
@@ -137,15 +135,14 @@ int evl_sigevl_handler(int sig, siginfo_t *si, void *ctxt)
 	} while (0)
 
 static const char *sigdebug_msg[] = {
-	"undefined\n",		/* Should never happen. */
-	"switched inband (signal)\n",
-	"switched inband (syscall)\n",
-	"switched inband (fault)\n",
-	"switched inband while holding mutex\n",
-	"watchdog triggered\n",
-	"mutex lock/unlock imbalance\n",
-	"goes to sleep while holding a mutex\n",
-	"locked out from out-of-band stage (stax)\n",
+	[SIGDEBUG_MIGRATE_SIGNAL] = "switched inband (signal)\n",
+	[SIGDEBUG_MIGRATE_SYSCALL] = "switched inband (syscall)\n",
+	[SIGDEBUG_MIGRATE_FAULT] = "switched inband (fault)\n",
+	[SIGDEBUG_MIGRATE_PRIOINV] = "switched inband while holding mutex\n",
+	[SIGDEBUG_WATCHDOG] = "watchdog triggered\n",
+	[SIGDEBUG_MUTEX_IMBALANCE] = "mutex lock/unlock imbalance\n",
+	[SIGDEBUG_MUTEX_SLEEP] = "attempt to sleep while holding a mutex\n",
+	[SIGDEBUG_STAGE_LOCKED] = "locked out from out-of-band stage (stax)\n",
 };
 
 /* A basic SIGDEBUG handler which only prints out the cause. */
@@ -154,7 +151,6 @@ void evl_sigdebug_handler(int sig, siginfo_t *si, void *ctxt)
 {
 	if (sigdebug_marked(si)) {
 		switch (sigdebug_cause(si)) {
-		case SIGDEBUG_NONE:
 		case SIGDEBUG_MIGRATE_SIGNAL:
 		case SIGDEBUG_MIGRATE_SYSCALL:
 		case SIGDEBUG_MIGRATE_FAULT:
