@@ -132,10 +132,17 @@ fail:
 
 int evl_detach_self(void)
 {
+	__u32 mode = T_WOSS;
 	int ret;
 
 	if (evl_current == EVL_NO_HANDLE)
 		return -EPERM;
+
+	/*
+	 * Force T_WOSS off, there is no point in receiving SIGDEBUG
+	 * as a result of calling ioctl() to detach from the core.
+	 */
+	oob_ioctl(evl_efd, EVL_THRIOC_CLEAR_MODE, &mode);
 
 	ret = ioctl(evl_efd, EVL_THRIOC_DETACH_SELF);
 	if (ret)
