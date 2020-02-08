@@ -101,6 +101,8 @@ int evl_attach_self(const char *fmt, ...)
 
 	switch (policy) {
 	case SCHED_OTHER:
+	case SCHED_BATCH:
+	case SCHED_IDLE:
 		priority = 0;
 		break;
 	default:
