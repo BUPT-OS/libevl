@@ -7,7 +7,7 @@ if test \! -d $EVL_TESTDIR; then
 fi
 
 usage() {
-   echo >&2 "usage: $(basename $1) [-l][-L] [test-list]"
+   echo >&2 "usage: $(basename $1) [-l][-L][-k] [test-list]"
 }
 
 args=$(getopt -n $(basename $0) 'h@klL' "$@")
