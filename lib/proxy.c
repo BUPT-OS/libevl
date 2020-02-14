@@ -72,11 +72,28 @@ ssize_t evl_send_proxy(int proxyfd, const void *buf, size_t count)
 int evl_vprint_proxy(int proxyfd, const char *fmt, va_list ap)
 {
 	ssize_t count = vsnprintf(fmt_buf, sizeof(fmt_buf), fmt, ap);
+	int ret;
 
 	if (count < 0)
 		return -errno;	/* assume POSIX behavior. */
 
-	return (int)evl_send_proxy(proxyfd, fmt_buf, count);
+	/*
+	 * If evl_init() has not run yet, we can resort to vprintf()
+	 * since latency should not be an issue.
+	 */
+	if (proxyfd < 0) {
+		if (evl_is_inband()) {
+			ret = vprintf(fmt, ap);
+			if (ret < 0)
+				ret = -errno;
+		} else {
+			ret = -EBADFD;
+		}
+	} else {
+		ret = (int)evl_send_proxy(proxyfd, fmt_buf, count);
+	}
+
+	return ret;
 }
 
 int evl_print_proxy(int proxyfd, const char *fmt, ...)
@@ -97,18 +114,7 @@ int evl_printf(const char *fmt, ...)
 	int ret;
 
 	va_start(ap, fmt);
-
-	/*
-	 * If evl_init() has not run yet, we can resort to vprintf()
-	 * since latency is not an issue.
-	 */
-	if (evl_ctlfd < 0) {
-		ret = vprintf(fmt, ap);
-		if (ret < 0)
-			ret = -errno;
-	} else
-		ret = evl_vprint_proxy(proxy_outfd, fmt, ap);
-
+	ret = evl_vprint_proxy(proxy_outfd, fmt, ap);
 	va_end(ap);
 
 	return ret;
