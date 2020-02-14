@@ -82,7 +82,7 @@ ssize_t evl_vprint_proxy(int proxyfd, const char *fmt, va_list ap)
 	 */
 	if (proxyfd < 0) {
 		if (evl_is_inband()) {
-			ret = vprintf(fmt, ap);
+			ret = write(2, fmt_buf, count);
 			if (ret < 0)
 				ret = -errno;
 		} else {
