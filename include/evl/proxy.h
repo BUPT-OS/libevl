@@ -23,13 +23,13 @@ int evl_new_proxy(int targetfd, size_t bufsz,
 ssize_t evl_send_proxy(int proxyfd,
 		const void *buf, size_t count);
 
-int evl_vprint_proxy(int proxyfd,
-		const char *fmt, va_list ap);
+ssize_t evl_vprint_proxy(int proxyfd,
+			const char *fmt, va_list ap);
 
-int evl_print_proxy(int proxyfd,
-		const char *fmt, ...);
+ssize_t evl_print_proxy(int proxyfd,
+			const char *fmt, ...);
 
-int evl_printf(const char *fmt, ...);
+ssize_t evl_printf(const char *fmt, ...);
 
 extern int proxy_outfd,
 	proxy_errfd;

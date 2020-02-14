@@ -69,10 +69,9 @@ ssize_t evl_send_proxy(int proxyfd, const void *buf, size_t count)
 	return ret < 0 ? -errno : ret;
 }
 
-int evl_vprint_proxy(int proxyfd, const char *fmt, va_list ap)
+ssize_t evl_vprint_proxy(int proxyfd, const char *fmt, va_list ap)
 {
-	ssize_t count = vsnprintf(fmt_buf, sizeof(fmt_buf), fmt, ap);
-	int ret;
+	ssize_t count = vsnprintf(fmt_buf, sizeof(fmt_buf), fmt, ap), ret;
 
 	if (count < 0)
 		return -errno;	/* assume POSIX behavior. */
@@ -90,16 +89,16 @@ int evl_vprint_proxy(int proxyfd, const char *fmt, va_list ap)
 			ret = -EBADFD;
 		}
 	} else {
-		ret = (int)evl_send_proxy(proxyfd, fmt_buf, count);
+		ret = evl_send_proxy(proxyfd, fmt_buf, count);
 	}
 
 	return ret;
 }
 
-int evl_print_proxy(int proxyfd, const char *fmt, ...)
+ssize_t evl_print_proxy(int proxyfd, const char *fmt, ...)
 {
+	ssize_t ret;
 	va_list ap;
-	int ret;
 
 	va_start(ap, fmt);
 	ret = evl_vprint_proxy(proxyfd, fmt, ap);
@@ -108,10 +107,10 @@ int evl_print_proxy(int proxyfd, const char *fmt, ...)
 	return ret;
 }
 
-int evl_printf(const char *fmt, ...)
+ssize_t evl_printf(const char *fmt, ...)
 {
+	ssize_t ret;
 	va_list ap;
-	int ret;
 
 	va_start(ap, fmt);
 	ret = evl_vprint_proxy(proxy_outfd, fmt, ap);
