@@ -59,7 +59,7 @@ endif
 
 BASE_CPPFLAGS := -D_GNU_SOURCE -D_REENTRANT $(DEBUG_CPPFLAGS)
 
-BASE_CFLAGS :=	-fasynchronous-unwind-tables -pipe -fstrict-aliasing	 	\
+BASE_CFLAGS :=	-pipe -fstrict-aliasing	 					\
 		-Wall -Wstrict-prototypes -Wmissing-prototypes -Wno-long-long	\
 		-Wno-unused-parameter -Wshadow=local -Werror $(DEBUG_CFLAGS)
 
