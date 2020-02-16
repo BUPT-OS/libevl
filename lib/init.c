@@ -26,8 +26,6 @@ static pthread_once_t init_once = PTHREAD_ONCE_INIT;
 
 static int init_status;
 
-static struct sigaction orig_sigevl;
-
 static struct evl_core_info core_info;
 
 int evl_ctlfd = -1;
@@ -116,17 +114,6 @@ fail:
 	return ret;
 }
 
-int evl_sigevl_handler(int sig, siginfo_t *si, void *ctxt)
-{
-	if (si->si_code == SI_QUEUE &&
-		sigevl_action(si->si_int) == SIGEVL_ACTION_HOME) {
-		oob_ioctl(evl_efd, EVL_THRIOC_SWITCH_OOB);
-		return 1;
-	}
-
-	return 0;
-}
-
 #define raw_write_out(__msg)					\
 	do {							\
 		int __ret;					\
@@ -165,49 +152,6 @@ void evl_sigdebug_handler(int sig, siginfo_t *si, void *ctxt)
 	}
 }
 
-static void sigevl_handler(int sig, siginfo_t *si, void *ctxt)
-{
-	const struct sigaction *const sa = &orig_sigevl;
-	sigset_t omask;
-
-	if (evl_sigevl_handler(sig, si, ctxt))
-		return;
-
-	if ((!(sa->sa_flags & SA_SIGINFO) && sa->sa_handler == NULL) ||
-		((sa->sa_flags & SA_SIGINFO) && sa->sa_sigaction == NULL))
-		return;		/* Not sent by the EVL core */
-
-	pthread_sigmask(SIG_SETMASK, &sa->sa_mask, &omask);
-
-	if (!(sa->sa_flags & SA_SIGINFO))
-		sa->sa_handler(sig);
-	else
-		sa->sa_sigaction(sig, si, ctxt);
-
-	pthread_sigmask(SIG_SETMASK, &omask, NULL);
-}
-
-static void install_signal_handlers(void)
-{
-	sigset_t mask, omask;
-	struct sigaction sa;
-
-	sigemptyset(&mask);
-	sigaddset(&mask, SIGEVL);
-
-	sa.sa_flags = SA_SIGINFO | SA_RESTART;
-	sa.sa_sigaction = sigevl_handler;
-	sigemptyset(&sa.sa_mask);
-	pthread_sigmask(SIG_BLOCK, &mask, &omask);
-
-	sigaction(SIGEVL, &sa, &orig_sigevl);
-
-	if (!(orig_sigevl.sa_flags & SA_NODEFER))
-		sigaddset(&orig_sigevl.sa_mask, SIGEVL);
-
-	pthread_sigmask(SIG_SETMASK, &omask, NULL);
-}
-
 static inline int do_init(void)
 {
 	int ret;
@@ -225,7 +169,6 @@ static inline int do_init(void)
 		return ret;
 
 	init_proxy_streams();
-	install_signal_handlers();
 
 	return 0;
 }
