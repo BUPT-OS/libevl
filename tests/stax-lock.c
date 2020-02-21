@@ -40,9 +40,11 @@ static atomic_t presence_mask;
 
 static atomic_t counter_proof;
 
+static sig_atomic_t done;
+
 static bool verbose;
 
-static int timeout_secs = 5;	/* Default to 5s runtime. */
+static int timeout_secs = 3;	/* Default to 5s runtime. */
 
 static void *test_thread(void *arg)
 {
@@ -80,7 +82,11 @@ static void *test_thread(void *arg)
 		invalid = 0xAAAAAAAA;
 	}
 
-	for (;;) {
+	/*
+	 * Do not pthread_cancel() the lock owner, this would block
+	 * contenders indefinitely.
+	 */
+	while (!done) {
 		if (atomic_read(&presence_mask) & invalid)
 			atomic_add_return(&counter_proof, 1);
 
@@ -180,8 +186,15 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	/* Detect the hectic driver, check whether the stax locking
-	 * interface is present.
+	/*
+	 * CAUTION: this test uses an internal interface of the
+	 * 'hectic' driver in order to test the stax mechanism. This
+	 * interface is enabling the caller to do something wrong and
+	 * nasty, i.e. holding a stax across the kernel/user space
+	 * boundary. This is only for the purpose of testing this
+	 * mechanism, this is bad, applications should never do this,
+	 * ever. IOW, a stax should be held while in kernel space
+	 * exclusively, always released before returning to user.
 	 */
 	drvfd = open("/dev/hectic", O_RDONLY);
 	if (drvfd < 0)
@@ -228,11 +241,10 @@ int main(int argc, char *argv[])
 		alarm(timeout_secs);
 
 	sigwait(&sigmask, &sig);
+	done = true;
 
-	for (n = 0; n < STAX_CONCURRENCY; n++) {
-		pthread_cancel(tids[n]);
+	for (n = 0; n < STAX_CONCURRENCY; n++)
 		pthread_join(tids[n], NULL);
-	}
 
 	/*
 	 * We must have observed at least conflicting access outside
