@@ -7,7 +7,12 @@
 #include "parse_vdso.h"
 #include "internal.h"
 
-int (*arch_clock_gettime)(clockid_t clk_id, struct timespec *tp);
+static int gettime_fallback(clockid_t clk_id, struct timespec *tp)
+{
+	return clock_gettime(clk_id, tp);
+}
+
+int (*arch_clock_gettime)(clockid_t clk_id, struct timespec *tp) = gettime_fallback;
 
 int arch_evl_init(void)
 {
