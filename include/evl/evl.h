@@ -34,8 +34,6 @@ extern "C" {
 
 int evl_init(void);
 
-int evl_sigevl_handler(int sig, siginfo_t *si, void *ctxt);
-
 void evl_sigdebug_handler(int sig, siginfo_t *si, void *ctxt);
 
 unsigned int evl_detect_fpu(void);
