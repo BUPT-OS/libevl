@@ -22,6 +22,10 @@
 #include <uapi/evl/signal.h>
 #include "internal.h"
 
+#if !(EVL_KABI_PREREQ >= EVL_ABI_BASE && EVL_KABI_PREREQ <= EVL_ABI_LEVEL)
+#error "kernel does not meet our ABI requirements (uapi vs EVL_KABI_PREREQ)"
+#endif
+
 static pthread_once_t init_once = PTHREAD_ONCE_INIT;
 
 static int init_status;
@@ -84,7 +88,8 @@ static inline int generic_init(void)
 		goto fail;
 	}
 
-	if (core_info.abi_level != EVL_ABI_LEVEL) {
+	if (EVL_KABI_PREREQ < core_info.abi_base ||
+		EVL_KABI_PREREQ > core_info.abi_current) {
 		fprintf(stderr,
 			"evl: ABI mismatch, see -ENOEXEC at https://evlproject.org/"
 			"core/user-api/thread/#evl_attach_self\n");

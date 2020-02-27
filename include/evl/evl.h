@@ -22,9 +22,11 @@
 
 #define __EVL__  9	/* API version */
 
+#define EVL_KABI_PREREQ  18
+
 struct evl_version {
 	int api_level;	/* libevl.so: __EVL__ */
-	int abi_level;	/* core: EVL_ABI_LEVEL, -1 for ESHI */
+	int abi_level;	/* core: EVL_KABI_PREREQ, -1 for ESHI */
 	const char *version_string;
 };
 

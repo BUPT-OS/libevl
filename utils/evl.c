@@ -77,9 +77,9 @@ int main(int argc, char *const argv[])
 			cmddir = optarg;
 			break;
 		case 'V':
-			printf("%s [ABI %d]\n",
+			printf("%s [requires ABI %d]\n",
 				evl_get_version().version_string,
-				EVL_ABI_LEVEL);
+				EVL_KABI_PREREQ);
 			exit(0);
 		case '?':
 			usage();
