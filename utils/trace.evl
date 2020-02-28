@@ -27,6 +27,7 @@ case "$opt" in
        disable=false
        shift;;
    -s) bufsz=$(eval echo $2)
+       shift
        shift;;
    -d) enable=false
        disable=true
@@ -36,6 +37,7 @@ case "$opt" in
    -f) full=true
        shift;;
    -c) pcpu=per_cpu/cpu$(eval echo $2)/
+       shift
        shift;;
    -h) help=true;
        shift;;
