@@ -383,14 +383,9 @@ static int test_seq(size_t heap_size, size_t block_size, int flags)
 	int ret, n, k, maxblocks, nrblocks;
 	struct timespec start, end;
 	struct run_statistics *st;
-	struct sched_param param;
 	struct chunk *chunks;
 	bool done_frag;
 	void *mem, *p;
-
-	param.sched_priority = 1;
-	pthread_setschedparam(pthread_self(), SCHED_FIFO, &param);
-	ret = evl_attach_self("heap-torture:%d", getpid());
 
 	raw_size = EVL_HEAP_RAW_SIZE(heap_size);
 	mem = malloc(raw_size);
@@ -654,9 +649,6 @@ out:
 oom:
 	free(mem);
 
-	param.sched_priority = 0;
-	pthread_setschedparam(pthread_self(), SCHED_OTHER, &param);
-
 	return ret;
 bad:
 	ret = -EPROTO;
@@ -707,6 +699,7 @@ static const struct option options[] = {
 int main(int argc, char *argv[])
 {
 	size_t heap_size, block_size;
+	struct sched_param param;
 	cpu_set_t affinity;
 	unsigned long seed;
 	int ret, runs, c;
@@ -781,6 +774,10 @@ int main(int argc, char *argv[])
 		do_warn("failed setting CPU affinity");
 		return ret;
 	}
+
+	param.sched_priority = 1;
+	pthread_setschedparam(pthread_self(), SCHED_FIFO, &param);
+	__Tcall_assert(ret, evl_attach_self("heap-torture:%d", getpid()));
 
 	/*
 	 * Create a series of heaps of increasing size, allocating
