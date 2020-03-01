@@ -4,7 +4,6 @@
  * Copyright (C) 2019 Philippe Gerum  <rpm@xenomai.org>
  */
 
-#include <stdarg.h>
 #include <stdbool.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
@@ -166,6 +165,7 @@ int evl_timedwait_flags(struct evl_flags *flg,
 {
 	struct evl_monitor_state *state;
 	struct evl_monitor_waitreq req;
+	struct __evl_timespec kts;
 	fundle_t current;
 	int ret;
 
@@ -187,7 +187,7 @@ int evl_timedwait_flags(struct evl_flags *flg,
 	}
 
 	req.gatefd = -1;
-	req.timeout = *timeout;
+	req.timeout = __evl_ktimespec(timeout, kts);
 	req.status = -EINVAL;
 	req.value = 0;
 

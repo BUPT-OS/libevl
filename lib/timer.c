@@ -44,19 +44,18 @@ int evl_set_timer(int efd,
 		struct itimerspec *value,
 		struct itimerspec *ovalue)
 {
+	struct __evl_itimerspec kits, koits;
 	struct evl_timerfd_setreq sreq;
 
-	sreq.value = value;
-	sreq.ovalue = ovalue;
+	sreq.value = __evl_kitimerspec(value, kits);
+	sreq.ovalue = __evl_kitimerspec(ovalue, koits);
 
 	return do_call(efd, EVL_TFDIOC_SET, &sreq);
 }
 
 int evl_get_timer(int efd, struct itimerspec *value)
 {
-	struct evl_timerfd_getreq greq;
+	struct __evl_itimerspec kits;
 
-	greq.value = value;
-
-	return do_call(efd, EVL_TFDIOC_GET, &greq);
+	return do_call(efd, EVL_TFDIOC_GET, __evl_kitimerspec(value, kits));
 }

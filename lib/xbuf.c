@@ -4,7 +4,6 @@
  * 2018 - Philippe Gerum <rpm@xenomai.org>
  */
 
-#include <stdarg.h>
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>

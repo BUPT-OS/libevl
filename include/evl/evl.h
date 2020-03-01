@@ -20,9 +20,9 @@
 #include <evl/poll.h>
 #include <evl/proxy.h>
 
-#define __EVL__  9	/* API version */
+#define __EVL__  10	/* API version */
 
-#define EVL_KABI_PREREQ  18
+#define EVL_KABI_PREREQ  19
 
 struct evl_version {
 	int api_level;	/* libevl.so: __EVL__ */

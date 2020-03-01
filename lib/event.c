@@ -4,7 +4,6 @@
  * Copyright (C) 2018 Philippe Gerum  <rpm@xenomai.org>
  */
 
-#include <stdarg.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <stdbool.h>
@@ -205,6 +204,7 @@ int evl_timedwait_event(struct evl_event *evt,
 {
 	struct evl_monitor_waitreq req;
 	struct unwait_data unwait;
+	struct __evl_timespec kts;
 	int ret;
 
 	if (mutex->magic != __MUTEX_ACTIVE_MAGIC)
@@ -215,7 +215,7 @@ int evl_timedwait_event(struct evl_event *evt,
 		return ret;
 
 	req.gatefd = mutex->active.efd;
-	req.timeout = *timeout;
+	req.timeout = __evl_ktimespec(timeout, kts);
 	req.status = -EINVAL;
 	req.value = 0;		/* dummy */
 	unwait.ureq.gatefd = req.gatefd;

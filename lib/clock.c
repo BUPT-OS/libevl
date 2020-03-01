@@ -30,6 +30,7 @@ int evl_mono_clockfd = -ENXIO,
 
 int evl_set_clock(int clockfd, const struct timespec *tp)
 {
+	struct __evl_timespec kts;
 	int ret;
 
 	switch (clockfd) {
@@ -40,7 +41,8 @@ int evl_set_clock(int clockfd, const struct timespec *tp)
 			return -errno;
 		break;
 	default:
-		ret = do_call(clockfd, EVL_CLKIOC_SET_TIME, tp);
+		ret = do_call(clockfd, EVL_CLKIOC_SET_TIME,
+			__evl_ktimespec(tp, kts));
 	}
 
 	return ret;
@@ -64,23 +66,17 @@ int evl_get_clock_resolution(int clockfd, struct timespec *tp)
 	return ret;
 }
 
-int evl_adjust_clock(int clockfd, struct timex *tx)
-{
-	return do_call(clockfd, EVL_CLKIOC_ADJ_TIME, tx);
-}
-
 int evl_sleep_until(int clockfd, const struct timespec *timeout)
 {
-	struct evl_clock_sleepreq req = {
-		.timeout = *timeout,
-	};
+	struct __evl_timespec kts;
 
 	if (clockfd == EVL_CLOCK_MONOTONIC)
 		clockfd = evl_mono_clockfd;
 	else if (clockfd == EVL_CLOCK_REALTIME)
 		clockfd = evl_real_clockfd;
 
-	return oob_ioctl(clockfd, EVL_CLKIOC_SLEEP, &req) ? -errno : 0;
+	return oob_ioctl(clockfd, EVL_CLKIOC_SLEEP,
+			__evl_ktimespec(timeout, kts)) ? -errno : 0;
 }
 
 static void timespec_add_ns(struct timespec *__restrict r,

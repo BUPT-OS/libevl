@@ -27,7 +27,7 @@ int evl_mod_pollfd(int efd, int modfd,
 		unsigned int events);
 
 int evl_timedpoll(int efd, struct evl_poll_event *pollset,
-		int nrset, struct timespec *timeout);
+		int nrset, const struct timespec *timeout);
 
 int evl_poll(int efd, struct evl_poll_event *pollset,
 	int nrset);

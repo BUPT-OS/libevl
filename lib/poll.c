@@ -47,12 +47,13 @@ int evl_mod_pollfd(int efd, int fd, unsigned int events)
 }
 
 static int do_poll(int efd, struct evl_poll_event *pollset,
-		int nrset, struct timespec *timeout)
+		int nrset, const struct timespec *timeout)
 {
 	struct evl_poll_waitreq wreq;
+	struct __evl_timespec kts;
 	int ret;
 
-	wreq.timeout = *timeout;
+	wreq.timeout = __evl_ktimespec(timeout, kts);
 	wreq.pollset = pollset;
 	wreq.nrset = nrset;
 	ret = oob_ioctl(efd, EVL_POLIOC_WAIT, &wreq);
@@ -63,7 +64,7 @@ static int do_poll(int efd, struct evl_poll_event *pollset,
 }
 
 int evl_timedpoll(int efd, struct evl_poll_event *pollset,
-		int nrset, struct timespec *timeout)
+		int nrset, const struct timespec *timeout)
 {
 	return do_poll(efd, pollset, nrset, timeout);
 }

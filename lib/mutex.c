@@ -4,7 +4,6 @@
  * Copyright (C) 2018 Philippe Gerum  <rpm@xenomai.org>
  */
 
-#include <stdarg.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <stdbool.h>
@@ -268,18 +267,17 @@ static int try_lock(struct evl_mutex *mutex)
 int evl_timedlock_mutex(struct evl_mutex *mutex,
 			const struct timespec *timeout)
 {
-	struct evl_monitor_lockreq lreq;
 	struct evl_monitor_state *gst;
+	struct __evl_timespec kts;
 	int ret;
 
 	ret = try_lock(mutex);
 	if (ret != -ENODATA)
 		return ret;
 
-	lreq.timeout = *timeout;
-
 	do
-		ret = oob_ioctl(mutex->active.efd, EVL_MONIOC_ENTER, &lreq);
+		ret = oob_ioctl(mutex->active.efd, EVL_MONIOC_ENTER,
+				__evl_ktimespec(timeout, kts));
 	while (ret && errno == EINTR);
 
 	if (ret == 0) {

@@ -4,7 +4,6 @@
  * Copyright (C) 2018 Philippe Gerum  <rpm@xenomai.org>
  */
 
-#include <stdarg.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <errno.h>
