@@ -22,6 +22,14 @@
 #include <uapi/evl/signal.h>
 #include "internal.h"
 
+#ifndef EVL_ABI_BASE
+/*
+ * EVL_ABI_BASE was not defined prior to ABI 18, until support for ABI
+ * ranges was introduced in the core.
+ */
+#define EVL_ABI_BASE  17
+#else
+#endif
 #if !(EVL_KABI_PREREQ >= EVL_ABI_BASE && EVL_KABI_PREREQ <= EVL_ABI_LEVEL)
 #error "kernel does not meet our ABI requirements (uapi vs EVL_KABI_PREREQ)"
 #endif
@@ -84,8 +92,21 @@ static inline int generic_init(void)
 
 	ret = ioctl(ctlfd, EVL_CTLIOC_GET_COREINFO, &core_info);
 	if (ret) {
-		ret = -errno;
-		goto fail;
+		/*
+		 * sizeof(core_info) is encoded into
+		 * EVL_CTLIOC_GET_COREINFO, in which case we might
+		 * receive ENOTTY if some ABI change involved updating
+		 * the core info struct itself.
+		 */
+		if (errno != ENOTTY) {
+			ret = -errno;
+			goto fail;
+		}
+		/*
+		 * core_info was not filled in, make sure we catch the
+		 * ABI discrepancy.
+		 */
+		core_info.abi_base = (__u32)-1;
 	}
 
 	if (EVL_KABI_PREREQ < core_info.abi_base ||
