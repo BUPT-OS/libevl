@@ -79,7 +79,7 @@ int main(int argc, char *const argv[])
 		case 'V':
 			printf("%s [requires ABI %d]\n",
 				evl_get_version().version_string,
-				EVL_KABI_PREREQ);
+				EVL_ABI_PREREQ);
 			exit(0);
 		case '?':
 			usage();

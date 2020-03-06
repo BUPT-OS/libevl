@@ -18,7 +18,7 @@ struct evl_version evl_get_version(void)
 {
 	return (struct evl_version){
 		.api_level = __EVL__,
-		.abi_level = EVL_KABI_PREREQ,
+		.abi_level = EVL_ABI_PREREQ,
 		.version_string = "evl." LIBSERIAL git_hash,
 		};
 }
