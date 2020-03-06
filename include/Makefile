@@ -9,6 +9,7 @@ TARGETS := uapi
 uapi: $(O_UAPI)
 
 $(O_UAPI): $(O_DIR)/.uapi_stamp
+	@test -d $(UAPI)/ || (echo "make: UAPI: $(UAPI) does not look right" && exit 1)
 	$(Q)$(MKDIR_P) $(O_UAPI)
 	$(Q)$(RM) -f $(O_UAPI)/asm $(O_UAPI)/evl
 	$(Q)if test -r $(UAPI)/Kbuild; then					\
