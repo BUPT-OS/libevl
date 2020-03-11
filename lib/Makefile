@@ -30,10 +30,10 @@ override LDFLAGS := $(LDFLAGS) -lpthread -lrt
 all: output-Makefile $(TARGETS)
 
 install: all
-	$(call inst-cmd,$(SOLIBNAME),$(INSTALL) -D $(O_DIR)/$(SOLIBNAME) $(DESTDIR)/$(libdir)/$(SOLIBNAME))
+	$(call inst-cmd,$(SOLIBNAME),$(INSTALL) -D $(O_DIR)/$(SOLIBNAME) -t $(DESTDIR)/$(libdir))
 	@$(LN_S) $(SOLIBNAME) $(DESTDIR)/$(libdir)/$(DTSONAME)
 	@$(LN_S) $(DTSONAME) $(DESTDIR)/$(libdir)/$(SONAME)
-	$(call inst-cmd,$(ARLIBNAME),$(INSTALL) -D $(O_DIR)/$(ARLIBNAME) $(DESTDIR)/$(libdir)/$(ARLIBNAME))
+	$(call inst-cmd,$(ARLIBNAME),$(INSTALL) -D $(O_DIR)/$(ARLIBNAME) -t $(DESTDIR)/$(libdir))
 
 clean clobber mrproper: output-Makefile
 	$(Q)$(RM) -f $(O_DIR)/git-stamp.h $(PIC_OBJFILES) $(OBJFILES) \

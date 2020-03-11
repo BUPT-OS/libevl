@@ -30,12 +30,12 @@ all: output-Makefile $(TARGETS)
 install: all
 	$(call inst-cmd,utilities,						\
 		for bin in $(COMMANDS); do					\
-		$(INSTALL) -D $(O_DIR)/$$bin $(DESTDIR)/$(bindir)/$$bin; done)
+		$(INSTALL) -D $(O_DIR)/$$bin -t $(DESTDIR)/$(bindir); done)
 	$(call inst-cmd,command-helpers,					\
 		for hlp in $(HELPER_SCRIPTS); do				\
-		$(INSTALL) -D $$hlp $(DESTDIR)/$(libexecdir)/; done;		\
+		$(INSTALL) -D  $$hlp -t $(DESTDIR)/$(libexecdir); done;		\
 		for hlp in $(HELPER_PROGRAMS); do				\
-		$(INSTALL) -D $(O_DIR)/$$hlp $(DESTDIR)/$(libexecdir)/; done)
+		$(INSTALL) -D $(O_DIR)/$$hlp -t $(DESTDIR)/$(libexecdir); done)
 
 clean clobber mrproper: output-Makefile
 	$(Q)$(RM) -f $(TARGETS) $(DEPFILES)

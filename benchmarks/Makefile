@@ -24,8 +24,8 @@ $(O_DIR)/latmus: override CFLAGS := -I zephyr/latmon/src $(CFLAGS)
 all: output-Makefile $(TARGETS)
 
 install: all
-	$(call inst-cmd,benchmarks,$(Q)for bin in $(BINARIES); do		\
-		$(INSTALL) -D $(O_DIR)/$$bin $(DESTDIR)/$(bindir)/$$bin;	\
+	$(call inst-cmd,benchmarks,$(Q)for bin in $(BINARIES); do	\
+		$(INSTALL) -D $(O_DIR)/$$bin -t $(DESTDIR)/$(bindir);	\
 	done)
 
 clean clobber mrproper: output-Makefile

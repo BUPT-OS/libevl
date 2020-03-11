@@ -39,10 +39,10 @@ $(TARGETS): $(HELPOBJ) $(HELPOBJ_ESHI)
 
 install: all
 	$(call inst-cmd,tests,$(Q)for bin in $(TESTSRC:%.c=%); do		\
-		$(INSTALL) -D $(O_DIR)/$$bin $(DESTDIR)/$(testdir)/$$bin;	\
+		$(INSTALL) -D $(O_DIR)/$$bin -t $(DESTDIR)/$(testdir);		\
 	done)
 	$(call inst-cmd,tests-eshi,$(Q)for bin in $(ESHISRC:%.c=%.eshi); do	\
-		$(INSTALL) -D $(O_DIR)/$$bin $(DESTDIR)/$(testdir)/eshi/$$bin;	\
+		$(INSTALL) -D $(O_DIR)/$$bin -t $(DESTDIR)/$(testdir)/eshi;	\
 	done)
 
 clean clobber mrproper:
