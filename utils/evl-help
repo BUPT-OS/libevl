@@ -2,14 +2,15 @@
 # SPDX-License-Identifier: MIT
 
 if test \! -d $EVL_CMDDIR; then
-   echo >&2 "EVL_CMDDIR unset -- use 'evl help' instead"
+   echo >&2 "EVL_CMDDIR unset -- use 'evl --help' instead"
    exit 2
 fi
 
 cd $EVL_CMDDIR || exit 1
 
-echo "evl [-V] [-P <cmddir>] [<command> [command-args]], with <command> in:"
-
+echo
+echo "available commands:"
+echo
 for cmd in evl-*; do
     case "$cmd" in
          evl-help)

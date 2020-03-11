@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT
 
 usage() {
-   echo >&2 "usage: $(basename $1) [-e [-s <buffer_size>]] [-d] [-p] [-f] [-h] [-c <cpu>] [-h]"
+   echo >&2 "usage: $(basename $1) [-e [-s <buffer_size>]] [-d] [-p] [-f] [-h] [-c <cpu>]"
 }
 
 args=$(getopt -n $(basename $0) 'es:dc:pfh@' "$@")

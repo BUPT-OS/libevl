@@ -19,7 +19,7 @@ do
 case "$opt" in
    -h) help=true;
        shift;;
-   -@) echo "debug EVL utility with GDB"
+   -@) echo "debug EVL command plugin with GDB"
        exit 0;;
    --) shift; break;;
    esac

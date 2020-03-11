@@ -43,9 +43,10 @@ static void usage(void)
 	fprintf(stderr, "usage: evl [options] [<command> [<args>]]\n");
         fprintf(stderr, "-P --prefix=<path>   set command path prefix\n");
         fprintf(stderr, "-V --version         print library and required ABI versions\n");
+        fprintf(stderr, "-h --help            this help\n");
 }
 
-#define short_optlist "+P:V"
+#define short_optlist "+P:Vh"
 
 static const struct option options[] = {
 	{
@@ -58,12 +59,17 @@ static const struct option options[] = {
 		.has_arg = no_argument,
 		.val = 'V'
 	},
+	{
+		.name = "help",
+		.has_arg = no_argument,
+		.val = 'h'
+	},
 	{ /* Sentinel */ }
 };
 
 int main(int argc, char *const argv[])
 {
-	char *cmddir = NULL, *cmdpath, **cmdargv, *cmd, *testdir;
+	char *cmddir = NULL, *searchpath, **cmdargv, *cmd, *evlcmd, *testdir;
 	const char *arg0 = argv[0];
 	int ret, c, n, cmdargc;
 
@@ -81,6 +87,9 @@ int main(int argc, char *const argv[])
 				evl_get_version().version_string,
 				EVL_ABI_PREREQ);
 			exit(0);
+		case 'h':
+			cmd = "help";
+			break;
 		case '?':
 			usage();
 			return 2;
@@ -92,6 +101,7 @@ int main(int argc, char *const argv[])
 	if (optind >= argc) {
 		cmd = "help";
 		optind = argc - 1;
+		usage();
 	} else {
 		if (c == '?') {
 			usage();
@@ -100,10 +110,14 @@ int main(int argc, char *const argv[])
 		cmd = argv[optind];
 	}
 
+	ret = asprintf(&evlcmd, "evl-%s", cmd);
+	if (ret < 0)
+		error(1, ENOMEM, "%s", arg0);
+
 	if (cmddir == NULL)
 		cmddir = find_install_dir(arg0, "libexec");
 
-	ret = asprintf(&cmdpath, "%s/evl-%s", cmddir, cmd);
+	ret = asprintf(&searchpath, "%s:%s", getenv("PATH"), cmddir);
 	if (ret < 0)
 		error(1, ENOMEM, "%s", arg0);
 
@@ -113,17 +127,18 @@ int main(int argc, char *const argv[])
 	setenv("EVL_TESTDIR", testdir, 1);
 	setenv("EVL_SYSDIR", "/sys/devices/virtual", 1);
 	setenv("EVL_TRACEDIR", "/sys/kernel/debug/tracing", 1);
+	setenv("PATH", searchpath, 1);
 
 	cmdargv = malloc(sizeof(char *) * (argc - optind + 1));
 	if (cmdargv == NULL)
 		error(1, ENOMEM, "malloc");
-	cmdargv[0] = basename(cmdpath);
+	cmdargv[0] = evlcmd;
 	for (n = optind + 1, cmdargc = 1; n < argc; n++)
 		cmdargv[cmdargc++] = argv[n];
 	cmdargv[cmdargc++] = NULL;
 
-	execv(cmdpath, cmdargv);
-	fprintf(stderr, "evl: undefined command '%s'\n", cmd);
+	execvp(evlcmd, cmdargv);
+	fprintf(stderr, "evl: no '%s' command. Try 'evl --help'.\n", cmd);
 
 	return 1;
 }
