@@ -6,6 +6,7 @@ ARCH		?= $(shell uname -m | sed	\
 		-e s/x86_64/x86/ )
 CROSS_COMPILE	?=
 CC		= $(CROSS_COMPILE)gcc
+CXX		= $(CROSS_COMPILE)g++
 LD		= $(CROSS_COMPILE)ld
 AR		= $(CROSS_COMPILE)ar
 UAPI		?= /usr/include
@@ -63,6 +64,9 @@ BASE_CFLAGS :=	-pipe -fstrict-aliasing	 					\
 		-Wall -Wstrict-prototypes -Wmissing-prototypes -Wno-long-long	\
 		-Wno-unused-parameter -Wshadow=local -Werror $(DEBUG_CFLAGS)
 
+BASE_CXXFLAGS := -pipe -fstrict-aliasing -Wall -Wno-long-long	\
+		-Wno-unused-parameter -Wshadow=local -Werror $(DEBUG_CFLAGS)
+
 # Easy way to hide commas in args from $(call ...) invocations
 comma := ,
 
@@ -83,6 +87,7 @@ cc-pic-cmd = $(call run-cc,CC-PIC,$(1),$(2))
 cc-cmd = $(call run-cc,CC,$(1),$(2))
 dep-cmd = $(call run-cc,DEP,$(1),$(2))
 ccld-cmd = $(call run-cc,CCLD,$(1),$(2))
+cxxld-cmd = $(call run-cc,CXXLD,$(1),$(2))
 ld-cmd = $(call run-cmd,LD,$(notdir $(1)),$(2))
 ar-cmd = $(call run-cmd,AR,$(notdir $(1)),$(2) $(if $(Q),2>/dev/null))
 inst-cmd = $(call run-cmd,INST,$(notdir $(1)),$(2))

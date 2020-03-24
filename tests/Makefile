@@ -45,9 +45,11 @@ install: all
 	$(call inst-cmd,tests-eshi,$(Q)for bin in $(ESHISRC:%.c=%.eshi); do	\
 		$(INSTALL) -D $(O_DIR)/$$bin -t $(DESTDIR)/$(testdir)/eshi;	\
 	done)
+	$(Q)$(MAKE) -C compile-tests O=$(O_DIR)/compile-tests V=$(V) $@ || exit 1
 
 clean clobber mrproper:
 	$(Q)$(RM) -f $(TARGETS) $(DEPFILES) $(HELPOBJ)
+	$(Q)$(MAKE) -C compile-tests O=$(O_DIR)/compile-tests V=$(V) $@ || exit 1
 
 $(HELPOBJ_ESHI): $(HELPSRC)
 	$(call cc-cmd,$@,$(Q)$(CC) -o $(@) $< -c $(ESHI_CFLAGS))
