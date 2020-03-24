@@ -41,7 +41,7 @@ struct evl_flags {
 		}							\
 	}
 
-#define EVL_FLAGS_INITIALIZER(__name)  {	\
+#define EVL_FLAGS_INITIALIZER(__name)	\
 	EVL_FLAGS_ANY_INITIALIZER(__name, EVL_CLOCK_MONOTONIC, 0)
 
 #ifdef __cplusplus
