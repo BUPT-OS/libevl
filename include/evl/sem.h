@@ -41,7 +41,7 @@ struct evl_sem {
 		}						\
 	}
 
-#define EVL_SEM_INITIALIZER(__name)  {	\
+#define EVL_SEM_INITIALIZER(__name)  \
 	EVL_SEM_ANY_INITIALIZER(__name, EVL_CLOCK_MONOTONIC, 0)
 
 #ifdef __cplusplus
