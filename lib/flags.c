@@ -54,11 +54,11 @@ int evl_new_flags_any(struct evl_flags *flg, int clockfd, int initval,
 	if (efd < 0)
 		return efd;
 
-	flg->active.state = evl_shared_memory + eids.state_offset;
+	flg->u.active.state = evl_shared_memory + eids.state_offset;
 	/* Force sync the PTE. */
-	atomic_set(&flg->active.state->u.event.value, initval);
-	flg->active.fundle = eids.fundle;
-	flg->active.efd = efd;
+	atomic_set(&flg->u.active.state->u.event.value, initval);
+	flg->u.active.fundle = eids.fundle;
+	flg->u.active.efd = efd;
 	flg->magic = __FLAGS_ACTIVE_MAGIC;
 
 	return efd;
@@ -88,10 +88,10 @@ int evl_open_flags(struct evl_flags *flg, const char *fmt, ...)
 		goto fail;
 	}
 
-	flg->active.state = evl_shared_memory + bind.eids.state_offset;
-	__force_read_access(flg->active.state->u.event.value);
-	flg->active.fundle = bind.eids.fundle;
-	flg->active.efd = efd;
+	flg->u.active.state = evl_shared_memory + bind.eids.state_offset;
+	__force_read_access(flg->u.active.state->u.event.value);
+	flg->u.active.fundle = bind.eids.fundle;
+	flg->u.active.efd = efd;
 	flg->magic = __FLAGS_ACTIVE_MAGIC;
 
 	return efd;
@@ -111,12 +111,12 @@ int evl_close_flags(struct evl_flags *flg)
 	if (flg->magic != __FLAGS_ACTIVE_MAGIC)
 		return -EINVAL;
 
-	ret = close(flg->active.efd);
+	ret = close(flg->u.active.efd);
 	if (ret)
 		return -errno;
 
-	flg->active.fundle = EVL_NO_HANDLE;
-	flg->active.state = NULL;
+	flg->u.active.fundle = EVL_NO_HANDLE;
+	flg->u.active.state = NULL;
 	flg->magic = __FLAGS_DEAD_MAGIC;
 
 	return 0;
@@ -128,9 +128,9 @@ static int check_sanity(struct evl_flags *flg)
 
 	if (flg->magic == __FLAGS_UNINIT_MAGIC) {
 		efd = evl_new_flags_any(flg,
-				flg->uninit.clockfd,
-				flg->uninit.initval,
-				flg->uninit.name);
+				flg->u.uninit.clockfd,
+				flg->u.uninit.initval,
+				flg->u.uninit.name);
 		return efd < 0 ? efd : 0;
 	}
 
@@ -177,7 +177,7 @@ int evl_timedwait_flags(struct evl_flags *flg,
 	if (ret)
 		return ret;
 
-	state = flg->active.state;
+	state = flg->u.active.state;
 	if (!is_polled(state)) {
 		ret = try_wait(state);
 		if (ret) {
@@ -191,7 +191,7 @@ int evl_timedwait_flags(struct evl_flags *flg,
 	req.status = -EINVAL;
 	req.value = 0;
 
-	ret = oob_ioctl(flg->active.efd, EVL_MONIOC_WAIT, &req);
+	ret = oob_ioctl(flg->u.active.efd, EVL_MONIOC_WAIT, &req);
 	if (ret)
 		return -errno;
 
@@ -218,7 +218,7 @@ int evl_trywait_flags(struct evl_flags *flg, int *r_bits)
 	if (ret)
 		return ret;
 
-	ret = try_wait(flg->active.state);
+	ret = try_wait(flg->u.active.state);
 	if (!ret)
 		return -EAGAIN;
 
@@ -249,14 +249,16 @@ int evl_post_flags(struct evl_flags *flg, int bits)
 	 * the most likely situation, so such entry will be required
 	 * in most cases anyway.
 	 */
-	state = flg->active.state;
+	state = flg->u.active.state;
 	val = atomic_read(&state->u.event.value);
 	if (!val || is_polled(state)) {
 	slow_path:
 		if (evl_get_current())
-			ret = oob_ioctl(flg->active.efd, EVL_MONIOC_SIGNAL, &mask);
+			ret = oob_ioctl(flg->u.active.efd,
+					EVL_MONIOC_SIGNAL, &mask);
 		else
-			ret = ioctl(flg->active.efd, EVL_MONIOC_SIGNAL, &mask);
+			ret = ioctl(flg->u.active.efd,
+				EVL_MONIOC_SIGNAL, &mask);
 		return ret ? -errno : 0;
 	}
 
@@ -282,7 +284,7 @@ int evl_peek_flags(struct evl_flags *flg, int *r_bits)
 	if (flg->magic != __FLAGS_ACTIVE_MAGIC)
 		return -EINVAL;
 
-	*r_bits = atomic_read(&flg->active.state->u.event.value);
+	*r_bits = atomic_read(&flg->u.active.state->u.event.value);
 
 	return 0;
 }

@@ -18,26 +18,28 @@ struct evl_flags {
 	unsigned int magic;
 	union {
 		struct {
-			fundle_t fundle;
-			struct evl_monitor_state *state;
-			int efd;
-		} active;
-		struct {
 			const char *name;
 			int clockfd;
 			int initval;
 		} uninit;
-	};
+		struct {
+			fundle_t fundle;
+			struct evl_monitor_state *state;
+			int efd;
+		} active;
+	} u;
 };
 
 #define __FLAGS_UNINIT_MAGIC	0xfebcfebc
 
 #define EVL_FLAGS_ANY_INITIALIZER(__name, __clockfd, __initval)  {	\
 		.magic = __FLAGS_UNINIT_MAGIC,				\
+		.u = {							\
 			.uninit = {					\
-			.name = (__name),				\
-			.clockfd = (__clockfd),				\
-			.initval = (__initval),				\
+				.name = (__name),			\
+				.clockfd = (__clockfd),			\
+				.initval = (__initval),			\
+			}						\
 		}							\
 	}
 
