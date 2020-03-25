@@ -36,17 +36,19 @@ struct evl_mutex {
 			int monitor : 2,
 			    type : 1;
 		} uninit;
-	};
+	} u;
 };
 
 #define EVL_MUTEX_ANY_INITIALIZER(__type, __name, __clockfd, __ceiling)  { \
 		.magic = __MUTEX_UNINIT_MAGIC,				\
-		.uninit = {						\
-			.monitor = EVL_MONITOR_GATE,			\
-			.type = (__type),				\
-			.name = (__name),				\
-			.clockfd = (__clockfd),				\
-			.ceiling = (__ceiling),				\
+		.u = {							\
+			.uninit = {					\
+				.name = (__name),			\
+				.clockfd = (__clockfd),			\
+				.ceiling = (__ceiling),			\
+				.monitor = EVL_MONITOR_GATE,		\
+				.type = (__type),			\
+			}						\
 		}							\
 	}
 

@@ -73,14 +73,14 @@ static int init_mutex_vargs(struct evl_mutex *mutex,
 
 	gst = evl_shared_memory + eids.state_offset;
 	gst->u.gate.recursive = type == EVL_MUTEX_RECURSIVE;
-	mutex->active.state = gst;
+	mutex->u.active.state = gst;
 	/* Force sync the PTE. */
 	atomic_set(&gst->u.gate.owner, EVL_NO_HANDLE);
 	__force_read_access(gst->flags);
-	mutex->active.fundle = eids.fundle;
-	mutex->active.monitor = EVL_MONITOR_GATE;
-	mutex->active.protocol = protocol;
-	mutex->active.efd = efd;
+	mutex->u.active.fundle = eids.fundle;
+	mutex->u.active.monitor = EVL_MONITOR_GATE;
+	mutex->u.active.protocol = protocol;
+	mutex->u.active.efd = efd;
 	mutex->magic = __MUTEX_ACTIVE_MAGIC;
 
 	return efd;
@@ -124,13 +124,13 @@ static int open_mutex_vargs(struct evl_mutex *mutex,
 	}
 
 	gst = evl_shared_memory + bind.eids.state_offset;
-	mutex->active.state = gst;
+	mutex->u.active.state = gst;
 	__force_read_access(gst->flags);
 	__force_read_access(gst->u.gate.owner);
-	mutex->active.fundle = bind.eids.fundle;
-	mutex->active.monitor = bind.type;
-	mutex->active.protocol = bind.protocol;
-	mutex->active.efd = efd;
+	mutex->u.active.fundle = bind.eids.fundle;
+	mutex->u.active.monitor = bind.type;
+	mutex->u.active.protocol = bind.protocol;
+	mutex->u.active.efd = efd;
 	mutex->magic = __MUTEX_ACTIVE_MAGIC;
 
 	return 0;
@@ -178,13 +178,13 @@ int evl_close_mutex(struct evl_mutex *mutex)
 	if (mutex->magic != __MUTEX_ACTIVE_MAGIC)
 		return -EINVAL;
 
-	efd = mutex->active.efd;
-	mutex->active.efd = -1;
+	efd = mutex->u.active.efd;
+	mutex->u.active.efd = -1;
 	compiler_barrier();
 	close(efd);
 
-	mutex->active.fundle = EVL_NO_HANDLE;
-	mutex->active.state = NULL;
+	mutex->u.active.fundle = EVL_NO_HANDLE;
+	mutex->u.active.state = NULL;
 	mutex->magic = __MUTEX_DEAD_MAGIC;
 
 	return 0;
@@ -203,18 +203,18 @@ static int try_lock(struct evl_mutex *mutex)
 		return -EPERM;
 
 	if (mutex->magic == __MUTEX_UNINIT_MAGIC &&
-		mutex->uninit.monitor == EVL_MONITOR_GATE) {
+		mutex->u.uninit.monitor == EVL_MONITOR_GATE) {
 		ret = init_mutex_static(mutex,
-				mutex->uninit.type,
-				mutex->uninit.clockfd,
-				mutex->uninit.ceiling,
-				mutex->uninit.name);
+				mutex->u.uninit.type,
+				mutex->u.uninit.clockfd,
+				mutex->u.uninit.ceiling,
+				mutex->u.uninit.name);
 		if (ret < 0)
 			return ret;
 	} else if (mutex->magic != __MUTEX_ACTIVE_MAGIC)
 		return -EINVAL;
 
-	gst = mutex->active.state;
+	gst = mutex->u.active.state;
 
 	/*
 	 * Threads running in-band and/or enabling WOLI debug must go
@@ -222,7 +222,7 @@ static int try_lock(struct evl_mutex *mutex)
 	 */
 	mode = evl_get_current_mode();
 	if (!(mode & (T_INBAND|T_WEAK|T_WOLI))) {
-		if (mutex->active.protocol == EVL_GATE_PP) {
+		if (mutex->u.active.protocol == EVL_GATE_PP) {
 			u_window = evl_get_current_window();
 			/*
 			 * Can't nest lazy ceiling requests, have to
@@ -230,7 +230,7 @@ static int try_lock(struct evl_mutex *mutex)
 			 */
 			if (u_window->pp_pending != EVL_NO_HANDLE)
 				goto slow_path;
-			u_window->pp_pending = mutex->active.fundle;
+			u_window->pp_pending = mutex->u.active.fundle;
 			protect = true;
 		}
 		ret = evl_fast_lock_mutex(&gst->u.gate.owner, current);
@@ -276,12 +276,12 @@ int evl_timedlock_mutex(struct evl_mutex *mutex,
 		return ret;
 
 	do
-		ret = oob_ioctl(mutex->active.efd, EVL_MONIOC_ENTER,
+		ret = oob_ioctl(mutex->u.active.efd, EVL_MONIOC_ENTER,
 				__evl_ktimespec(timeout, kts));
 	while (ret && errno == EINTR);
 
 	if (ret == 0) {
-		gst = mutex->active.state;
+		gst = mutex->u.active.state;
 		gst->u.gate.nesting = 1;
 	}
 
@@ -304,7 +304,7 @@ int evl_trylock_mutex(struct evl_mutex *mutex)
 		return ret;
 
 	do
-		ret = oob_ioctl(mutex->active.efd, EVL_MONIOC_TRYENTER);
+		ret = oob_ioctl(mutex->u.active.efd, EVL_MONIOC_TRYENTER);
 	while (ret && errno == EINTR);
 
 	return ret ? -errno : 0;
@@ -320,7 +320,7 @@ int evl_unlock_mutex(struct evl_mutex *mutex)
 	if (mutex->magic != __MUTEX_ACTIVE_MAGIC)
 		return -EINVAL;
 
-	gst = mutex->active.state;
+	gst = mutex->u.active.state;
 	current = evl_get_current();
 	if (!evl_is_mutex_owner(&gst->u.gate.owner, current))
 		return -EPERM;
@@ -339,7 +339,7 @@ int evl_unlock_mutex(struct evl_mutex *mutex)
 		goto slow_path;
 
 	if (evl_fast_unlock_mutex(&gst->u.gate.owner, current)) {
-		if (mutex->active.protocol == EVL_GATE_PP) {
+		if (mutex->u.active.protocol == EVL_GATE_PP) {
 			u_window = evl_get_current_window();
 			u_window->pp_pending = EVL_NO_HANDLE;
 		}
@@ -352,7 +352,7 @@ int evl_unlock_mutex(struct evl_mutex *mutex)
 	 * thread. Need to ask the kernel for proper release.
 	 */
 slow_path:
-	ret = oob_ioctl(mutex->active.efd, EVL_MONIOC_EXIT);
+	ret = oob_ioctl(mutex->u.active.efd, EVL_MONIOC_EXIT);
 
 	return ret ? -errno : 0;
 }
@@ -370,20 +370,20 @@ int evl_set_mutex_ceiling(struct evl_mutex *mutex,
 		return -EINVAL;
 
 	if (mutex->magic == __MUTEX_UNINIT_MAGIC) {
-		if (mutex->uninit.monitor != EVL_MONITOR_GATE ||
-			mutex->uninit.ceiling == 0)
+		if (mutex->u.uninit.monitor != EVL_MONITOR_GATE ||
+			mutex->u.uninit.ceiling == 0)
 			return -EINVAL;
-		mutex->uninit.ceiling = ceiling;
+		mutex->u.uninit.ceiling = ceiling;
 		return 0;
 	}
 
 	if (mutex->magic != __MUTEX_ACTIVE_MAGIC ||
-		mutex->active.monitor != EVL_MONITOR_GATE ||
-		mutex->active.protocol != EVL_GATE_PP) {
+		mutex->u.active.monitor != EVL_MONITOR_GATE ||
+		mutex->u.active.protocol != EVL_GATE_PP) {
 		return -EINVAL;
 	}
 
-	mutex->active.state->u.gate.ceiling = ceiling;
+	mutex->u.active.state->u.gate.ceiling = ceiling;
 
 	return 0;
 }
@@ -391,18 +391,18 @@ int evl_set_mutex_ceiling(struct evl_mutex *mutex,
 int evl_get_mutex_ceiling(struct evl_mutex *mutex)
 {
 	if (mutex->magic == __MUTEX_UNINIT_MAGIC) {
-		if (mutex->uninit.monitor != EVL_MONITOR_GATE)
+		if (mutex->u.uninit.monitor != EVL_MONITOR_GATE)
 			return -EINVAL;
 
-		return mutex->uninit.ceiling;
+		return mutex->u.uninit.ceiling;
 	}
 
 	if (mutex->magic != __MUTEX_ACTIVE_MAGIC ||
-		mutex->active.monitor != EVL_MONITOR_GATE)
+		mutex->u.active.monitor != EVL_MONITOR_GATE)
 		return -EINVAL;
 
-	if (mutex->active.protocol != EVL_GATE_PP)
+	if (mutex->u.active.protocol != EVL_GATE_PP)
 		return 0;
 
-	return mutex->active.state->u.gate.ceiling;
+	return mutex->u.active.state->u.gate.ceiling;
 }
