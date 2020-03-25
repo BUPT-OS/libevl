@@ -21,7 +21,7 @@ override LDFLAGS := $(BENCH_LDFLAGS) $(LDFLAGS)
 
 $(O_DIR)/latmus: override CFLAGS := -I zephyr/latmon/src $(CFLAGS)
 
-all: output-Makefile $(TARGETS)
+all: output-Makefile $(DEPFILES) $(TARGETS)
 
 install: all
 	$(call inst-cmd,benchmarks,$(Q)for bin in $(BINARIES); do	\
@@ -31,7 +31,7 @@ install: all
 clean clobber mrproper: output-Makefile
 	$(Q)$(RM) -f $(TARGETS) $(DEPFILES)
 
-$(O_DIR)/%: %.c
+$(O_DIR)/%: %.c $(O_DIR)/%.d
 	$(call ccld-cmd,$@,$(Q)$(CC) -o $(@) $< $(CFLAGS) $(LDFLAGS))
 
 -include $(DEPFILES)

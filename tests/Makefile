@@ -33,7 +33,8 @@ ESHI_CPPFLAGS := $(BASE_CPPFLAGS)	\
 		 -I$(O_DIR)/../include
 ESHI_CFLAGS := $(ESHI_CPPFLAGS) $(BASE_CFLAGS)
 
-all: output-Makefile $(TARGETS)
+all: output-Makefile $(DEPFILES) $(TARGETS)
+		$(Q)$(MAKE) -C compile-tests O=$(O_DIR)/compile-tests V=$(V) $@ || exit 1
 
 $(TARGETS): $(HELPOBJ) $(HELPOBJ_ESHI)
 
@@ -51,13 +52,13 @@ clean clobber mrproper:
 $(HELPOBJ_ESHI): $(HELPSRC)
 	$(call cc-cmd,$@,$(Q)$(CC) -o $(@) $< -c $(ESHI_CFLAGS))
 
-$(O_DIR)/%.o: %.c
+$(O_DIR)/%.o: %.c $(O_DIR)/%.d
 	$(call cc-cmd,$@,$(Q)$(CC) -o $(@) $< -c $(CFLAGS))
 
-$(O_DIR)/%: %.c
+$(O_DIR)/%: %.c $(O_DIR)/%.d
 	$(call ccld-cmd,$@,$(Q)$(CC) -o $(@) $< $(HELPOBJ) $(TEST_CFLAGS) $(TEST_LDFLAGS))
 
-$(O_DIR)/%.eshi: %.c
+$(O_DIR)/%.eshi: %.c $(O_DIR)/%.d
 	$(call ccld-cmd,$@,$(Q)$(CC) -o $(@) $< $(HELPOBJ_ESHI) $(ESHI_CFLAGS) $(ESHI_LDFLAGS))
 
 -include $(DEPFILES)

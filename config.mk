@@ -28,7 +28,7 @@ bindir		?= bin
 testdir		?= tests
 libexecdir	?= libexec
 
-export ARCH CROSS_COMPILE CC LD AR UAPI CFLAGS LDFLAGS DESTDIR
+export ARCH CROSS_COMPILE CC CXX LD AR UAPI CFLAGS LDFLAGS DESTDIR
 
 MAKEFLAGS += -rR
 
@@ -99,6 +99,9 @@ $(TARGETS):
 
 $(O_DIR)/%.d: %.c
 	$(call dep-cmd,$@,@$(CC) -MM $(CFLAGS) $< | sed 's$(comma)\($*\)\.o[ :]*$(comma)$(O_DIR)/\1.o $@: $(comma)g' > $@ || rm -f $@)
+
+$(O_DIR)/%.d: %.cc
+	$(call dep-cmd,$@,@$(CXX) -MM $(CXXFLAGS) $< | sed 's$(comma)\($*\)\.o[ :]*$(comma)$(O_DIR)/\1.o $@: $(comma)g' > $@ || rm -f $@)
 
 define MAKEFLY =
 # Automatically generated: do not edit

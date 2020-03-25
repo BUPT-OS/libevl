@@ -25,7 +25,7 @@ override LDFLAGS := $(CMD_LDFLAGS) $(LDFLAGS)
 
 $(TARGETS):
 
-all: output-Makefile $(TARGETS)
+all: output-Makefile $(DEPFILES) $(TARGETS)
 
 install: all
 	$(call inst-cmd,utilities,						\
@@ -40,7 +40,7 @@ install: all
 clean clobber mrproper: output-Makefile
 	$(Q)$(RM) -f $(TARGETS) $(DEPFILES)
 
-$(O_DIR)/%: %.c
+$(O_DIR)/%: %.c $(O_DIR)/%.d
 	$(call ccld-cmd,$@,$(Q)$(CC) -o $(@) $< $(CFLAGS) $(LDFLAGS))
 
 -include $(DEPFILES)

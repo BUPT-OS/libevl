@@ -27,7 +27,7 @@ override CFLAGS := $(LIB_CFLAGS) $(CFLAGS)
 
 override LDFLAGS := $(LDFLAGS) -lpthread -lrt
 
-all: output-Makefile $(TARGETS)
+all: output-Makefile $(DEPFILES) $(TARGETS)
 
 install: all
 	$(call inst-cmd,$(SOLIBNAME),$(INSTALL) -D $(O_DIR)/$(SOLIBNAME) -t $(DESTDIR)/$(libdir))
@@ -52,10 +52,10 @@ $(O_DIR)/syscall-pic.o $(O_DIR)/syscall.o: override CFLAGS := $(CFLAGS) -fomit-f
 $(O_DIR)/version-pic.o $(O_DIR)/version.o: override CFLAGS := $(CFLAGS) -DLIBSERIAL=\"$(EVL_SERIAL)\"
 version.c: $(O_DIR)/git-stamp.h
 
-$(O_DIR)/%-pic.o: %.c
+$(O_DIR)/%-pic.o: %.c $(O_DIR)/%.d
 	$(call cc-pic-cmd,$@,$(CC) $(CFLAGS) -fPIC -c -o $@ $<)
 
-$(O_DIR)/%.o: %.c
+$(O_DIR)/%.o: %.c $(O_DIR)/%.d
 	$(call cc-cmd,$@,$(CC) $(CFLAGS) -c -o $@ $<)
 
 -include $(DEPFILES)
