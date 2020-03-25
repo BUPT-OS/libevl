@@ -54,11 +54,11 @@ int evl_new_sem_any(struct evl_sem *sem, int clockfd, int initval,
 	if (efd < 0)
 		return efd;
 
-	sem->active.state = evl_shared_memory + eids.state_offset;
+	sem->u.active.state = evl_shared_memory + eids.state_offset;
 	/* Force sync the PTE. */
-	atomic_set(&sem->active.state->u.event.value, initval);
-	sem->active.fundle = eids.fundle;
-	sem->active.efd = efd;
+	atomic_set(&sem->u.active.state->u.event.value, initval);
+	sem->u.active.fundle = eids.fundle;
+	sem->u.active.efd = efd;
 	sem->magic = __SEM_ACTIVE_MAGIC;
 
 	return efd;
@@ -88,10 +88,10 @@ int evl_open_sem(struct evl_sem *sem, const char *fmt, ...)
 		goto fail;
 	}
 
-	sem->active.state = evl_shared_memory + bind.eids.state_offset;
-	__force_read_access(sem->active.state->u.event.value);
-	sem->active.fundle = bind.eids.fundle;
-	sem->active.efd = efd;
+	sem->u.active.state = evl_shared_memory + bind.eids.state_offset;
+	__force_read_access(sem->u.active.state->u.event.value);
+	sem->u.active.fundle = bind.eids.fundle;
+	sem->u.active.efd = efd;
 	sem->magic = __SEM_ACTIVE_MAGIC;
 
 	return efd;
@@ -111,12 +111,12 @@ int evl_close_sem(struct evl_sem *sem)
 	if (sem->magic != __SEM_ACTIVE_MAGIC)
 		return -EINVAL;
 
-	ret = close(sem->active.efd);
+	ret = close(sem->u.active.efd);
 	if (ret)
 		return -errno;
 
-	sem->active.fundle = EVL_NO_HANDLE;
-	sem->active.state = NULL;
+	sem->u.active.fundle = EVL_NO_HANDLE;
+	sem->u.active.state = NULL;
 	sem->magic = __SEM_DEAD_MAGIC;
 
 	return 0;
@@ -128,9 +128,9 @@ static int check_sanity(struct evl_sem *sem)
 
 	if (sem->magic == __SEM_UNINIT_MAGIC) {
 		efd = evl_new_sem_any(sem,
-				sem->uninit.clockfd,
-				sem->uninit.initval,
-				sem->uninit.name);
+				sem->u.uninit.clockfd,
+				sem->u.uninit.initval,
+				sem->u.uninit.name);
 		return efd < 0 ? efd : 0;
 	}
 
@@ -184,7 +184,7 @@ int evl_timedget_sem(struct evl_sem *sem, const struct timespec *timeout)
 	if (ret)
 		return ret;
 
-	state = sem->active.state;
+	state = sem->u.active.state;
 	ret = try_get(state);
 	if (ret != -EAGAIN)
 		return ret;
@@ -194,7 +194,7 @@ int evl_timedget_sem(struct evl_sem *sem, const struct timespec *timeout)
 	req.status = -EINVAL;
 	req.value = 0;		/* dummy */
 
-	ret = oob_ioctl(sem->active.efd, EVL_MONIOC_WAIT, &req);
+	ret = oob_ioctl(sem->u.active.efd, EVL_MONIOC_WAIT, &req);
 
 	return ret ? -errno : req.status;
 }
@@ -214,7 +214,7 @@ int evl_tryget_sem(struct evl_sem *sem)
 	if (ret)
 		return ret;
 
-	return try_get(sem->active.state);
+	return try_get(sem->u.active.state);
 }
 
 static inline bool is_polled(struct evl_monitor_state *state)
@@ -232,15 +232,17 @@ int evl_put_sem(struct evl_sem *sem)
 	if (ret)
 		return ret;
 
-	state = sem->active.state;
+	state = sem->u.active.state;
 	val = atomic_read(&state->u.event.value);
 	if (val < 0 || is_polled(state)) {
 	slow_path:
 		if (evl_get_current())
-			ret = oob_ioctl(sem->active.efd, EVL_MONIOC_SIGNAL, &sigval);
+			ret = oob_ioctl(sem->u.active.efd,
+					EVL_MONIOC_SIGNAL, &sigval);
 		else
 			/* In-band threads may post pended sema4s. */
-			ret = ioctl(sem->active.efd, EVL_MONIOC_SIGNAL, &sigval);
+			ret = ioctl(sem->u.active.efd,
+				EVL_MONIOC_SIGNAL, &sigval);
 		return ret ? -errno : 0;
 	}
 
@@ -271,7 +273,7 @@ int evl_peek_sem(struct evl_sem *sem, int *r_val)
 	if (sem->magic != __SEM_ACTIVE_MAGIC)
 		return -EINVAL;
 
-	*r_val = atomic_read(&sem->active.state->u.event.value);
+	*r_val = atomic_read(&sem->u.active.state->u.event.value);
 
 	return 0;
 }

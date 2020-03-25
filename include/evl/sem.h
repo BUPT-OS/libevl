@@ -27,17 +27,19 @@ struct evl_sem {
 			int clockfd;
 			int initval;
 		} uninit;
-	};
+	} u;
 };
 
 #define __SEM_UNINIT_MAGIC	0xed15ed15
 
 #define EVL_SEM_ANY_INITIALIZER(__name, __clockfd, __initval)  {\
 		.magic = __SEM_UNINIT_MAGIC,			\
-		.uninit = {					\
-			.name = (__name),			\
-			.clockfd = (__clockfd),			\
-			.initval = (__initval),			\
+		.u = {						\
+			.uninit = {				\
+				.name = (__name),		\
+				.clockfd = (__clockfd),		\
+				.initval = (__initval),		\
+			}					\
 		}						\
 	}
 
