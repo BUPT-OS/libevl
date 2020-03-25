@@ -18,22 +18,6 @@
 #include <evl/compiler.h>
 #include <evl/atomic.h>
 
-#define DECLARE_CANISTER_QUEUE(__can_struct)	\
-	struct {				\
-		struct __can_struct *head;	\
-		struct __can_struct *tail;	\
-		struct __can_struct first;	\
-	}
-
-#define CANISTER_QUEUE_INITIALIZER(__name)	\
-	{					\
-		.head = &(__name).first,	\
-		.tail = &(__name).first,	\
-		.first = {			\
-			.next = NULL,		\
-		},				\
-	}
-
 #define tube_push_prepare(__desc, __free)			\
 	({							\
 		typeof((__desc)->tail) __old_qp;		\
@@ -90,8 +74,24 @@
 
 #define DECLARE_EVL_CANISTER(__can_struct, __payload)		\
 	struct __can_struct {					\
-		typeof(__payload) payload;			\
 		struct __can_struct *next;			\
+		typeof(__payload) payload;			\
+	}
+
+#define DECLARE_CANISTER_QUEUE(__can_struct)	\
+	struct {				\
+		struct __can_struct *head;	\
+		struct __can_struct *tail;	\
+		struct __can_struct first;	\
+	}
+
+#define CANISTER_QUEUE_INITIALIZER(__name)	\
+	{					\
+		.head = &(__name).first,	\
+		.tail = &(__name).first,	\
+		.first = {			\
+			.next = NULL,		\
+		},				\
 	}
 
 #define DECLARE_EVL_TUBE(__name, __can_struct)			\
@@ -157,28 +157,6 @@
  * Position-independent variant.
  */
 
-#define DECLARE_CANISTER_QUEUE_REL(__can_struct)		\
-	struct {						\
-		uintptr_t head;					\
-		uintptr_t tail;					\
-		/* Must NOT be first (non-zero offset) */	\
-		struct __can_struct first[1];			\
-	}
-
-#define canq_offsetof(__baseoff, __can_struct, __member)	\
-	(offsetof(typeof(DECLARE_CANISTER_QUEUE_REL(__can_struct)), __member) + __baseoff)
-
-#define CANISTER_QUEUE_INITIALIZER_REL(__baseoff, __can_struct)		\
-	{								\
-		.head = canq_offsetof(__baseoff, __can_struct, first),	\
-		.tail = canq_offsetof(__baseoff, __can_struct, first),	\
-		.first = {						\
-			[0] = {						\
-				.next = 0,				\
-			},						\
-		},							\
-	}
-
 #define tube_push_prepare_rel(__base, __desc, __free)			\
 	({								\
 		typeof((__desc)->tail) __old_qp;			\
@@ -202,14 +180,16 @@
 #define tube_push_rel(__base, __desc, __free)				\
 	do {								\
 		typeof((__desc)->first[0]) *__new_q;			\
-		__new_q = tube_push_prepare_rel(__base, __desc, __free); \
-		tube_push_finish_rel(__base, __desc, __new_q, __free); \
+		__new_q = (typeof(__new_q))				\
+			tube_push_prepare_rel(__base, __desc, __free);	\
+		tube_push_finish_rel(__base, __desc, __new_q, __free);	\
 	} while (0)
 
 #define tube_push_item_rel(__base, __desc, __item, __free)		\
 	do {								\
 		typeof((__desc)->first[0]) *__new_qi;			\
-		__new_qi = tube_push_prepare_rel(__base, __desc, __free); \
+		__new_qi = (typeof(__new_qi))				\
+			tube_push_prepare_rel(__base, __desc, __free);	\
 		__new_qi->payload = (__item);				\
 		tube_push_finish_rel(__base, __desc, __new_qi, __free); \
 	} while (0)
@@ -220,7 +200,8 @@
 		typeof((__desc)->first[0]) *__old_dqptr;		\
 		do {							\
 			__old_dq = (__desc)->head;			\
-			__old_dqptr = __memptr(__base, __old_dq);	\
+			__old_dqptr = (typeof(__old_dqptr))		\
+				__memptr(__base, __old_dq);		\
 			__next_dq = __old_dqptr->next;			\
 		} while (__next_dq && __sync_val_compare_and_swap(	\
 				&(__desc)->head,			\
@@ -230,15 +211,41 @@
 
 #define DECLARE_EVL_CANISTER_REL(__can_struct, __payload)	\
 	struct __can_struct {					\
-		typeof(__payload) payload;			\
 		uintptr_t next;					\
+		typeof(__payload) payload;			\
 	}							\
+
+#define DECLARE_CANISTER_QUEUE_REL(__can_struct)		\
+	struct {						\
+		uintptr_t head;					\
+		uintptr_t tail;					\
+		/* Must NOT be first (non-zero offset) */	\
+		struct __can_struct first[1];			\
+	}
 
 #define DECLARE_EVL_TUBE_REL(__name, __can_struct, __payload)		\
 	struct __name {							\
 		DECLARE_CANISTER_QUEUE_REL(__can_struct) pending;	\
 		DECLARE_CANISTER_QUEUE_REL(__can_struct) free;		\
 		long max_items;						\
+	}
+
+#define canq_offsetof(__baseoff, __can_struct, __member)		\
+	({								\
+		DECLARE_CANISTER_QUEUE_REL(__can_struct) __tmp;		\
+		(void)(__tmp);	/* Pedantic indirection for C++ */	\
+		offsetof(typeof(__tmp), __member) + __baseoff;		\
+	})
+
+#define CANISTER_QUEUE_INITIALIZER_REL(__baseoff, __can_struct)		\
+	{								\
+		.head = canq_offsetof(__baseoff, __can_struct, first),	\
+		.tail = canq_offsetof(__baseoff, __can_struct, first),	\
+		.first = {						\
+			[0] = {						\
+				.next = 0,				\
+			},						\
+		},							\
 	}
 
 #define TUBE_INITIALIZER_REL(__name, __can_struct)			\
@@ -250,16 +257,13 @@
 		.max_items = 0,						\
 	}
 
-#define evl_get_tube_size_rel(__name, __count)	\
-	evl_get_tube_size(__name, __count)
-
 #define evl_init_tube_rel(__name, __can_struct, __mem, __size)		\
 	({								\
-		struct __name *__tube = (__mem);			\
+		struct __name *__tube = (typeof(__tube))(__mem);	\
 		typeof(__tube->free.first[0]) *__i, *__iend;		\
 		*__tube = (typeof(*__tube))				\
 			TUBE_INITIALIZER_REL(*__tube, __can_struct);	\
-		__iend = (typeof(__iend))(__mem + __size);		\
+		__iend = (typeof(__iend))((char *)__mem + __size);	\
 		for (__i = (typeof(__i))(__tube + 1); __i < __iend; __i++) { \
 			tube_push_rel(__tube, &(__tube)->free, __i);	\
 		}							\
@@ -267,11 +271,15 @@
 		__tube;							\
 	})
 
+#define evl_get_tube_size_rel(__name, __count)	\
+	evl_get_tube_size(__name, __count)
+
 #define evl_send_tube_rel(__tube, __item)			\
 	({							\
 		bool __ret = false;				\
 		typeof((__tube)->pending.first[0]) *__new;	\
-		__new = tube_pull_rel(__tube, &(__tube)->free);\
+		__new = (typeof(__new))				\
+			tube_pull_rel(__tube, &(__tube)->free); \
 		if (likely(__new)) {				\
 			tube_push_item_rel(__tube,		\
 					&(__tube)->pending,	\
