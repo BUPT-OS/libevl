@@ -27,16 +27,18 @@ struct evl_event {
 			const char *name;
 			int clockfd;
 		} uninit;
-	};
+	} u;
 };
 
 #define __EVENT_UNINIT_MAGIC	0x01770177
 
 #define EVL_EVENT_ANY_INITIALIZER(__name, __clockfd)  {	\
 		.magic = __EVENT_UNINIT_MAGIC,		\
-		.uninit = {				\
-			.name = (__name),		\
-			.clockfd = (__clockfd),		\
+		.u = {					\
+			.uninit = {			\
+				.name = (__name),	\
+				.clockfd = (__clockfd),	\
+			}				\
 		}					\
 	}
 

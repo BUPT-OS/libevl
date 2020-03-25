@@ -53,10 +53,10 @@ static int init_event_vargs(struct evl_event *evt,
 	if (efd < 0)
 		return efd;
 
-	evt->active.state = evl_shared_memory + eids.state_offset;
-	__force_read_access(evt->active.state->flags);
-	evt->active.fundle = eids.fundle;
-	evt->active.efd = efd;
+	evt->u.active.state = evl_shared_memory + eids.state_offset;
+	__force_read_access(evt->u.active.state->flags);
+	evt->u.active.fundle = eids.fundle;
+	evt->u.active.efd = efd;
 	evt->magic = __EVENT_ACTIVE_MAGIC;
 
 	return efd;
@@ -97,10 +97,10 @@ static int open_event_vargs(struct evl_event *evt,
 		goto fail;
 	}
 
-	evt->active.state = evl_shared_memory + bind.eids.state_offset;
-	__force_read_access(evt->active.state->flags);
-	evt->active.fundle = bind.eids.fundle;
-	evt->active.efd = efd;
+	evt->u.active.state = evl_shared_memory + bind.eids.state_offset;
+	__force_read_access(evt->u.active.state->flags);
+	evt->u.active.fundle = bind.eids.fundle;
+	evt->u.active.efd = efd;
 	evt->magic = __EVENT_ACTIVE_MAGIC;
 
 	return 0;
@@ -145,13 +145,13 @@ int evl_close_event(struct evl_event *evt)
 	if (evt->magic != __EVENT_ACTIVE_MAGIC)
 		return -EINVAL;
 
-	efd = evt->active.efd;
-	evt->active.efd = -1;
+	efd = evt->u.active.efd;
+	evt->u.active.efd = -1;
 	compiler_barrier();
 	close(efd);
 
-	evt->active.fundle = EVL_NO_HANDLE;
-	evt->active.state = NULL;
+	evt->u.active.fundle = EVL_NO_HANDLE;
+	evt->u.active.state = NULL;
 	evt->magic = __EVENT_DEAD_MAGIC;
 
 	return 0;
@@ -162,8 +162,8 @@ static int check_event_sanity(struct evl_event *evt)
 	int efd;
 
 	if (evt->magic == __EVENT_UNINIT_MAGIC) {
-		efd = init_event_static(evt, evt->uninit.clockfd,
-					evt->uninit.name);
+		efd = init_event_static(evt, evt->u.uninit.clockfd,
+					evt->u.uninit.name);
 		if (efd < 0)
 			return efd;
 	} else if (evt->magic != __EVENT_ACTIVE_MAGIC)
@@ -174,7 +174,7 @@ static int check_event_sanity(struct evl_event *evt)
 
 static struct evl_monitor_state *get_lock_state(struct evl_event *evt)
 {
-	struct evl_monitor_state *est = evt->active.state;
+	struct evl_monitor_state *est = evt->u.active.state;
 
 	if (est->u.event.gate_offset == EVL_MONITOR_NOGATE)
 		return NULL;	/* Nobody waits on @evt */
@@ -214,15 +214,15 @@ int evl_timedwait_event(struct evl_event *evt,
 	if (ret)
 		return ret;
 
-	req.gatefd = mutex->active.efd;
+	req.gatefd = mutex->u.active.efd;
 	req.timeout = __evl_ktimespec(timeout, kts);
 	req.status = -EINVAL;
 	req.value = 0;		/* dummy */
 	unwait.ureq.gatefd = req.gatefd;
-	unwait.efd = evt->active.efd;
+	unwait.efd = evt->u.active.efd;
 
 	pthread_cleanup_push(unwait_event, &unwait);
-	ret = oob_ioctl(evt->active.efd, EVL_MONIOC_WAIT, &req);
+	ret = oob_ioctl(evt->u.active.efd, EVL_MONIOC_WAIT, &req);
 	pthread_cleanup_pop(0);
 
 	/*
@@ -259,7 +259,7 @@ int evl_signal_event(struct evl_event *evt)
 	gst = get_lock_state(evt);
 	if (gst) {
 		gst->flags |= EVL_MONITOR_SIGNALED;
-		est = evt->active.state;
+		est = evt->u.active.state;
 		est->flags |= EVL_MONITOR_SIGNALED;
 	}
 
@@ -279,7 +279,7 @@ int evl_signal_thread(struct evl_event *evt, int thrfd)
 	gst = get_lock_state(evt);
 	if (gst) {
 		gst->flags |= EVL_MONITOR_SIGNALED;
-		efd = evt->active.efd;
+		efd = evt->u.active.efd;
 		return oob_ioctl(thrfd, EVL_THRIOC_SIGNAL, &efd) ? -errno : 0;
 	}
 
@@ -300,7 +300,7 @@ int evl_broadcast_event(struct evl_event *evt)
 	gst = get_lock_state(evt);
 	if (gst) {
 		gst->flags |= EVL_MONITOR_SIGNALED;
-		est = evt->active.state;
+		est = evt->u.active.state;
 		est->flags |= EVL_MONITOR_SIGNALED|EVL_MONITOR_BROADCAST;
 	}
 
