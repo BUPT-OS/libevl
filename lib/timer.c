@@ -47,8 +47,8 @@ int evl_set_timer(int efd,
 	struct __evl_itimerspec kits, koits;
 	struct evl_timerfd_setreq sreq;
 
-	sreq.value = __evl_kitimerspec(value, kits);
-	sreq.ovalue = __evl_kitimerspec(ovalue, koits);
+	sreq.value_ptr = __evl_kitimerspec_ptr64(value, kits);
+	sreq.ovalue_ptr = __evl_kitimerspec_ptr64(ovalue, koits);
 
 	return do_call(efd, EVL_TFDIOC_SET, &sreq);
 }

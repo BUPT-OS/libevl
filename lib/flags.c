@@ -187,7 +187,7 @@ int evl_timedwait_flags(struct evl_flags *flg,
 	}
 
 	req.gatefd = -1;
-	req.timeout = __evl_ktimespec(timeout, kts);
+	req.timeout_ptr = __evl_ktimespec_ptr64(timeout, kts);
 	req.status = -EINVAL;
 	req.value = 0;
 

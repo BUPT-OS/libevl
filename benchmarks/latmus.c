@@ -419,11 +419,11 @@ static void *timer_test_sitter(void *arg)
 	if (ret < 0)
 		error(1, -ret, "evl_attach_self() failed");
 
-	mr.last = &last;
-	mr.histogram = histogram;
+	mr.last_ptr = (__u64)(uintptr_t)&last;
+	mr.histogram_ptr = (__u64)(uintptr_t)histogram;
 	mr.len = histogram ? histogram_cells * sizeof(int32_t) : 0;
 
-	result.data = &mr;
+	result.data_ptr = (__u64)(uintptr_t)&mr;
 	result.len = sizeof(mr);
 
 	/* Run test until signal. */
@@ -873,7 +873,7 @@ static void do_tuning(int type)
 
 	pthread_sigmask(SIG_UNBLOCK, &sigmask, NULL);
 
-	result.data = &gravity;
+	result.data_ptr = (__u64)(uintptr_t)&gravity;
 	result.len = sizeof(gravity);
 	ret = oob_ioctl(latmus_fd, EVL_LATIOC_RUN, &result);
 	if (ret)

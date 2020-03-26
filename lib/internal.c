@@ -58,8 +58,8 @@ int create_evl_element(const char *type, const char *name,
 		goto out_factory;
 	}
 
-	clone.name = name;
-	clone.attrs = attrs;
+	clone.name_ptr = __evl_ptr64(name);
+	clone.attrs_ptr = __evl_ptr64(attrs);
 	ret = ioctl(ffd, EVL_IOC_CLONE, &clone);
 	if (ret) {
 		ret = -errno;

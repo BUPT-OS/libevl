@@ -45,8 +45,8 @@ int evl_sched_control(int policy,
 
 	ctlreq.policy = policy;
 	ctlreq.cpu = cpu;
-	ctlreq.param = param;
-	ctlreq.info = info;
+	ctlreq.param_ptr = __evl_ptr64(param);
+	ctlreq.info_ptr = __evl_ptr64(info);
 
 	return do_call(evl_ctlfd, EVL_CTLIOC_SCHEDCTL, &ctlreq);
 }
@@ -61,7 +61,7 @@ int evl_get_cpustate(int cpu, int *state_r)
 		return -ENXIO;
 
 	cpst.cpu = cpu;
-	cpst.state = &state;
+	cpst.state_ptr = __evl_ptr64(&state);
 
 	ret = do_call(evl_ctlfd, EVL_CTLIOC_GET_CPUSTATE, &cpst);
 	if (ret)

@@ -7,7 +7,7 @@
 #ifndef _LIB_EVL_X86_SYSCALL_H
 #define _LIB_EVL_X86_SYSCALL_H
 
-#include <uapi/asm/evl/syscall.h>
+#include <uapi/asm-generic/dovetail.h>
 
 #define evl_syscall3(__nr, __a0, __a1, __a2)				\
 	({								\
@@ -18,7 +18,7 @@
 		__asm__ __volatile__ (					\
 			"syscall;\n\t"					\
 			: "=a" (__res)					\
-			: "0" ((__nr)|__EVL_SYSCALL_BIT),		\
+			: "0" ((__nr)|__OOB_SYSCALL_BIT),		\
 			  "r" (_a0), "r" (_a1), "r" (_a2)		\
 			: "cc", "memory", "r11", "cx");			\
 		(int)__res;						\

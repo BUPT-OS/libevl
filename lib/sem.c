@@ -190,7 +190,7 @@ int evl_timedget_sem(struct evl_sem *sem, const struct timespec *timeout)
 		return ret;
 
 	req.gatefd = -1;
-	req.timeout = __evl_ktimespec(timeout, kts);
+	req.timeout_ptr = __evl_ktimespec_ptr64(timeout, kts);
 	req.status = -EINVAL;
 	req.value = 0;		/* dummy */
 

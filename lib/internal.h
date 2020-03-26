@@ -13,6 +13,8 @@
 #include <evl/thread.h>
 #include <uapi/evl/types.h>
 
+#define __evl_ptr64(__ptr)	((__u64)(uintptr_t)(__ptr))
+
 #if __WORDSIZE == 64 || __TIMESIZE == 64
 /*
  * If timespec is y2038-safe, we don't need to bounce via an
@@ -65,6 +67,12 @@
 		__kitp;							\
 	})
 #endif
+
+#define __evl_ktimespec_ptr64(__ts, __kts)	\
+	__evl_ptr64(__evl_ktimespec(__ts, __kts))
+
+#define __evl_kitimerspec_ptr64(__its, __kits)	\
+	__evl_ptr64(__evl_kitimerspec(__its, __kits))
 
 extern __thread __attribute__ ((tls_model (EVL_TLS_MODEL)))
 fundle_t evl_current;

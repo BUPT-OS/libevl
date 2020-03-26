@@ -215,7 +215,7 @@ int evl_timedwait_event(struct evl_event *evt,
 		return ret;
 
 	req.gatefd = mutex->u.active.efd;
-	req.timeout = __evl_ktimespec(timeout, kts);
+	req.timeout_ptr = __evl_ktimespec_ptr64(timeout, kts);
 	req.status = -EINVAL;
 	req.value = 0;		/* dummy */
 	unwait.ureq.gatefd = req.gatefd;

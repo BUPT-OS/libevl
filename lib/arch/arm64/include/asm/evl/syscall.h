@@ -1,22 +1,22 @@
 /*
  * SPDX-License-Identifier: MIT
  *
- * Copyright (C) 2018 Philippe Gerum  <rpm@xenomai.org>
+ * Copyright (C) 2018-2020 Philippe Gerum  <rpm@xenomai.org>
  */
 
 #ifndef _LIB_EVL_ARM64_SYSCALL_H
 #define _LIB_EVL_ARM64_SYSCALL_H
 
-#include <uapi/asm/evl/syscall.h>
+#include <uapi/asm-generic/dovetail.h>
 
-#define evl_syscall3(__nr, __a0, __a1, __a2)			\
+#define evl_syscall3(__nr, __a0, __a1, __a2)				\
 	({								\
 		register unsigned int  __sc  __asm__("w8");		\
 		register unsigned long __res __asm__("x0");		\
 		register unsigned long __x0  __asm__("x0");		\
 		register unsigned long __x1  __asm__("x1");		\
 		register unsigned long __x2  __asm__("x2");		\
-		__sc = (unsigned int)((__nr)|__EVL_SYSCALL_BIT);	\
+		__sc = (unsigned int)((__nr)|__OOB_SYSCALL_BIT);	\
 		__x0 = (unsigned long)(__a0);				\
 		__x1 = (unsigned long)(__a1);				\
 		__x2 = (unsigned long)(__a2);				\

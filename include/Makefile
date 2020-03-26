@@ -11,12 +11,14 @@ uapi: $(O_UAPI)
 $(O_UAPI): $(O_DIR)/.uapi_stamp
 	@test -d $(UAPI)/ || (echo "make: UAPI: $(UAPI) does not look right" && exit 1)
 	$(Q)$(MKDIR_P) $(O_UAPI)
-	$(Q)$(RM) -f $(O_UAPI)/asm $(O_UAPI)/evl
+	$(Q)$(RM) -f $(O_UAPI)/asm $(O_UAPI)/asm-generic $(O_UAPI)/evl
 	$(Q)if test -r $(UAPI)/Kbuild; then					\
 		$(LN_S) $(UAPI)/arch/$(ARCH)/include/uapi/asm $(O_UAPI)/asm;	\
+		$(LN_S) $(UAPI)/include/uapi/asm-generic $(O_UAPI)/asm-generic;	\
 		$(LN_S) $(UAPI)/include/uapi/evl $(O_UAPI)/evl;			\
 	elif test \! -L	$(O_UAPI)/asm; then					\
 		$(LN_S) $(UAPI)/asm $(O_UAPI)/asm;				\
+		$(LN_S) $(UAPI)/asm-generic $(O_UAPI)/asm-generic;		\
 		$(LN_S) $(UAPI)/evl $(O_UAPI)/evl;				\
 	fi
 
