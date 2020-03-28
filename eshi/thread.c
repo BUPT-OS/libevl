@@ -22,6 +22,8 @@ struct evl_tsd {
 	pthread_t thread;
 } evl_tsd;
 
+static pthread_mutex_t evl_tsd_lock = PTHREAD_MUTEX_INITIALIZER;
+
 static pthread_key_t tsd_key;
 
 static void *fdtree_root;
@@ -51,7 +53,9 @@ int evl_attach_self(const char *fmt, ...)
 
 	evl_tsd.fd = fd;
 	evl_tsd.thread = pthread_self();
+	pthread_mutex_lock(&evl_tsd_lock);
 	node = (struct evl_tsd **)tsearch(&evl_tsd, &fdtree_root, compare_nodes);
+	pthread_mutex_unlock(&evl_tsd_lock);
 	if (!node) {
 		close(fd);
 		return -ENOMEM;
@@ -71,7 +75,9 @@ int evl_detach_self(void)
 		return -EPERM;
 
 	pthread_setspecific(tsd_key, NULL);
+	pthread_mutex_lock(&evl_tsd_lock);
 	tdelete(&evl_tsd, &fdtree_root, compare_nodes);
+	pthread_mutex_unlock(&evl_tsd_lock);
 	close(evl_efd);
 	evl_efd = -1;
 
@@ -89,7 +95,9 @@ pthread_t eshi_find_thread_by_fd(int fd)
 		.fd = fd,
 	}, **node;
 
+	pthread_mutex_lock(&evl_tsd_lock);
 	node = tsearch(&tsd, &fdtree_root, compare_nodes);
+	pthread_mutex_unlock(&evl_tsd_lock);
 	if (!node)
 		return (pthread_t)NULL;
 
