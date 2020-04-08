@@ -28,6 +28,7 @@ includedir	?= include
 bindir		?= bin
 testdir		?= tests
 libexecdir	?= libexec
+tbitsdir	?= tidbits
 
 export ARCH CROSS_COMPILE CC CXX LD AR UAPI CFLAGS LDFLAGS DESTDIR
 
