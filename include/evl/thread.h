@@ -10,6 +10,7 @@
 #include <linux/types.h>
 #include <limits.h>
 #include <stdbool.h>
+#include <sched.h>
 #include <evl/syscall.h>
 #include <uapi/evl/signal.h>
 #include <uapi/evl/thread.h>

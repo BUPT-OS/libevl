@@ -8,6 +8,7 @@
 #define _EVL_SCHED_H
 
 #include <sys/types.h>
+#include <sched.h>
 #include <uapi/evl/sched.h>
 
 #ifdef __cplusplus
