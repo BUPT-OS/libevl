@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 	evl_set_schedattr(tfd, &attrs);
 
 	param.quota.op = evl_quota_add;
-	evl_sched_control(SCHED_QUOTA, &param, &info, 0);
+	evl_control_sched(SCHED_QUOTA, &param, &info, 0);
 	evl_get_cpustate(0, &cpu_state);
 
 	return 0;

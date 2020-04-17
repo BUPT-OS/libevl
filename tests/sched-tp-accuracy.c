@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
 	p->tp.windows[3].duration.tv_sec = 0;
 	p->tp.windows[3].duration.tv_nsec = 230000000;
 	p->tp.windows[3].ptid = EVL_TP_IDLE;
-	ret = evl_sched_control(SCHED_TP, p, NULL, 0);
+	ret = evl_control_sched(SCHED_TP, p, NULL, 0);
 	if (ret == -EOPNOTSUPP)
 		return EXIT_NO_SUPPORT;
 	__Texpr_assert(ret == 0);
@@ -213,7 +213,7 @@ int main(int argc, char *argv[])
 
 	p->tp.op = evl_tp_get;
 	p->tp.nr_windows = NR_WINDOWS;
-	__Tcall_assert(ret, evl_sched_control(SCHED_TP, p, q, 0));
+	__Tcall_assert(ret, evl_control_sched(SCHED_TP, p, q, 0));
 
 	do_trace("check: %d windows", q->tp.nr_windows);
 	for (n = 0; n < 4; n++)
@@ -232,7 +232,7 @@ int main(int argc, char *argv[])
 
 	/* Start the TP schedule. */
 	p->tp.op = evl_tp_start;
-	__Tcall_assert(ret, evl_sched_control(SCHED_TP, p, NULL, 0));
+	__Tcall_assert(ret, evl_control_sched(SCHED_TP, p, NULL, 0));
 	free(p);
 
 	__Tcall_assert(ret, evl_put_sem(&barrier));

@@ -33,7 +33,7 @@ int evl_get_schedattr(int efd, struct evl_sched_attrs *attrs)
 	return do_call(efd, EVL_THRIOC_GET_SCHEDPARAM, attrs);
 }
 
-int evl_sched_control(int policy,
+int evl_control_sched(int policy,
 		const union evl_sched_ctlparam *param,
 		union evl_sched_ctlinfo *info,
 		int cpu)
