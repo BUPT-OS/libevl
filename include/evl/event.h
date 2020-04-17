@@ -26,35 +26,35 @@ struct evl_event {
 		struct {
 			const char *name;
 			int clockfd;
+			int flags;
 		} uninit;
 	} u;
 };
 
 #define __EVENT_UNINIT_MAGIC	0x01770177
 
-#define EVL_EVENT_ANY_INITIALIZER(__name, __clockfd)  {	\
-		.magic = __EVENT_UNINIT_MAGIC,		\
-		.u = {					\
-			.uninit = {			\
-				.name = (__name),	\
-				.clockfd = (__clockfd),	\
-			}				\
-		}					\
+#define EVL_EVENT_INITIALIZER(__name, __clockfd, __flags)  {	\
+		.magic = __EVENT_UNINIT_MAGIC,			\
+		.u = {						\
+			.uninit = {				\
+				.name = (__name),		\
+				.clockfd = (__clockfd),		\
+				.flags = (__flags),		\
+			}					\
+		}						\
 	}
 
-#define EVL_EVENT_INITIALIZER(__name)	\
-	EVL_EVENT_ANY_INITIALIZER(__name, EVL_CLOCK_MONOTONIC)
+#define evl_new_event(__evt, __fmt, __args...)		\
+	evl_create_event(__evt, EVL_CLOCK_MONOTONIC,	\
+			EVL_CLONE_PRIVATE, __fmt, ##__args)
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int evl_new_event_any(struct evl_event *evt,
-		int clockfd,
+int evl_create_event(struct evl_event *evt,
+		int clockfd, int flags,
 		const char *fmt, ...);
-
-#define evl_new_event(__evt, __fmt, __args...)	\
-	evl_new_event_any(__evt, EVL_CLOCK_MONOTONIC, __fmt, ##__args)
 
 int evl_open_event(struct evl_event *evt,
 		const char *fmt, ...);

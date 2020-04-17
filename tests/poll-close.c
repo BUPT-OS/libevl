@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 	__Tcall_assert(tfd, evl_attach_self("poller-close:%d", getpid()));
 
 	name = get_unique_name(EVL_XBUF_DEV, 0);
-	__Tcall_assert(xfd, evl_new_xbuf(1024, 1024, name));
+	__Tcall_assert(xfd, evl_new_xbuf(1024, name));
 
 	__Tcall_assert(pfd, evl_new_poll());
 	__Tcall_assert(ret, evl_add_pollfd(pfd, xfd, POLLIN));

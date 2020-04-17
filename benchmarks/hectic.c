@@ -398,7 +398,8 @@ static void attach_thread(struct task_params *param)
 
 	task_name(buffer, sizeof(buffer), param->cpu,param->swt.index);
 
-	efd = evl_attach_self("%s:%d", buffer, getpid());
+	/* Make it a public thread only for demo purpose. */
+	efd = evl_attach_self("/%s:%d", buffer, getpid());
 	if (efd < 0) {
 		perror("evl_attach()");
 		clean_exit(EXIT_FAILURE);

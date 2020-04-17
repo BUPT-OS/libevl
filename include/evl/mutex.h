@@ -12,9 +12,10 @@
 #include <evl/atomic.h>
 #include <uapi/evl/types.h>
 #include <uapi/evl/monitor.h>
+#include <uapi/evl/factory.h>
 
-#define EVL_MUTEX_NORMAL     0
-#define EVL_MUTEX_RECURSIVE  1
+#define EVL_MUTEX_NORMAL     (0 << 0)
+#define EVL_MUTEX_RECURSIVE  (1 << 0)
 
 #define __MUTEX_UNINIT_MAGIC	0xfe11fe11
 #define __MUTEX_ACTIVE_MAGIC	0xab12ab12
@@ -33,40 +34,37 @@ struct evl_mutex {
 			const char *name;
 			int clockfd;
 			unsigned int ceiling;
-			int monitor : 2,
-			    type : 1;
+			int flags;
+			int monitor : 2;
 		} uninit;
 	} u;
 };
 
-#define EVL_MUTEX_ANY_INITIALIZER(__type, __name, __clockfd, __ceiling)  { \
+#define EVL_MUTEX_INITIALIZER(__name, __clockfd, __ceiling, __flags)  { \
 		.magic = __MUTEX_UNINIT_MAGIC,				\
 		.u = {							\
 			.uninit = {					\
 				.name = (__name),			\
 				.clockfd = (__clockfd),			\
 				.ceiling = (__ceiling),			\
+				.flags = (__flags),			\
 				.monitor = EVL_MONITOR_GATE,		\
-				.type = (__type),			\
 			}						\
 		}							\
 	}
 
-#define EVL_MUTEX_INITIALIZER(__name)				\
-	EVL_MUTEX_ANY_INITIALIZER(EVL_MUTEX_NORMAL, __name,	\
-				EVL_CLOCK_MONOTONIC, 0)
+#define evl_new_mutex(__mutex, __fmt, __args...)		\
+	evl_create_mutex(__mutex, EVL_CLOCK_MONOTONIC,		\
+			0, EVL_MUTEX_NORMAL|EVL_CLONE_PRIVATE,	\
+			__fmt, ##__args)
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int evl_new_mutex_any(struct evl_mutex *mutex, int type,
-		int clockfd, unsigned int ceiling,
+int evl_create_mutex(struct evl_mutex *mutex,
+		int clockfd, unsigned int ceiling, int flags,
 		const char *fmt, ...);
-
-#define evl_new_mutex(__mutex, __fmt, __args...)		\
-	evl_new_mutex_any(__mutex, EVL_MUTEX_NORMAL,		\
-			EVL_CLOCK_MONOTONIC, 0, __fmt, ##__args)
 
 int evl_open_mutex(struct evl_mutex *mutex,
 		const char *fmt, ...);

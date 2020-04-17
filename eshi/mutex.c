@@ -13,8 +13,8 @@
 #define __MUTEX_ACTIVE_MAGIC	0xab12ab12
 #define __MUTEX_DEAD_MAGIC	0
 
-static int create_mutex(struct evl_mutex *mutex, int type,
-			int clockfd, int ceiling)
+static int create_mutex(struct evl_mutex *mutex, int clockfd,
+			unsigned int ceiling, int flags)
 {
 	int ret, fd, protocol, ptype;
 	pthread_mutexattr_t attr;
@@ -33,16 +33,10 @@ static int create_mutex(struct evl_mutex *mutex, int type,
 		return -EINVAL;
 	}
 
-	switch (type) {
-	case EVL_MUTEX_NORMAL:
-		ptype = PTHREAD_MUTEX_NORMAL;
-		break;
-	case EVL_MUTEX_RECURSIVE:
+	if (flags & EVL_MUTEX_RECURSIVE)
 		ptype = PTHREAD_MUTEX_RECURSIVE;
-		break;
-	default:
-		return -EINVAL;
-	}
+	else
+		ptype = PTHREAD_MUTEX_NORMAL;
 
 	fd = eventfd(1, EFD_CLOEXEC); /* Set to always readable. */
 	if (fd < 0)
@@ -76,11 +70,11 @@ static int create_mutex(struct evl_mutex *mutex, int type,
 	return 0;
 }
 
-int evl_new_mutex_any(struct evl_mutex *mutex, int type,
+int evl_create_mutex(struct evl_mutex *mutex,
 		int clockfd, unsigned int ceiling,
-		const char *fmt, ...)
+		int flags, const char *fmt, ...)
 {
-	return create_mutex(mutex, type, clockfd, ceiling) ?:
+	return create_mutex(mutex, clockfd, ceiling, flags) ?:
 		mutex->active.fd;
 }
 
@@ -90,9 +84,9 @@ static int check_sanity(struct evl_mutex *mutex)
 
 	if (mutex->magic == __MUTEX_UNINIT_MAGIC)
 		ret = create_mutex(mutex,
-				mutex->uninit.type,
 				mutex->uninit.clockfd,
-				mutex->uninit.ceiling);
+				mutex->uninit.ceiling,
+				mutex->uninit.flags);
 	else if (mutex->magic != __MUTEX_ACTIVE_MAGIC)
 		return -EINVAL;
 

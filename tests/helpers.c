@@ -25,9 +25,16 @@ char *get_unique_name_and_path(const char *type,
 	if (ret < 0)
 		error(1, ENOMEM, "malloc");
 
-	if (ppath)
+	/*
+	 * Since we need a path, this has to be a public element, so
+	 * we want the slash in.
+	 */
+	if (ppath) {
 		*ppath = path;
+		return strrchr(path, '/');
+	}
 
+	/* That one is private, skip the leading slash. */
 	return strrchr(path, '/') + 1;
 }
 

@@ -384,7 +384,8 @@ static void *timer_responder(void *arg)
 	int ret, efd;
 	__u32 mode;
 
-	efd = evl_attach_self("timer-responder:%d", getpid());
+	/* Make it a public thread only for demo purpose. */
+	efd = evl_attach_self("/timer-responder:%d", getpid());
 	if (efd < 0)
 		error(1, -efd, "evl_attach_self() failed");
 
@@ -415,6 +416,10 @@ static void *timer_test_sitter(void *arg)
 	struct latmus_result result;
 	int ret;
 
+	/*
+	 * Keep this service thread private by omitting the initial
+	 * slash character in the name.
+	 */
 	ret = evl_attach_self("test-sitter:%d", getpid());
 	if (ret < 0)
 		error(1, -ret, "evl_attach_self() failed");
@@ -445,7 +450,7 @@ static void setup_measurement_on_timer(void)
 	pthread_t sitter;
 	int ret, sig;
 
-	lat_xfd = evl_new_xbuf(1024, 0, "lat-data:%d", getpid());
+	lat_xfd = evl_create_xbuf(1024, 0, 0, "lat-data:%d", getpid());
 	if (lat_xfd < 0)
 		error(1, -lat_xfd, "cannot create xbuf");
 
@@ -519,7 +524,7 @@ static void *gpio_responder_thread(void *arg)
 	setup_gpio_pins(fds);
 
 	if (context_type == EVL_LAT_OOB_GPIO) {
-		efd = evl_attach_self("gpio-responder:%d", getpid());
+		efd = evl_attach_self("/gpio-responder:%d", getpid());
 		if (efd < 0)
 			error(1, -efd, "evl_attach_self() failed");
 
@@ -1380,7 +1385,7 @@ int main(int argc, char *const argv[])
 			       "period=%d microseconds (may take a while)\n",
 			       period_usecs);
 
-		ret = evl_attach_self("clock-tuner:%d", getpid());
+		ret = evl_attach_self("/clock-tuner:%d", getpid());
 		if (ret < 0)
 			error(1, -ret, "evl_attach_self() failed");
 

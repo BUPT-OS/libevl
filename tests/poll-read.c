@@ -68,10 +68,10 @@ int main(int argc, char *argv[])
 	param.sched_priority = 1;
 	__Texpr_assert(pthread_setschedparam(pthread_self(),
 				SCHED_FIFO, &param) == 0);
-	__Tcall_assert(tfd, evl_attach_self("poller-read:%d", getpid()));
+	__Tcall_assert(tfd, evl_attach_self("/poller-read:%d", getpid()));
 
 	name = get_unique_name_and_path(EVL_XBUF_DEV, 0, &path);
-	__Tcall_assert(xfd, evl_new_xbuf(1024, 1024, name));
+	__Tcall_assert(xfd, evl_new_xbuf(1024, name));
 
 	/*
 	 * We want to read any data present in the cross buffer,

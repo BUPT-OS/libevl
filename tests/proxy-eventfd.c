@@ -50,8 +50,8 @@ int main(int argc, char *argv[])
 	 * 64-bit write granularity, up to 3 buffered values before
 	 * oob_write() blocks waiting for the output to drain.
 	 */
-	__Tcall_assert(proxyfd, evl_new_proxy(evntfd, sizeof(uint64_t) * 3,
-						sizeof(uint64_t),
+	__Tcall_assert(proxyfd, evl_create_proxy(evntfd, sizeof(uint64_t) * 3,
+						sizeof(uint64_t), 0,
 						"event-reader:%d", getpid()));
 	new_thread(&tid, SCHED_FIFO, 1, writer, NULL);
 

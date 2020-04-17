@@ -21,13 +21,13 @@
 #include <evl/thread.h>
 #include <evl/syscall.h>
 #include <linux/types.h>
-#include <uapi/evl/factory.h>
 #include "internal.h"
 
 #define __FLAGS_ACTIVE_MAGIC	0xb42bb42b
 #define __FLAGS_DEAD_MAGIC	0
 
-int evl_new_flags_any(struct evl_flags *flg, int clockfd, int initval,
+int evl_create_flags(struct evl_flags *flg, int clockfd,
+		int initval, int flags,
 		const char *fmt, ...)
 {
 	struct evl_monitor_attrs attrs;
@@ -49,7 +49,8 @@ int evl_new_flags_any(struct evl_flags *flg, int clockfd, int initval,
 	attrs.protocol = EVL_EVENT_MASK;
 	attrs.clockfd = clockfd;
 	attrs.initval = initval;
-	efd = create_evl_element(EVL_MONITOR_DEV, name, &attrs, &eids);
+	efd = create_evl_element(EVL_MONITOR_DEV, name, &attrs,
+				flags & EVL_CLONE_MASK, &eids);
 	free(name);
 	if (efd < 0)
 		return efd;
@@ -127,9 +128,10 @@ static int check_sanity(struct evl_flags *flg)
 	int efd;
 
 	if (flg->magic == __FLAGS_UNINIT_MAGIC) {
-		efd = evl_new_flags_any(flg,
+		efd = evl_create_flags(flg,
 				flg->u.uninit.clockfd,
 				flg->u.uninit.initval,
+				flg->u.uninit.flags,
 				flg->u.uninit.name);
 		return efd < 0 ? efd : 0;
 	}

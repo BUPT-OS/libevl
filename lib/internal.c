@@ -6,6 +6,7 @@
 
 #include <sys/types.h>
 #include <sys/ioctl.h>
+#include <stdbool.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -18,7 +19,7 @@
 
 static void do_lart_once(void)
 {
-	fprintf(stderr,	"evl: core not present but stopped\n");
+	fprintf(stderr,	"evl: core present but stopped\n");
 }
 
 static void lart_once(void)
@@ -28,24 +29,27 @@ static void lart_once(void)
 }
 
 /*
- * Creating an EVL element is done by the following steps:
+ * Creating an EVL element is done in the following steps:
  *
  * 1. open the clone device of the proper element class.
  *
  * 2. issue ioctl(EVL_IOC_CLONE) to create a new element, passing
  * an attribute structure.
  *
- * 3. open the new element device, which file descriptor is returned
- * to the caller.
+ * 3. if EVL_CLONE_PUBLIC was mentioned in the clone_flags, open the
+ * new element device to get a file descriptor on it; otherwise an
+ * open descriptor is returned by EVL_IOC_CLONE for private
+ * elements.
  *
  * Except for threads, closing the last file descriptor referring to
  * an element causes its automatic deletion.
  */
 int create_evl_element(const char *type, const char *name,
-		void *attrs, struct evl_element_ids *eids)
+		void *attrs, int clone_flags,
+		struct evl_element_ids *eids)
 {
+	char *fdevname, *edevname = NULL;
 	struct evl_clone_req clone;
-	char *fdevname, *edevname;
 	int ffd, efd, ret;
 
 	ret = asprintf(&fdevname, "/dev/evl/%s/clone", type);
@@ -58,8 +62,21 @@ int create_evl_element(const char *type, const char *name,
 		goto out_factory;
 	}
 
+	/*
+	 * Turn on public mode if the user-provided name starts with a
+	 * slash.  Anonymous elements must be private by definition.
+	 */
+	if (!name) {
+		if (clone_flags & EVL_CLONE_PUBLIC)
+			return -EINVAL;
+	} else if (*name == '/') {
+		clone_flags |= EVL_CLONE_PUBLIC;
+		name++;
+	}
+
 	clone.name_ptr = __evl_ptr64(name);
 	clone.attrs_ptr = __evl_ptr64(attrs);
+	clone.clone_flags = clone_flags;
 	ret = ioctl(ffd, EVL_IOC_CLONE, &clone);
 	if (ret) {
 		ret = -errno;
@@ -68,21 +85,20 @@ int create_evl_element(const char *type, const char *name,
 		goto out_new;
 	}
 
-	if (name)
-		ret = asprintf(&edevname, "/dev/evl/%s/%s",
-			       type, name);
-	else
-		ret = asprintf(&edevname, "/dev/evl/%s/%d",
-			       type, clone.eids.minor);
-	if (ret < 0) {
-		ret = -ENOMEM;
-		goto out_new;
-	}
+	if (clone_flags & EVL_CLONE_PUBLIC) {
+		ret = asprintf(&edevname, "/dev/evl/%s/%s", type, name);
+		if (ret < 0) {
+			ret = -ENOMEM;
+			goto out_new;
+		}
 
-	efd = open(edevname, O_RDWR);
-	if (efd < 0) {
-		ret = -errno;
-		goto out_element;
+		efd = open(edevname, O_RDWR);
+		if (efd < 0) {
+			ret = -errno;
+			goto out_element;
+		}
+	} else {
+		efd = clone.efd;
 	}
 
 	ret = fcntl(efd, F_GETFD, 0);
@@ -103,7 +119,8 @@ int create_evl_element(const char *type, const char *name,
 	ret = efd;
 
 out_element:
-	free(edevname);
+	if (edevname)
+		free(edevname);
 out_new:
 	close(ffd);
 out_factory:

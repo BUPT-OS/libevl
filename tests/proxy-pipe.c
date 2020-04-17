@@ -48,8 +48,8 @@ int main(int argc, char *argv[])
 	char c, cmp;
 
 	__Tcall_assert(ret, pipe(pipefd));
-	__Tcall_assert(logfd, evl_new_proxy(pipefd[1], BUFFER_SIZE, 0,
-						"pipe-reader:%d", getpid()));
+	__Tcall_assert(logfd, evl_new_proxy(pipefd[1], BUFFER_SIZE,
+					"pipe-reader:%d", getpid()));
 	new_thread(&tid, SCHED_FIFO, 1, writer, NULL);
 
 	for (;;) {

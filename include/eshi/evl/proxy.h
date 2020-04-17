@@ -14,13 +14,16 @@
 #include <sys/types.h>
 #include <evl/uapi.h>
 
+#define evl_new_proxy(__targetfd, __bufsz, __fmt, __args...)	\
+	evl_create_proxy(__targetfd, __bufsz, 0, 0, __fmt, ##__args)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 static inline
-int evl_new_proxy(int fd, size_t bufsz, size_t granularity,
-		const char *fmt, ...)
+int evl_create_proxy(int fd, size_t bufsz, size_t granularity,
+		int flags, const char *fmt, ...)
 {
 	return fd;
 }

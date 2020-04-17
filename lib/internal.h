@@ -102,6 +102,7 @@ void init_proxy_streams(void);
 int create_evl_element(const char *type,
 		       const char *name,
 		       void *attrs,
+		       int clone_flags,
 		       struct evl_element_ids *eids);
 
 int open_evl_element_vargs(const char *type,

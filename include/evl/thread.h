@@ -15,6 +15,7 @@
 #include <uapi/evl/signal.h>
 #include <uapi/evl/thread.h>
 #include <uapi/evl/sched.h>
+#include <uapi/evl/factory.h>
 
 /* Enable dlopen() on libevl.so. */
 #define EVL_TLS_MODEL	"global-dynamic"
@@ -26,6 +27,9 @@
 			__ret = 65536;		\
 		__ret;				\
 	})
+
+#define evl_attach_self(__fmt, __args...)	\
+	evl_attach_self_flags(0, __fmt, ##__args)
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,7 +49,7 @@ static inline bool evl_is_inband(void)
 	return !!(evl_get_current_mode() & T_INBAND);
 }
 
-int evl_attach_self(const char *fmt, ...);
+int evl_attach_self_flags(int flags, const char *fmt, ...);
 
 int evl_detach_self(void);
 

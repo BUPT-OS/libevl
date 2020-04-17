@@ -20,14 +20,13 @@
 #include <evl/sem.h>
 #include <evl/thread.h>
 #include <evl/syscall.h>
-#include <linux/types.h>
-#include <uapi/evl/factory.h>
 #include "internal.h"
 
 #define __SEM_ACTIVE_MAGIC	0xcb13cb13
 #define __SEM_DEAD_MAGIC	0
 
-int evl_new_sem_any(struct evl_sem *sem, int clockfd, int initval,
+int evl_create_sem(struct evl_sem *sem, int clockfd,
+		int initval, int flags,
 		const char *fmt, ...)
 {
 	struct evl_monitor_attrs attrs;
@@ -49,7 +48,8 @@ int evl_new_sem_any(struct evl_sem *sem, int clockfd, int initval,
 	attrs.protocol = EVL_EVENT_COUNT;
 	attrs.clockfd = clockfd;
 	attrs.initval = initval;
-	efd = create_evl_element(EVL_MONITOR_DEV, name, &attrs, &eids);
+	efd = create_evl_element(EVL_MONITOR_DEV, name, &attrs,
+				flags & EVL_CLONE_MASK, &eids);
 	free(name);
 	if (efd < 0)
 		return efd;
@@ -127,9 +127,10 @@ static int check_sanity(struct evl_sem *sem)
 	int efd;
 
 	if (sem->magic == __SEM_UNINIT_MAGIC) {
-		efd = evl_new_sem_any(sem,
+		efd = evl_create_sem(sem,
 				sem->u.uninit.clockfd,
 				sem->u.uninit.initval,
+				sem->u.uninit.flags,
 				sem->u.uninit.name);
 		return efd < 0 ? efd : 0;
 	}

@@ -43,8 +43,8 @@ int main(int argc, char *argv[])
 	__Tcall_assert(tfd, evl_attach_self("monitor-pp-tryenter:%d", getpid()));
 
 	name = get_unique_name(EVL_MONITOR_DEV, 0);
-	__Tcall_assert(gfd, evl_new_mutex_any(&lock, EVL_MUTEX_NORMAL,
-				EVL_CLOCK_MONOTONIC, HIGH_PRIO, name));
+	__Tcall_assert(gfd, evl_create_mutex(&lock, EVL_CLOCK_MONOTONIC,
+					HIGH_PRIO, EVL_MUTEX_NORMAL, name));
 
 	/* Taking the fast locking path requires running OOB. */
 	__Tcall_assert(ret, evl_switch_oob());

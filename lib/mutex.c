@@ -22,15 +22,14 @@
 #include <evl/thread.h>
 #include <evl/syscall.h>
 #include <linux/types.h>
-#include <uapi/evl/factory.h>
 #include <uapi/evl/mutex.h>
 #include "internal.h"
 
 #define __MUTEX_DEAD_MAGIC	0
 
 static int init_mutex_vargs(struct evl_mutex *mutex,
-			int type, int protocol, int clockfd,
-			unsigned int ceiling,
+			int protocol, int clockfd,
+			unsigned int ceiling, int flags,
 			const char *fmt, va_list ap)
 {
 	struct evl_monitor_attrs attrs;
@@ -41,9 +40,6 @@ static int init_mutex_vargs(struct evl_mutex *mutex,
 
 	if (evl_shared_memory == NULL)
 		return -ENXIO;
-
-	if (type != EVL_MUTEX_NORMAL && type != EVL_MUTEX_RECURSIVE)
-		return -EINVAL;
 
 	/*
 	 * We align on the in-band SCHED_FIFO priority range. Although
@@ -66,13 +62,14 @@ static int init_mutex_vargs(struct evl_mutex *mutex,
 	attrs.protocol = protocol;
 	attrs.clockfd = clockfd;
 	attrs.initval = ceiling;
-	efd = create_evl_element(EVL_MONITOR_DEV, name, &attrs, &eids);
+	efd = create_evl_element(EVL_MONITOR_DEV, name, &attrs,
+				flags & EVL_CLONE_MASK, &eids);
 	free(name);
 	if (efd < 0)
 		return efd;
 
 	gst = evl_shared_memory + eids.state_offset;
-	gst->u.gate.recursive = type == EVL_MUTEX_RECURSIVE;
+	gst->u.gate.recursive = !!(flags & EVL_MUTEX_RECURSIVE);
 	mutex->u.active.state = gst;
 	/* Force sync the PTE. */
 	atomic_set(&gst->u.gate.owner, EVL_NO_HANDLE);
@@ -87,15 +84,15 @@ static int init_mutex_vargs(struct evl_mutex *mutex,
 }
 
 static int init_mutex_static(struct evl_mutex *mutex,
-			int type, int clockfd, unsigned int ceiling,
-			const char *fmt, ...)
+			int clockfd, unsigned int ceiling,
+			int flags, const char *fmt, ...)
 {
 	int efd, protocol = ceiling ? EVL_GATE_PP : EVL_GATE_PI;
 	va_list ap;
 
 	va_start(ap, fmt);
-	efd = init_mutex_vargs(mutex, type, protocol, clockfd,
-			ceiling, fmt, ap);
+	efd = init_mutex_vargs(mutex, protocol, clockfd,
+			ceiling, flags, fmt, ap);
 	va_end(ap);
 
 	return efd;
@@ -140,17 +137,17 @@ fail:
 	return ret;
 }
 
-int evl_new_mutex_any(struct evl_mutex *mutex, int type,
+int evl_create_mutex(struct evl_mutex *mutex,
 		int clockfd, unsigned int ceiling,
-		const char *fmt, ...)
+		int flags, const char *fmt, ...)
 {
 	int efd, protocol;
 	va_list ap;
 
 	protocol = ceiling ? EVL_GATE_PP : EVL_GATE_PI;
 	va_start(ap, fmt);
-	efd = init_mutex_vargs(mutex, type, protocol,
-			clockfd, ceiling, fmt, ap);
+	efd = init_mutex_vargs(mutex, protocol,
+			clockfd, ceiling, flags, fmt, ap);
 	va_end(ap);
 
 	return efd;
@@ -205,9 +202,9 @@ static int try_lock(struct evl_mutex *mutex)
 	if (mutex->magic == __MUTEX_UNINIT_MAGIC &&
 		mutex->u.uninit.monitor == EVL_MONITOR_GATE) {
 		ret = init_mutex_static(mutex,
-				mutex->u.uninit.type,
 				mutex->u.uninit.clockfd,
 				mutex->u.uninit.ceiling,
+				mutex->u.uninit.flags,
 				mutex->u.uninit.name);
 		if (ret < 0)
 			return ret;

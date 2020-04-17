@@ -13,6 +13,7 @@
 #include <uapi/evl/types.h>
 #include <uapi/evl/monitor.h>
 #include <uapi/evl/clock.h>
+#include <uapi/evl/factory.h>
 
 struct evl_sem {
 	unsigned int magic;
@@ -26,36 +27,36 @@ struct evl_sem {
 			const char *name;
 			int clockfd;
 			int initval;
+			int flags;
 		} uninit;
 	} u;
 };
 
 #define __SEM_UNINIT_MAGIC	0xed15ed15
 
-#define EVL_SEM_ANY_INITIALIZER(__name, __clockfd, __initval)  {\
-		.magic = __SEM_UNINIT_MAGIC,			\
-		.u = {						\
-			.uninit = {				\
-				.name = (__name),		\
-				.clockfd = (__clockfd),		\
-				.initval = (__initval),		\
-			}					\
-		}						\
+#define EVL_SEM_INITIALIZER(__name, __clockfd, __initval, __flags)  { \
+		.magic = __SEM_UNINIT_MAGIC,			      \
+		.u = {					      	      \
+			.uninit = {				      \
+				.name = (__name),		      \
+				.clockfd = (__clockfd),		      \
+				.initval = (__initval),		      \
+				.flags = (__flags),		      \
+			}					      \
+		}						      \
 	}
 
-#define EVL_SEM_INITIALIZER(__name)  \
-	EVL_SEM_ANY_INITIALIZER(__name, EVL_CLOCK_MONOTONIC, 0)
+#define evl_new_sem(__sem, __fmt, __args...)		 \
+	evl_create_sem(__sem, EVL_CLOCK_MONOTONIC, 0,	 \
+		EVL_CLONE_PRIVATE, __fmt, ##__args)
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int evl_new_sem_any(struct evl_sem *sem,
-		int clockfd, int initval,
+int evl_create_sem(struct evl_sem *sem,
+		int clockfd, int initval, int flags,
 		const char *fmt, ...);
-
-#define evl_new_sem(__sem, __fmt, __args...)	\
-	evl_new_sem_any(__sem, EVL_CLOCK_MONOTONIC, 0, __fmt, ##__args)
 
 int evl_open_sem(struct evl_sem *sem,
 		 const char *fmt, ...);

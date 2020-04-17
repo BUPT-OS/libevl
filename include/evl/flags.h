@@ -13,6 +13,7 @@
 #include <uapi/evl/types.h>
 #include <uapi/evl/monitor.h>
 #include <uapi/evl/clock.h>
+#include <uapi/evl/factory.h>
 
 struct evl_flags {
 	unsigned int magic;
@@ -21,6 +22,7 @@ struct evl_flags {
 			const char *name;
 			int clockfd;
 			int initval;
+			int flags;
 		} uninit;
 		struct {
 			fundle_t fundle;
@@ -32,30 +34,29 @@ struct evl_flags {
 
 #define __FLAGS_UNINIT_MAGIC	0xfebcfebc
 
-#define EVL_FLAGS_ANY_INITIALIZER(__name, __clockfd, __initval)  {	\
+#define EVL_FLAGS_INITIALIZER(__name, __clockfd, __initval, __flags)  { \
 		.magic = __FLAGS_UNINIT_MAGIC,				\
 		.u = {							\
 			.uninit = {					\
 				.name = (__name),			\
 				.clockfd = (__clockfd),			\
 				.initval = (__initval),			\
+				.flags = (__flags),			\
 			}						\
 		}							\
 	}
 
-#define EVL_FLAGS_INITIALIZER(__name)	\
-	EVL_FLAGS_ANY_INITIALIZER(__name, EVL_CLOCK_MONOTONIC, 0)
+#define evl_new_flags(__flg, __fmt, __args...)		    \
+	evl_create_flags(__flg, EVL_CLOCK_MONOTONIC, 0,	    \
+			EVL_CLONE_PRIVATE, __fmt, ##__args)
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int evl_new_flags_any(struct evl_flags *flg,
-		int clockfd, int initval,
+int evl_create_flags(struct evl_flags *flg,
+		int clockfd, int initval, int flags,
 		const char *fmt, ...);
-
-#define evl_new_flags(__flg, __fmt, __args...)	\
-	evl_new_flags_any(__flg, EVL_CLOCK_MONOTONIC, 0, __fmt, ##__args)
 
 int evl_open_flags(struct evl_flags *flg,
 		const char *fmt, ...);

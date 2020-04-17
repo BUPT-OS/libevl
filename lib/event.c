@@ -22,7 +22,6 @@
 #include <evl/thread.h>
 #include <evl/syscall.h>
 #include <linux/types.h>
-#include <uapi/evl/factory.h>
 #include <uapi/evl/mutex.h>
 #include "internal.h"
 
@@ -30,7 +29,8 @@
 #define __EVENT_DEAD_MAGIC	0
 
 static int init_event_vargs(struct evl_event *evt,
-			int clockfd, const char *fmt, va_list ap)
+			int clockfd, int flags,
+			const char *fmt, va_list ap)
 {
 	struct evl_monitor_attrs attrs;
 	struct evl_element_ids eids;
@@ -48,7 +48,8 @@ static int init_event_vargs(struct evl_event *evt,
 	attrs.protocol = EVL_EVENT_GATED;
 	attrs.clockfd = clockfd;
 	attrs.initval = 0;
-	efd = create_evl_element(EVL_MONITOR_DEV, name, &attrs, &eids);
+	efd = create_evl_element(EVL_MONITOR_DEV, name, &attrs,
+				flags & EVL_CLONE_MASK, &eids);
 	free(name);
 	if (efd < 0)
 		return efd;
@@ -63,13 +64,14 @@ static int init_event_vargs(struct evl_event *evt,
 }
 
 static int init_event_static(struct evl_event *evt,
-		int clockfd, const char *fmt, ...)
+			int clockfd, int flags,
+			const char *fmt, ...)
 {
 	va_list ap;
 	int efd;
 
 	va_start(ap, fmt);
-	efd = init_event_vargs(evt, clockfd, fmt, ap);
+	efd = init_event_vargs(evt, clockfd, flags, fmt, ap);
 	va_end(ap);
 
 	return efd;
@@ -110,14 +112,14 @@ fail:
 	return ret;
 }
 
-int evl_new_event_any(struct evl_event *evt,
-		int clockfd, const char *fmt, ...)
+int evl_create_event(struct evl_event *evt,
+		int clockfd, int flags, const char *fmt, ...)
 {
 	va_list ap;
 	int efd;
 
 	va_start(ap, fmt);
-	efd = init_event_vargs(evt, clockfd, fmt, ap);
+	efd = init_event_vargs(evt, clockfd, flags, fmt, ap);
 	va_end(ap);
 
 	return efd;
@@ -163,6 +165,7 @@ static int check_event_sanity(struct evl_event *evt)
 
 	if (evt->magic == __EVENT_UNINIT_MAGIC) {
 		efd = init_event_static(evt, evt->u.uninit.clockfd,
+					evt->u.uninit.flags,
 					evt->u.uninit.name);
 		if (efd < 0)
 			return efd;

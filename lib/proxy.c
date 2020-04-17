@@ -11,7 +11,6 @@
 #include <evl/proxy.h>
 #include <evl/thread.h>
 #include <evl/syscall.h>
-#include <uapi/evl/proxy.h>
 #include "internal.h"
 
 #define STDSTREAM_BUFSZ  16384
@@ -27,14 +26,14 @@ void init_proxy_streams(void)
 	 * This might fail if stdout/stderr are closed, just ignore if
 	 * so.
 	 */
-	proxy_outfd = evl_new_proxy(fileno(stdout), STDSTREAM_BUFSZ, 0,
+	proxy_outfd = evl_new_proxy(fileno(stdout), STDSTREAM_BUFSZ,
 		"stdout:%d", getpid());
-	proxy_errfd = evl_new_proxy(fileno(stderr), STDSTREAM_BUFSZ, 0,
+	proxy_errfd = evl_new_proxy(fileno(stderr), STDSTREAM_BUFSZ,
 		"stderr:%d", getpid());
 }
 
-int evl_new_proxy(int targetfd, size_t bufsz, size_t granularity,
-		const char *fmt, ...)
+int evl_create_proxy(int targetfd, size_t bufsz, size_t granularity,
+		int flags, const char *fmt, ...)
 {
 	struct evl_proxy_attrs attrs;
 	int ret, efd;
@@ -50,7 +49,8 @@ int evl_new_proxy(int targetfd, size_t bufsz, size_t granularity,
 	attrs.fd = targetfd;
 	attrs.bufsz = bufsz;
 	attrs.granularity = granularity;
-	efd = create_evl_element(EVL_PROXY_DEV, name, &attrs, NULL);
+	efd = create_evl_element(EVL_PROXY_DEV, name, &attrs,
+				flags & EVL_CLONE_MASK, NULL);
 	free(name);
 
 	return efd;

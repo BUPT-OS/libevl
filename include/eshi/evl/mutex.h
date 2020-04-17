@@ -11,8 +11,8 @@
 #include <pthread.h>
 #include <evl/clock.h>
 
-#define EVL_MUTEX_NORMAL     0
-#define EVL_MUTEX_RECURSIVE  1
+#define EVL_MUTEX_NORMAL     (0 << 0)
+#define EVL_MUTEX_RECURSIVE  (1 << 0)
 
 #define __MUTEX_ACTIVE_MAGIC	0xab12ab12
 #define __MUTEX_UNINIT_MAGIC	0xfe11fe11
@@ -29,36 +29,32 @@ struct evl_mutex {
 			const char *name;
 			int clockfd;
 			unsigned int ceiling;
-			int type;
+			unsigned int flags;
 		} uninit;
 	};
 };
 
-#define EVL_MUTEX_ANY_INITIALIZER(__type, __name, __clockfd, __ceiling)  { \
+#define EVL_MUTEX_INITIALIZER(__name, __clockfd, __ceiling, __flags)  { \
 		.magic = __MUTEX_UNINIT_MAGIC,				\
 		.uninit = {						\
 			.name = (__name),				\
 			.clockfd = (__clockfd),				\
 			.ceiling = (__ceiling),				\
-			.type = (__type),				\
+			.flags = (__flags),				\
 		}							\
 	}
 
-#define EVL_MUTEX_INITIALIZER(__name)				\
-	EVL_MUTEX_ANY_INITIALIZER(EVL_MUTEX_NORMAL, __name,	\
-				EVL_CLOCK_MONOTONIC, 0)
+#define evl_new_mutex(__mutex, __fmt, __args...)	\
+	evl_create_mutex(__mutex, EVL_CLOCK_MONOTONIC,	\
+			0, EVL_MUTEX_NORMAL, __fmt, ##__args)
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int evl_new_mutex_any(struct evl_mutex *mutex, int type,
-		int clockfd, unsigned int ceiling,
+int evl_create_mutex(struct evl_mutex *mutex, int clockfd,
+		unsigned int ceiling, int flags,
 		const char *fmt, ...);
-
-#define evl_new_mutex(__mutex, __fmt, __args...)		\
-	evl_new_mutex_any(__mutex, EVL_MUTEX_NORMAL,		\
-			EVL_CLOCK_MONOTONIC, 0, __fmt, ##__args)
 
 int evl_lock_mutex(struct evl_mutex *mutex);
 

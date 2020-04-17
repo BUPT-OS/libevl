@@ -53,16 +53,16 @@ int main(int argc, char *argv[])
 
 	strcpy(p, "mapfd-test");
 
-	ret = asprintf(&name, "proxy:%d", getpid());
+	ret = asprintf(&name, "/proxy:%d", getpid());
 	(void)ret;
-	__Tcall_assert(efd, evl_new_proxy(memfd, 0, 0, "%s", name));
+	__Tcall_assert(efd, evl_new_proxy(memfd, 0, "%s", name));
 
 	switch (fork()) {
 	case 0:
 		sleep(1);
 		return 0;
 	default:
-		execlp(argv[0], "mapfd", name, NULL);
+		execlp(argv[0], "mapfd", name + 1, NULL);
 		return 1;
 	}
 

@@ -10,8 +10,8 @@
 #include <evl/xbuf.h>
 #include "internal.h"
 
-int evl_new_xbuf(size_t i_bufsz, size_t o_bufsz,
-		const char *fmt, ...)
+int evl_create_xbuf(size_t i_bufsz, size_t o_bufsz,
+		int flags, const char *fmt, ...)
 {
 	struct evl_xbuf_attrs attrs;
 	int ret, efd;
@@ -26,7 +26,8 @@ int evl_new_xbuf(size_t i_bufsz, size_t o_bufsz,
 
 	attrs.i_bufsz = i_bufsz;
 	attrs.o_bufsz = o_bufsz;
-	efd = create_evl_element(EVL_XBUF_DEV, name, &attrs, NULL);
+	efd = create_evl_element(EVL_XBUF_DEV, name, &attrs,
+				flags & EVL_CLONE_MASK, NULL);
 	free(name);
 
 	return efd;

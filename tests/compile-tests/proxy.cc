@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 {
 	int efd;
 
-	efd = evl_new_proxy(1, 8192, 0, "test-proxy");
+	efd = evl_new_proxy(1, 8192, "test-proxy");
 	evl_send_proxy(efd, NULL, 0);
 	do_vprint(efd, "%s,%d", "string", 42);
 	evl_printf("%s,%d", "string", 42);

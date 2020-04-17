@@ -11,13 +11,19 @@
 #include <sys/types.h>
 #include <linux/types.h>
 #include <stdio.h>
+#include <uapi/evl/proxy.h>
+#include <uapi/evl/factory.h>
+
+#define evl_new_proxy(__targetfd, __bufsz, __fmt, __args...)		\
+	evl_create_proxy(__targetfd, __bufsz, 0, EVL_CLONE_PRIVATE,	\
+			__fmt, ##__args)
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int evl_new_proxy(int targetfd, size_t bufsz,
-		size_t granularity,
+int evl_create_proxy(int targetfd, size_t bufsz,
+		size_t granularity, int flags,
 		const char *fmt, ...);
 
 ssize_t evl_send_proxy(int proxyfd,

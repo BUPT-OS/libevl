@@ -50,7 +50,7 @@ static void do_atfork_once(void)
 	pthread_atfork(NULL, NULL, atfork_clear_tls);
 }
 
-int evl_attach_self(const char *fmt, ...)
+int evl_attach_self_flags(int flags, const char *fmt, ...)
 {
 	int efd, ret, policy, priority;
 	struct evl_sched_attrs attrs;
@@ -81,7 +81,8 @@ int evl_attach_self(const char *fmt, ...)
 	if (ret < 0)
 		return -ENOMEM;
 
-	efd = create_evl_element(EVL_THREAD_DEV, name, NULL, &eids);
+	efd = create_evl_element(EVL_THREAD_DEV, name, NULL,
+				flags & EVL_CLONE_MASK, &eids);
 	free(name);
 	if (efd < 0)
 		return efd;
