@@ -50,7 +50,7 @@ static void do_atfork_once(void)
 	pthread_atfork(NULL, NULL, atfork_clear_tls);
 }
 
-int evl_attach_self_flags(int flags, const char *fmt, ...)
+int evl_attach_thread(int flags, const char *fmt, ...)
 {
 	int efd, ret, policy, priority;
 	struct evl_sched_attrs attrs;
@@ -132,10 +132,14 @@ fail:
 	return ret;
 }
 
-int evl_detach_self(void)
+int evl_detach_thread(int flags)
 {
 	__u32 mode = T_WOSS;
 	int ret;
+
+	 /* flags are unused so far and should be zero. */
+	if (flags)
+		return -EINVAL;
 
 	if (evl_current == EVL_NO_HANDLE)
 		return -EPERM;

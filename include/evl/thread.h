@@ -29,7 +29,7 @@
 	})
 
 #define evl_attach_self(__fmt, __args...)	\
-	evl_attach_self_flags(0, __fmt, ##__args)
+	evl_attach_thread(EVL_CLONE_PRIVATE, __fmt, ##__args)
 
 #ifdef __cplusplus
 extern "C" {
@@ -49,9 +49,14 @@ static inline bool evl_is_inband(void)
 	return !!(evl_get_current_mode() & T_INBAND);
 }
 
-int evl_attach_self_flags(int flags, const char *fmt, ...);
+int evl_attach_thread(int flags, const char *fmt, ...);
 
-int evl_detach_self(void);
+int evl_detach_thread(int flags);
+
+static inline int evl_detach_self(void)
+{
+	return evl_detach_thread(0);
+}
 
 int evl_get_self(void);
 
