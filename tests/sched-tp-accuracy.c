@@ -24,9 +24,6 @@
 			evl_printf(__fmt "\n", ##__args);	\
 	} while (0)
 
-#define do_warn(__fmt, __args...)	\
-	fprintf(stderr, __fmt "\n", ##__args)
-
 static pthread_t threadA, threadB, threadC;
 
 /*
@@ -51,11 +48,7 @@ static int verbose;
 
 static void usage(void)
 {
-        fprintf(stderr, "usage: heap-torture [options]:\n");
-        fprintf(stderr, "-s --sequential-test-size    heap size for sequential access tests\n");
-        fprintf(stderr, "-p --pattern-test-size       heap size for pattern tests\n");
-        fprintf(stderr, "-c --pattern-check-rounds    number of pattern tests\n");
-        fprintf(stderr, "-r --random-check-rounds     number of random allocation tests\n");
+        fprintf(stderr, "usage: sched-tp-accuracy [options]:\n");
         fprintf(stderr, "-v --verbose                 turn on verbosity\n");
 }
 
@@ -251,7 +244,7 @@ int main(int argc, char *argv[])
 		return 0;
 
 	if (overflow) {
-		do_warn("schedule overflowed");
+		do_trace("schedule overflowed");
 		return 1;
 	}
 
@@ -263,7 +256,7 @@ int main(int argc, char *argv[])
 	 */
 	s = strstr(ref_schedule, schedule);
 	if (s == NULL || s - ref_schedule > 1) {
-		do_warn("unexpected schedule:\n%s", schedule);
+		do_trace("unexpected schedule:\n%s", schedule);
 		return 2;
 	}
 
