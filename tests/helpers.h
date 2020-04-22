@@ -9,11 +9,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <stdbool.h>
 #include <pthread.h>
 #include <linux/ioctl.h>
 #include <evl/proxy.h>
 
 #define EXIT_NO_SUPPORT  42
+
+#define ONE_BILLION	1000000000
 
 #define __stringify_1(x...)	#x
 #define __stringify(x...)	__stringify_1(x)
@@ -124,5 +127,8 @@ void new_thread(pthread_t *tid, int policy, int prio,
 void timespec_add_ns(struct timespec *__restrict r,
 		const struct timespec *__restrict t,
 		long ns);
+
+int pick_test_cpu(int hint_cpu,
+		bool inband_test, bool *isolated);
 
 #endif /* !_EVL_TESTS_HELPERS_H */
