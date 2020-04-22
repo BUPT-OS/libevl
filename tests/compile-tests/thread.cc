@@ -13,10 +13,17 @@ int main(int argc, char *argv[])
 	int tfd;
 
 	tfd = evl_attach_self("test");
+	tfd = evl_attach_thread(EVL_CLONE_PUBLIC, "test");
+	evl_detach_self();
+	evl_detach_thread(0);
 	evl_get_self();
 	evl_switch_oob();
 	evl_switch_inband();
 	evl_get_state(tfd, &statebuf);
+	evl_unblock_thread(tfd);
+	evl_demote_thread(tfd);
+	evl_set_thread_mode(tfd, 0, NULL);
+	evl_clear_thread_mode(tfd, 0, NULL);
 
 	return 0;
 }

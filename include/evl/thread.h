@@ -70,6 +70,12 @@ int evl_unblock_thread(int efd);
 
 int evl_demote_thread(int efd);
 
+int evl_set_thread_mode(int efd, int mask,
+			int *oldmask);
+
+int evl_clear_thread_mode(int efd, int mask,
+			int *oldmask);
+
 #ifdef __cplusplus
 }
 #endif

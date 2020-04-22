@@ -209,3 +209,28 @@ int evl_demote_thread(int efd)
 {
 	return __evl_common_ioctl(efd, EVL_THRIOC_DEMOTE);
 }
+
+static int do_thread_mode(int efd, int op, int mask, int *oldmask)
+{
+	__u32 val = mask;
+	int ret;
+
+	ret = __evl_common_ioctl(efd, op, &val);
+	if (ret)
+		return ret;
+
+	if (oldmask)
+		*oldmask = val;
+
+	return 0;
+}
+
+int evl_set_thread_mode(int efd, int mask, int *oldmask)
+{
+	return do_thread_mode(efd, EVL_THRIOC_SET_MODE, mask, oldmask);
+}
+
+int evl_clear_thread_mode(int efd, int mask, int *oldmask)
+{
+	return do_thread_mode(efd, EVL_THRIOC_CLEAR_MODE, mask, oldmask);
+}
