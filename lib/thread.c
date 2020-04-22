@@ -197,12 +197,15 @@ int evl_switch_inband(void)
 
 int evl_get_state(int efd, struct evl_thread_state *statebuf)
 {
-	int ret;
+	return __evl_common_ioctl(efd, EVL_THRIOC_GET_STATE, statebuf);
+}
 
-	if (evl_is_inband())
-		ret = ioctl(efd, EVL_THRIOC_GET_STATE, statebuf);
-	else
-		ret = oob_ioctl(efd, EVL_THRIOC_GET_STATE, statebuf);
+int evl_unblock_thread(int efd)
+{
+	return __evl_common_ioctl(efd, EVL_THRIOC_UNBLOCK);
+}
 
-	return ret ? -errno : 0;
+int evl_demote_thread(int efd)
+{
+	return __evl_common_ioctl(efd, EVL_THRIOC_DEMOTE);
 }

@@ -66,6 +66,10 @@ int evl_switch_inband(void);
 
 int evl_get_state(int efd, struct evl_thread_state *statebuf);
 
+int evl_unblock_thread(int efd);
+
+int evl_demote_thread(int efd);
+
 #ifdef __cplusplus
 }
 #endif
