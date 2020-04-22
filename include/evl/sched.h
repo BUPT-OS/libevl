@@ -26,6 +26,8 @@ int evl_control_sched(int policy,
 
 int evl_get_cpustate(int cpu, int *state_r);
 
+int evl_yield(void);
+
 #ifdef __cplusplus
 }
 #endif

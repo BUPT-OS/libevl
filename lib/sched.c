@@ -71,3 +71,12 @@ int evl_get_cpustate(int cpu, int *state_r)
 
 	return 0;
 }
+
+int evl_yield(void)
+{
+	if (evl_current == EVL_NO_HANDLE)
+		return -EPERM;
+
+	/* This is our sched_yield(). */
+	return oob_ioctl(evl_efd, EVL_THRIOC_YIELD) ? -errno : 0;
+}

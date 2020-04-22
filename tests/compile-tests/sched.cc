@@ -22,6 +22,7 @@ int main(int argc, char *argv[])
 	param.quota.op = evl_quota_add;
 	evl_control_sched(SCHED_QUOTA, &param, &info, 0);
 	evl_get_cpustate(0, &cpu_state);
+	evl_yield();
 
 	return 0;
 }
