@@ -42,19 +42,32 @@ static const char ref_schedule[] =
 
 static char schedule[sizeof(ref_schedule) + 8], *curr = schedule;
 
-static int overflow;
+/*
+ * Try CPU1 first, since we may have a lot of in-band stuff going on
+ * CPU0 which we may not want to stall too much while testing
+ * (e.g. IRQ handling).
+ */
+static int test_cpu = 1;
 
-static int verbose;
+static bool overflow;
+
+static bool verbose;
 
 static void usage(void)
 {
         fprintf(stderr, "usage: sched-tp-accuracy [options]:\n");
+        fprintf(stderr, "-c --cpu                     run test on given CPU [=1]\n");
         fprintf(stderr, "-v --verbose                 turn on verbosity\n");
 }
 
-#define short_optlist "v"
+#define short_optlist "vc:"
 
 static const struct option options[] = {
+	{
+		.name = "cpu",
+		.has_arg = required_argument,
+		.val = 'c',
+	},
 	{
 		.name = "verbose",
 		.has_arg = no_argument,
@@ -63,10 +76,22 @@ static const struct option options[] = {
 	{ /* Sentinel */ }
 };
 
+static void set_thread_affinity(void)
+{
+	cpu_set_t affinity;
+	int ret;
+
+	CPU_ZERO(&affinity);
+	CPU_SET(test_cpu, &affinity);
+	__Tcall_assert(ret, sched_setaffinity(0, sizeof(affinity), &affinity));
+}
+
 static void *tp_thread(void *arg)
 {
 	int ret, part = (int)(long)arg, efd;
 	struct evl_sched_attrs attrs;
+
+	set_thread_affinity();
 
 	__Tcall_assert(efd, evl_attach_self("sched-tp-accuracy:%d.%d",
 						getpid(), part));
@@ -88,7 +113,7 @@ static void *tp_thread(void *arg)
 		__Tcall_assert(ret, evl_lock_mutex(&lock));
 		if (curr >= schedule + sizeof(schedule)) {
 			__Tcall_assert(ret, evl_unlock_mutex(&lock));
-			overflow = 1;
+			overflow = true;
 			break;
 		}
 		*curr++ = 'A' + part;
@@ -103,7 +128,6 @@ int main(int argc, char *argv[])
 {
 	union evl_sched_ctlparam *p;
 	union evl_sched_ctlinfo *q;
-	cpu_set_t affinity;
 	int ret, n, c;
 	size_t len;
 	char *s;
@@ -117,7 +141,12 @@ int main(int argc, char *argv[])
 		case 0:
 			break;
 		case 'v':
-			verbose = 1;
+			verbose = true;
+			break;
+		case 'c':
+			test_cpu = atoi(optarg);
+			if (test_cpu < 0 || test_cpu >= CPU_SETSIZE)
+				error(1, EINVAL, "invalid CPU number");
 			break;
 		case '?':
 		default:
@@ -136,13 +165,13 @@ int main(int argc, char *argv[])
 	__Tcall_assert(ret, evl_new_mutex(&lock, "tp-mutex:%d", getpid()));
 
 	/*
-	 * We need all threads to be pinned on CPU0, so that
+	 * We need all threads to be pinned on the test CPU, so that
 	 * evl_set_schedattr() implicitly refers to the TP schedule we
-	 * are about to install on that particular CPU.
+	 * are about to install on that particular processor.
 	 */
-	CPU_ZERO(&affinity);
-	CPU_SET(0, &affinity);
-	__Tcall_assert(ret, sched_setaffinity(0, sizeof(affinity), &affinity));
+	test_cpu = pick_test_cpu(test_cpu, false, NULL);
+	do_trace("picked CPU%d for execution", test_cpu);
+	set_thread_affinity();
 
 	/*
 	 * For a recurring global time frame of 400 ms, we define a TP
@@ -193,10 +222,7 @@ int main(int argc, char *argv[])
 	p->tp.windows[3].duration.tv_sec = 0;
 	p->tp.windows[3].duration.tv_nsec = 230000000;
 	p->tp.windows[3].ptid = EVL_TP_IDLE;
-	ret = evl_control_sched(SCHED_TP, p, NULL, 0);
-	if (ret == -EOPNOTSUPP)
-		return EXIT_NO_SUPPORT;
-	__Texpr_assert(ret == 0);
+	__Tcall_assert(ret, evl_control_sched(SCHED_TP, p, NULL, test_cpu));
 
 	/* Then query the settings back. */
 	len = evl_tp_infolen(NR_WINDOWS);
@@ -206,7 +232,7 @@ int main(int argc, char *argv[])
 
 	p->tp.op = evl_tp_get;
 	p->tp.nr_windows = NR_WINDOWS;
-	__Tcall_assert(ret, evl_control_sched(SCHED_TP, p, q, 0));
+	__Tcall_assert(ret, evl_control_sched(SCHED_TP, p, q, test_cpu));
 
 	do_trace("check: %d windows", q->tp.nr_windows);
 	for (n = 0; n < 4; n++)
@@ -225,7 +251,7 @@ int main(int argc, char *argv[])
 
 	/* Start the TP schedule. */
 	p->tp.op = evl_tp_start;
-	__Tcall_assert(ret, evl_control_sched(SCHED_TP, p, NULL, 0));
+	__Tcall_assert(ret, evl_control_sched(SCHED_TP, p, NULL, test_cpu));
 	free(p);
 
 	__Tcall_assert(ret, evl_put_sem(&barrier));
