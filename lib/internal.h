@@ -74,6 +74,16 @@
 #define __evl_kitimerspec_ptr64(__its, __kits)	\
 	__evl_ptr64(__evl_kitimerspec(__its, __kits))
 
+#define __evl_common_ioctl(__efd, __args...)			\
+	({							\
+		int __ret;					\
+		if (evl_is_inband())				\
+			__ret = ioctl(__efd, ##__args);		\
+		else						\
+			__ret = oob_ioctl(__efd, ##__args);	\
+		__ret ? -errno : 0;				\
+	})
+
 extern __thread __attribute__ ((tls_model (EVL_TLS_MODEL)))
 fundle_t evl_current;
 

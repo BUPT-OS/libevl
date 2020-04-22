@@ -13,24 +13,14 @@
 #include <uapi/evl/control.h>
 #include "internal.h"
 
-#define do_call(__fd, __args...)				\
-	({							\
-		int __ret;					\
-		if (evl_is_inband())				\
-			__ret = ioctl(__fd, ##__args);		\
-		else						\
-			__ret = oob_ioctl(__fd, ##__args);	\
-		__ret ? -errno : 0;				\
-	})
-
 int evl_set_schedattr(int efd, const struct evl_sched_attrs *attrs)
 {
-	return do_call(efd, EVL_THRIOC_SET_SCHEDPARAM, attrs);
+	return __evl_common_ioctl(efd, EVL_THRIOC_SET_SCHEDPARAM, attrs);
 }
 
 int evl_get_schedattr(int efd, struct evl_sched_attrs *attrs)
 {
-	return do_call(efd, EVL_THRIOC_GET_SCHEDPARAM, attrs);
+	return __evl_common_ioctl(efd, EVL_THRIOC_GET_SCHEDPARAM, attrs);
 }
 
 int evl_control_sched(int policy,
@@ -48,7 +38,7 @@ int evl_control_sched(int policy,
 	ctlreq.param_ptr = __evl_ptr64(param);
 	ctlreq.info_ptr = __evl_ptr64(info);
 
-	return do_call(evl_ctlfd, EVL_CTLIOC_SCHEDCTL, &ctlreq);
+	return __evl_common_ioctl(evl_ctlfd, EVL_CTLIOC_SCHEDCTL, &ctlreq);
 }
 
 int evl_get_cpustate(int cpu, int *state_r)
@@ -63,7 +53,7 @@ int evl_get_cpustate(int cpu, int *state_r)
 	cpst.cpu = cpu;
 	cpst.state_ptr = __evl_ptr64(&state);
 
-	ret = do_call(evl_ctlfd, EVL_CTLIOC_GET_CPUSTATE, &cpst);
+	ret = __evl_common_ioctl(evl_ctlfd, EVL_CTLIOC_GET_CPUSTATE, &cpst);
 	if (ret)
 		return ret;
 

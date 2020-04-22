@@ -18,16 +18,6 @@
 int evl_mono_clockfd = -ENXIO,
 	evl_real_clockfd = -ENXIO;
 
-#define do_call(__clockfd, __args...)				\
-	({							\
-		int __ret;					\
-		if (evl_is_inband())				\
-			__ret = ioctl(__clockfd, ##__args);	\
-		else						\
-			__ret = oob_ioctl(__clockfd, ##__args);	\
-		__ret ? -errno : 0;				\
-	})
-
 int evl_set_clock(int clockfd, const struct timespec *tp)
 {
 	struct __evl_timespec kts;
@@ -41,8 +31,8 @@ int evl_set_clock(int clockfd, const struct timespec *tp)
 			return -errno;
 		break;
 	default:
-		ret = do_call(clockfd, EVL_CLKIOC_SET_TIME,
-			__evl_ktimespec(tp, kts));
+		ret = __evl_common_ioctl(clockfd, EVL_CLKIOC_SET_TIME,
+					__evl_ktimespec(tp, kts));
 	}
 
 	return ret;
@@ -60,7 +50,7 @@ int evl_get_clock_resolution(int clockfd, struct timespec *tp)
 			return -errno;
 		break;
 	default:
-		ret = do_call(clockfd, EVL_CLKIOC_GET_RES, tp);
+		ret = __evl_common_ioctl(clockfd, EVL_CLKIOC_GET_RES, tp);
 	}
 
 	return ret;

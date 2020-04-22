@@ -11,16 +11,6 @@
 #include <evl/timer.h>
 #include "internal.h"
 
-#define do_call(__timerfd, __args...)				\
-	({							\
-		int __ret;					\
-		if (evl_is_inband())				\
-			__ret = ioctl(__timerfd, ##__args);	\
-		else						\
-			__ret = oob_ioctl(__timerfd, ##__args);	\
-		__ret ? -errno : 0;				\
-	})
-
 int evl_new_timer(int clockfd)
 {
 	int ret, efd;
@@ -50,12 +40,12 @@ int evl_set_timer(int efd,
 	sreq.value_ptr = __evl_kitimerspec_ptr64(value, kits);
 	sreq.ovalue_ptr = __evl_kitimerspec_ptr64(ovalue, koits);
 
-	return do_call(efd, EVL_TFDIOC_SET, &sreq);
+	return __evl_common_ioctl(efd, EVL_TFDIOC_SET, &sreq);
 }
 
 int evl_get_timer(int efd, struct itimerspec *value)
 {
 	struct __evl_itimerspec kits;
 
-	return do_call(efd, EVL_TFDIOC_GET, __evl_kitimerspec(value, kits));
+	return __evl_common_ioctl(efd, EVL_TFDIOC_GET, __evl_kitimerspec(value, kits));
 }
