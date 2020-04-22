@@ -382,17 +382,15 @@ static void *timer_responder(void *arg)
 	__u64 timestamp = 0;
 	struct timespec now;
 	int ret, efd;
-	__u32 mode;
 
 	/* Make it a public thread only for demo purpose. */
 	efd = evl_attach_self("/timer-responder:%d", getpid());
 	if (efd < 0)
 		error(1, -efd, "evl_attach_self() failed");
 
-	mode = T_WOSS;
-	ret = oob_ioctl(efd, EVL_THRIOC_SET_MODE, &mode);
+	ret = evl_set_thread_mode(efd, T_WOSS, NULL);
 	if (ret)
-		error(1, errno, "ioctl(EVL_THRIOC_SET_MODE) failed");
+		error(1, -ret, "evl_set_thread_mode(T_WOSS) failed");
 
 	for (;;) {
 		ret = oob_ioctl(latmus_fd, EVL_LATIOC_PULSE, &timestamp);
@@ -519,7 +517,6 @@ static void *gpio_responder_thread(void *arg)
 	typeof(read) *do_read;
 	const int ackval = 0;	/* Remote observes falling edges. */
 	int fds[2], efd, ret;
-	__u32 mode;
 
 	setup_gpio_pins(fds);
 
@@ -528,10 +525,9 @@ static void *gpio_responder_thread(void *arg)
 		if (efd < 0)
 			error(1, -efd, "evl_attach_self() failed");
 
-		mode = T_WOSS;
-		ret = oob_ioctl(efd, EVL_THRIOC_SET_MODE, &mode);
+		ret = evl_set_thread_mode(efd, T_WOSS, NULL);
 		if (ret)
-			error(1, errno, "ioctl(EVL_THRIOC_SET_MODE) failed");
+			error(1, -ret, "evl_set_thread_mode(T_WOSS) failed");
 
 		do_ioctl = oob_ioctl;
 		do_read = oob_read;

@@ -38,11 +38,9 @@ static void sigdebug_handler(int sig, siginfo_t *si, void *context)
 static void *test_thread(void *arg)
 {
 	int tfd, ret;
-	__u32 mode;
 
 	__Tcall_assert(tfd, evl_attach_self("stax-warn-test:%d", getpid()));
-	mode = T_WOSX;
-	__Tcall_errno_assert(ret, oob_ioctl(tfd, EVL_THRIOC_SET_MODE, &mode));
+	__Tcall_assert(ret, evl_set_thread_mode(tfd, T_WOSX, NULL));
 
 	/*
 	 * In-band main() currently holds the stax, we should get
