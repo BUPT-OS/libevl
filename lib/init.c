@@ -113,7 +113,7 @@ static inline int generic_init(void)
 		EVL_ABI_PREREQ > core_info.abi_current) {
 		fprintf(stderr,
 			"evl: ABI mismatch, see -ENOEXEC at https://evlproject.org/"
-			"core/user-api/thread/#evl_attach_self\n");
+			"core/user-api/init/#evl_init\n");
 		ret = -ENOEXEC;
 		goto fail;
 	}
