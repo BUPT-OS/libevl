@@ -28,6 +28,21 @@ static void lart_once(void)
 	pthread_once(&lart_once, do_lart_once);
 }
 
+static int flip_fd_flags(int efd, int cmd, int flags)
+{
+	int ret;
+
+	ret = fcntl(efd, cmd == F_SETFD ? F_GETFD : F_GETFL, 0);
+	if (ret < 0)
+		return -errno;
+
+	ret = fcntl(efd, cmd, ret | flags);
+	if (ret)
+		return -errno;
+
+	return 0;
+}
+
 /*
  * Creating an EVL element is done in the following steps:
  *
@@ -51,6 +66,12 @@ int create_evl_element(const char *type, const char *name,
 	char *fdevname, *edevname = NULL;
 	struct evl_clone_req clone;
 	int ffd, efd, ret;
+	bool nonblock;
+
+	nonblock = !!(clone_flags & EVL_CLONE_NONBLOCK);
+	/* Strip off user-only bits. */
+	clone_flags &= EVL_CLONE_MASK;
+	clone_flags &= ~EVL_CLONE_NONBLOCK;
 
 	ret = asprintf(&fdevname, "/dev/evl/%s/clone", type);
 	if (ret < 0)
@@ -101,16 +122,14 @@ int create_evl_element(const char *type, const char *name,
 		efd = clone.efd;
 	}
 
-	ret = fcntl(efd, F_GETFD, 0);
-	if (ret < 0) {
-		ret = -errno;
+	ret = flip_fd_flags(efd, F_SETFD, O_CLOEXEC);
+	if (ret)
 		goto out_element;
-	}
 
-	ret = fcntl(efd, F_SETFD, ret | O_CLOEXEC);
-	if (ret) {
-		ret = -errno;
-		goto out_element;
+	if (nonblock) {
+		ret = flip_fd_flags(efd, F_SETFL, O_NONBLOCK);
+		if (ret)
+			goto out_element;
 	}
 
 	if (eids)

@@ -76,6 +76,12 @@ int evl_set_thread_mode(int efd, int mask,
 int evl_clear_thread_mode(int efd, int mask,
 			int *oldmask);
 
+int evl_subscribe(int ofd,
+		unsigned int backlog_count,
+		int flags);
+
+int evl_unsubscribe(int ofd);
+
 #ifdef __cplusplus
 }
 #endif

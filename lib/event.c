@@ -48,8 +48,7 @@ static int init_event_vargs(struct evl_event *evt,
 	attrs.protocol = EVL_EVENT_GATED;
 	attrs.clockfd = clockfd;
 	attrs.initval = 0;
-	efd = create_evl_element(EVL_MONITOR_DEV, name, &attrs,
-				flags & EVL_CLONE_MASK, &eids);
+	efd = create_evl_element(EVL_MONITOR_DEV, name, &attrs, flags, &eids);
 	free(name);
 	if (efd < 0)
 		return efd;

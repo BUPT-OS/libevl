@@ -71,9 +71,9 @@ int main(int argc, char *argv[])
 	__Tcall_assert(ffd, evl_new_flags(&flags, name));
 
 	__Tcall_assert(pollfd_in, evl_new_poll());
-	__Tcall_assert(ret, evl_add_pollfd(pollfd_in, ffd, POLLIN));
+	__Tcall_assert(ret, evl_add_pollfd(pollfd_in, ffd, POLLIN, evl_nil));
 	__Tcall_assert(pollfd_out, evl_new_poll());
-	__Tcall_assert(ret, evl_add_pollfd(pollfd_out, ffd, POLLOUT));
+	__Tcall_assert(ret, evl_add_pollfd(pollfd_out, ffd, POLLOUT, evl_nil));
 
 	for (n = 0; n < NR_RECEIVERS; n++) {
 		c[n].serial = n;

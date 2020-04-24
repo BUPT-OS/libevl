@@ -62,8 +62,7 @@ static int init_mutex_vargs(struct evl_mutex *mutex,
 	attrs.protocol = protocol;
 	attrs.clockfd = clockfd;
 	attrs.initval = ceiling;
-	efd = create_evl_element(EVL_MONITOR_DEV, name, &attrs,
-				flags & EVL_CLONE_MASK, &eids);
+	efd = create_evl_element(EVL_MONITOR_DEV, name, &attrs,	flags, &eids);
 	free(name);
 	if (efd < 0)
 		return efd;

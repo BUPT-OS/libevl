@@ -38,6 +38,7 @@ evl_open_mutex
 evl_open_event
 evl_open_flags
 evl_open_sem
+The observable API.
 
 == VARIATION(S)
 

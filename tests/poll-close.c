@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 	__Tcall_assert(xfd, evl_new_xbuf(1024, name));
 
 	__Tcall_assert(pfd, evl_new_poll());
-	__Tcall_assert(ret, evl_add_pollfd(pfd, xfd, POLLIN));
+	__Tcall_assert(ret, evl_add_pollfd(pfd, xfd, POLLIN, evl_nil));
 
 	new_thread(&poller, SCHED_FIFO, 1, polling_thread, NULL);
 

@@ -27,22 +27,22 @@ int main(int argc, char *argv[])
 	 * nesting, only cycles.
 	 */
 	__Tcall_assert(pfd1, evl_new_poll());
-	__Fcall_assert(ret, evl_add_pollfd(pfd1, pfd1, POLLIN));
+	__Fcall_assert(ret, evl_add_pollfd(pfd1, pfd1, POLLIN, evl_nil));
 	__Texpr_assert(ret == -ELOOP);
 
 	__Tcall_assert(pfd2, evl_new_poll());
-	__Tcall_assert(ret, evl_add_pollfd(pfd1, pfd2, POLLIN));
+	__Tcall_assert(ret, evl_add_pollfd(pfd1, pfd2, POLLIN, evl_nil));
 
 	__Tcall_assert(pfd3, evl_new_poll());
-	__Tcall_assert(ret, evl_add_pollfd(pfd2, pfd3, POLLIN));
+	__Tcall_assert(ret, evl_add_pollfd(pfd2, pfd3, POLLIN, evl_nil));
 
 	__Tcall_assert(pfd4, evl_new_poll());
-	__Tcall_assert(ret, evl_add_pollfd(pfd3, pfd4, POLLIN));
+	__Tcall_assert(ret, evl_add_pollfd(pfd3, pfd4, POLLIN, evl_nil));
 
 	__Tcall_assert(pfd5, evl_new_poll());
-	__Tcall_assert(ret, evl_add_pollfd(pfd4, pfd5, POLLIN));
+	__Tcall_assert(ret, evl_add_pollfd(pfd4, pfd5, POLLIN, evl_nil));
 
-	__Fcall_assert(ret, evl_add_pollfd(pfd5, pfd1, POLLIN));
+	__Fcall_assert(ret, evl_add_pollfd(pfd5, pfd1, POLLIN, evl_nil));
 	__Texpr_assert(ret == -ELOOP);
 
 	close(pfd5);

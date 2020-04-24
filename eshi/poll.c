@@ -16,7 +16,8 @@ int evl_new_poll(void)
 	return epoll_create1(EPOLL_CLOEXEC);
 }
 
-int evl_add_pollfd(int efd, int newfd, unsigned int events)
+int evl_add_pollfd(int efd, int newfd, unsigned int events,
+	union evl_value pollval)
 {
 	struct epoll_event ev;
 	int ret;
@@ -45,7 +46,8 @@ int evl_del_pollfd(int efd, int delfd)
 	return 0;
 }
 
-int evl_mod_pollfd(int efd, int modfd, unsigned int events)
+int evl_mod_pollfd(int efd, int modfd, unsigned int events,
+	union evl_value pollval)
 {
 	struct epoll_event ev;
 	int ret;

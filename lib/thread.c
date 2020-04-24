@@ -19,6 +19,7 @@
 #include <linux/types.h>
 #include <uapi/evl/factory.h>
 #include <uapi/evl/control.h>
+#include <uapi/evl/observable.h>
 #include "internal.h"
 
 __thread __attribute__ ((tls_model (EVL_TLS_MODEL)))
@@ -81,8 +82,7 @@ int evl_attach_thread(int flags, const char *fmt, ...)
 	if (ret < 0)
 		return -ENOMEM;
 
-	efd = create_evl_element(EVL_THREAD_DEV, name, NULL,
-				flags & EVL_CLONE_MASK, &eids);
+	efd = create_evl_element(EVL_THREAD_DEV, name, NULL, flags, &eids);
 	free(name);
 	if (efd < 0)
 		return efd;
@@ -233,4 +233,29 @@ int evl_set_thread_mode(int efd, int mask, int *oldmask)
 int evl_clear_thread_mode(int efd, int mask, int *oldmask)
 {
 	return do_thread_mode(efd, EVL_THRIOC_CLEAR_MODE, mask, oldmask);
+}
+
+int evl_subscribe(int efd, unsigned int backlog_count, int flags)
+{
+	struct evl_subscription sub;
+	int ret;
+
+	sub.backlog_count = backlog_count;
+	sub.flags = flags;
+	ret = ioctl(efd, EVL_OBSIOC_SUBSCRIBE, &sub);
+	if (ret && errno == ENOTTY)
+		return -EPERM;
+
+	return ret ? -errno : 0;
+}
+
+int evl_unsubscribe(int efd)
+{
+	int ret;
+
+	ret = ioctl(efd, EVL_OBSIOC_UNSUBSCRIBE);
+	if (ret && errno == ENOTTY)
+		return -EPERM;
+
+	return ret ? -errno : 0;
 }

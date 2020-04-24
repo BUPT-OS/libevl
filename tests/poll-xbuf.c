@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
 	new_thread(&writer, SCHED_OTHER, 0, writer_thread, path);
 
 	__Tcall_assert(pfd, evl_new_poll());
-	__Tcall_assert(ret, evl_add_pollfd(pfd, xfd, POLLIN));
+	__Tcall_assert(ret, evl_add_pollfd(pfd, xfd, POLLIN, evl_nil));
 
 	for (n = 0; n < sizeof(msg) / sizeof(msg[0]) - 1; n++) {
 		__Tcall_assert(ret, evl_poll(pfd, &pollset, 1));

@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 	__Tcall_assert(sfd, evl_new_sem(&sem, name));
 
 	__Tcall_assert(pollfd_in, evl_new_poll());
-	__Tcall_assert(ret, evl_add_pollfd(pollfd_in, sfd, POLLIN));
+	__Tcall_assert(ret, evl_add_pollfd(pollfd_in, sfd, POLLIN, evl_nil));
 
 	for (n = 0; n < NR_RECEIVERS; n++) {
 		c[n].serial = n;

@@ -18,7 +18,8 @@ int evl_new_poll(void)
 	return create_evl_file(EVL_POLL_DEV);
 }
 
-static int update_pollset(int efd, int op, int fd, unsigned int events)
+static int update_pollset(int efd, int op, int fd, unsigned int events,
+			union evl_value pollval)
 {
 	struct evl_poll_ctlreq creq;
 	int ret;
@@ -26,24 +27,27 @@ static int update_pollset(int efd, int op, int fd, unsigned int events)
 	creq.action = op;
 	creq.fd = fd;
 	creq.events = events;
+	creq.pollval = pollval;
 	ret = oob_ioctl(efd, EVL_POLIOC_CTL, &creq);
 
 	return ret ? -errno : 0;
 }
 
-int evl_add_pollfd(int efd, int fd, unsigned int events)
+int evl_add_pollfd(int efd, int fd, unsigned int events,
+		union evl_value pollval)
 {
-	return update_pollset(efd, EVL_POLL_CTLADD, fd, events);
+	return update_pollset(efd, EVL_POLL_CTLADD, fd, events, pollval);
 }
 
 int evl_del_pollfd(int efd, int fd)
 {
-	return update_pollset(efd, EVL_POLL_CTLDEL, fd, 0);
+	return update_pollset(efd, EVL_POLL_CTLDEL, fd, 0, evl_nil);
 }
 
-int evl_mod_pollfd(int efd, int fd, unsigned int events)
+int evl_mod_pollfd(int efd, int fd,
+		unsigned int events, union evl_value pollval)
 {
-	return update_pollset(efd, EVL_POLL_CTLMOD, fd, events);
+	return update_pollset(efd, EVL_POLL_CTLMOD, fd, events, pollval);
 }
 
 static int do_poll(int efd, struct evl_poll_event *pollset,

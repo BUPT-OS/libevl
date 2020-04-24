@@ -24,6 +24,8 @@ int main(int argc, char *argv[])
 	evl_demote_thread(tfd);
 	evl_set_thread_mode(tfd, 0, NULL);
 	evl_clear_thread_mode(tfd, 0, NULL);
+	evl_subscribe(tfd, 1024, 0);
+	evl_unsubscribe(tfd);
 
 	return 0;
 }

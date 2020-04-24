@@ -14,6 +14,7 @@
 struct evl_poll_event {
 	__u32 fd;
 	__u32 events;
+	union evl_value pollval;
 };
 
 #ifdef __cplusplus
@@ -23,12 +24,14 @@ extern "C" {
 int evl_new_poll(void);
 
 int evl_add_pollfd(int efd, int newfd,
-		unsigned int events);
+		unsigned int events,
+		union evl_value pollval);
 
 int evl_del_pollfd(int efd, int delfd);
 
 int evl_mod_pollfd(int efd, int modfd,
-		unsigned int events);
+		unsigned int events,
+		union evl_value pollval);
 
 int evl_timedpoll(int efd, struct evl_poll_event *pollset,
 		int nrset, struct timespec *timeout);

@@ -48,8 +48,7 @@ int evl_create_sem(struct evl_sem *sem, int clockfd,
 	attrs.protocol = EVL_EVENT_COUNT;
 	attrs.clockfd = clockfd;
 	attrs.initval = initval;
-	efd = create_evl_element(EVL_MONITOR_DEV, name, &attrs,
-				flags & EVL_CLONE_MASK, &eids);
+	efd = create_evl_element(EVL_MONITOR_DEV, name, &attrs,	flags, &eids);
 	free(name);
 	if (efd < 0)
 		return efd;

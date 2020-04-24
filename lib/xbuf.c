@@ -26,8 +26,7 @@ int evl_create_xbuf(size_t i_bufsz, size_t o_bufsz,
 
 	attrs.i_bufsz = i_bufsz;
 	attrs.o_bufsz = o_bufsz;
-	efd = create_evl_element(EVL_XBUF_DEV, name, &attrs,
-				flags & EVL_CLONE_MASK, NULL);
+	efd = create_evl_element(EVL_XBUF_DEV, name, &attrs, flags, NULL);
 	free(name);
 
 	return efd;
