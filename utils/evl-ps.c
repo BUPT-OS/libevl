@@ -656,7 +656,7 @@ static void usage(char *arg0)
         fprintf(stderr, "-p --policy            display scheduling policy\n");
         fprintf(stderr, "-l --long              long format, same as -stp\n");
         fprintf(stderr, "-n --numeric           numeric output for STAT\n");
-        fprintf(stderr, "-S --sort=<c|i|t|x>    sort key: c=%%CPU, i=ISW, t=CPUTIME, x=CTXSW, w=RWA\n");
+        fprintf(stderr, "-S --sort=<c|i|t|x|w>  sort key: c=%%CPU, i=ISW, t=CPUTIME, x=CTXSW, w=RWA\n");
         fprintf(stderr, "-h --help              this help\n");
 }
 
