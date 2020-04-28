@@ -20,7 +20,7 @@
 #include <evl/poll.h>
 #include <evl/proxy.h>
 
-#define __EVL__  16	/* API version */
+#define __EVL__  17	/* API version */
 
 #define EVL_ABI_PREREQ  23
 

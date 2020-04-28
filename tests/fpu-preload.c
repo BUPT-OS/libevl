@@ -7,7 +7,7 @@
  * follows a plain fork() [and no exec()]. If that action unexpectedly
  * triggers a FPU trap for which a transition to inband mode is
  * required, we would be notified via the SIGDEBUG handler (cause ==
- * SIGDEBUG_MIGRATE_FAULT).
+ * EVL_HMDIAG_EXDEMOTE).
  */
 
 #include <sys/types.h>

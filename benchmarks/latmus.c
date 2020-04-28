@@ -891,17 +891,17 @@ static void sigdebug_handler(int sig, siginfo_t *si, void *context)
 {
 	if (sigdebug_marked(si)) {
 		switch (sigdebug_cause(si)) {
-		case SIGDEBUG_MIGRATE_SIGNAL:
-		case SIGDEBUG_MIGRATE_SYSCALL:
-		case SIGDEBUG_MIGRATE_FAULT:
-		case SIGDEBUG_MIGRATE_PRIOINV:
+		case EVL_HMDIAG_SIGDEMOTE:
+		case EVL_HMDIAG_SYSDEMOTE:
+		case EVL_HMDIAG_EXDEMOTE:
+		case EVL_HMDIAG_LKDEPEND:
 			spurious_inband_switches++;
 			if (abort_on_switch)
 				kill(getpid(), SIGHUP);
 			break;
-		case SIGDEBUG_WATCHDOG:
-		case SIGDEBUG_MUTEX_IMBALANCE:
-		case SIGDEBUG_MUTEX_SLEEP:
+		case EVL_HMDIAG_WATCHDOG:
+		case EVL_HMDIAG_LKIMBALANCE:
+		case EVL_HMDIAG_LKSLEEP:
 		default:
 			exit(99);
 		}

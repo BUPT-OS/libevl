@@ -1,7 +1,7 @@
 /*
  * SPDX-License-Identifier: MIT
  *
- * Make sure we receive SIGDEBUG_STAGE_LOCKED when locked out from the
+ * Make sure we receive EVL_HMDIAG_STAGEX when locked out from the
  * out-of-band stage because of a stax-based serialization.
  */
 
@@ -26,7 +26,7 @@ static volatile sig_atomic_t notified;
 static void sigdebug_handler(int sig, siginfo_t *si, void *context)
 {
 	if (sigdebug_marked(si) &&
-		sigdebug_cause(si) == SIGDEBUG_STAGE_LOCKED) {
+		sigdebug_cause(si) == EVL_HMDIAG_STAGEX) {
 		notified = true;
 		return;
 	}

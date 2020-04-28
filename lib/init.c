@@ -148,14 +148,14 @@ fail:
 	} while (0)
 
 static const char *sigdebug_msg[] = {
-	[SIGDEBUG_MIGRATE_SIGNAL] = "switched inband (signal)\n",
-	[SIGDEBUG_MIGRATE_SYSCALL] = "switched inband (syscall)\n",
-	[SIGDEBUG_MIGRATE_FAULT] = "switched inband (fault)\n",
-	[SIGDEBUG_MIGRATE_PRIOINV] = "switched inband while holding mutex\n",
-	[SIGDEBUG_WATCHDOG] = "watchdog triggered\n",
-	[SIGDEBUG_MUTEX_IMBALANCE] = "mutex lock/unlock imbalance\n",
-	[SIGDEBUG_MUTEX_SLEEP] = "attempt to sleep while holding a mutex\n",
-	[SIGDEBUG_STAGE_LOCKED] = "locked out from out-of-band stage (stax)\n",
+	[EVL_HMDIAG_SIGDEMOTE] = "switched inband (signal)\n",
+	[EVL_HMDIAG_SYSDEMOTE] = "switched inband (syscall)\n",
+	[EVL_HMDIAG_EXDEMOTE] = "switched inband (fault)\n",
+	[EVL_HMDIAG_LKDEPEND] = "switched inband while holding mutex\n",
+	[EVL_HMDIAG_WATCHDOG] = "watchdog triggered\n",
+	[EVL_HMDIAG_LKIMBALANCE] = "mutex lock/unlock imbalance\n",
+	[EVL_HMDIAG_LKSLEEP] = "attempt to sleep while holding a mutex\n",
+	[EVL_HMDIAG_STAGEX] = "locked out from out-of-band stage (stax)\n",
 };
 
 /* A basic SIGDEBUG handler which only prints out the cause. */
@@ -164,14 +164,14 @@ void evl_sigdebug_handler(int sig, siginfo_t *si, void *ctxt)
 {
 	if (sigdebug_marked(si)) {
 		switch (sigdebug_cause(si)) {
-		case SIGDEBUG_MIGRATE_SIGNAL:
-		case SIGDEBUG_MIGRATE_SYSCALL:
-		case SIGDEBUG_MIGRATE_FAULT:
-		case SIGDEBUG_MIGRATE_PRIOINV:
-		case SIGDEBUG_WATCHDOG:
-		case SIGDEBUG_MUTEX_IMBALANCE:
-		case SIGDEBUG_MUTEX_SLEEP:
-		case SIGDEBUG_STAGE_LOCKED:
+		case EVL_HMDIAG_SIGDEMOTE:
+		case EVL_HMDIAG_SYSDEMOTE:
+		case EVL_HMDIAG_EXDEMOTE:
+		case EVL_HMDIAG_LKDEPEND:
+		case EVL_HMDIAG_WATCHDOG:
+		case EVL_HMDIAG_LKIMBALANCE:
+		case EVL_HMDIAG_LKSLEEP:
+		case EVL_HMDIAG_STAGEX:
 			raw_write_out(sigdebug_msg[sigdebug_cause(si)]);
 			break;
 		}
