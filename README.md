@@ -2,7 +2,7 @@
 What's this?
 ------------
 
-See https://evlproject.org/
+See https://evlproject.org/overview/
 
 How to build?
 -------------
