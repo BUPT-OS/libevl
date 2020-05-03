@@ -32,25 +32,28 @@ int evl_create_flags(struct evl_flags *flg, int clockfd,
 {
 	struct evl_monitor_attrs attrs;
 	struct evl_element_ids eids;
+	char *name = NULL;
 	int efd, ret;
 	va_list ap;
-	char *name;
 
 	if (evl_shared_memory == NULL)
 		return -ENXIO;
 
-	va_start(ap, fmt);
-	ret = vasprintf(&name, fmt, ap);
-	va_end(ap);
-	if (ret < 0)
-		return -ENOMEM;
+	if (fmt) {
+		va_start(ap, fmt);
+		ret = vasprintf(&name, fmt, ap);
+		va_end(ap);
+		if (ret < 0)
+			return -ENOMEM;
+	}
 
 	attrs.type = EVL_MONITOR_EVENT;
 	attrs.protocol = EVL_EVENT_MASK;
 	attrs.clockfd = clockfd;
 	attrs.initval = initval;
 	efd = create_evl_element(EVL_MONITOR_DEV, name, &attrs,	flags, &eids);
-	free(name);
+	if (name)
+		free(name);
 	if (efd < 0)
 		return efd;
 

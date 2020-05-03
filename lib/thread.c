@@ -57,8 +57,8 @@ int evl_attach_thread(int flags, const char *fmt, ...)
 	struct evl_sched_attrs attrs;
 	struct evl_element_ids eids;
 	struct sched_param param;
+	char *name = NULL;
 	va_list ap;
-	char *name;
 
 	/*
 	 * Try to initialize if not yet done, so that attaching a
@@ -76,14 +76,17 @@ int evl_attach_thread(int flags, const char *fmt, ...)
 	if (evl_current != EVL_NO_HANDLE)
 		return -EBUSY;
 
-	va_start(ap, fmt);
-	ret = vasprintf(&name, fmt, ap);
-	va_end(ap);
-	if (ret < 0)
-		return -ENOMEM;
+	if (fmt) {
+		va_start(ap, fmt);
+		ret = vasprintf(&name, fmt, ap);
+		va_end(ap);
+		if (ret < 0)
+			return -ENOMEM;
+	}
 
 	efd = create_evl_element(EVL_THREAD_DEV, name, NULL, flags, &eids);
-	free(name);
+	if (name)
+		free(name);
 	if (efd < 0)
 		return efd;
 

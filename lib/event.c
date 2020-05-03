@@ -34,22 +34,25 @@ static int init_event_vargs(struct evl_event *evt,
 {
 	struct evl_monitor_attrs attrs;
 	struct evl_element_ids eids;
+	char *name = NULL;
 	int efd, ret;
-	char *name;
 
 	if (evl_shared_memory == NULL)
 		return -ENXIO;
 
-	ret = vasprintf(&name, fmt, ap);
-	if (ret < 0)
-		return -ENOMEM;
+	if (fmt) {
+		ret = vasprintf(&name, fmt, ap);
+		if (ret < 0)
+			return -ENOMEM;
+	}
 
 	attrs.type = EVL_MONITOR_EVENT;
 	attrs.protocol = EVL_EVENT_GATED;
 	attrs.clockfd = clockfd;
 	attrs.initval = 0;
 	efd = create_evl_element(EVL_MONITOR_DEV, name, &attrs, flags, &eids);
-	free(name);
+	if (name)
+		free(name);
 	if (efd < 0)
 		return efd;
 

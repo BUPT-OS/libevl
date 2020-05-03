@@ -35,8 +35,8 @@ static int init_mutex_vargs(struct evl_mutex *mutex,
 	struct evl_monitor_attrs attrs;
 	struct evl_monitor_state *gst;
 	struct evl_element_ids eids;
+	char *name = NULL;
 	int efd, ret;
-	char *name;
 
 	if (evl_shared_memory == NULL)
 		return -ENXIO;
@@ -54,16 +54,19 @@ static int init_mutex_vargs(struct evl_mutex *mutex,
 			return -EINVAL;
 	}
 
-	ret = vasprintf(&name, fmt, ap);
-	if (ret < 0)
-		return -ENOMEM;
+	if (fmt) {
+		ret = vasprintf(&name, fmt, ap);
+		if (ret < 0)
+			return -ENOMEM;
+	}
 
 	attrs.type = EVL_MONITOR_GATE;
 	attrs.protocol = protocol;
 	attrs.clockfd = clockfd;
 	attrs.initval = ceiling;
 	efd = create_evl_element(EVL_MONITOR_DEV, name, &attrs,	flags, &eids);
-	free(name);
+	if (name)
+		free(name);
 	if (efd < 0)
 		return efd;
 

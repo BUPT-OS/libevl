@@ -14,20 +14,23 @@ int evl_create_xbuf(size_t i_bufsz, size_t o_bufsz,
 		int flags, const char *fmt, ...)
 {
 	struct evl_xbuf_attrs attrs;
+	char *name = NULL;
 	int ret, efd;
 	va_list ap;
-	char *name;
 
-	va_start(ap, fmt);
-	ret = vasprintf(&name, fmt, ap);
-	va_end(ap);
-	if (ret < 0)
-		return -ENOMEM;
+	if (fmt) {
+		va_start(ap, fmt);
+		ret = vasprintf(&name, fmt, ap);
+		va_end(ap);
+		if (ret < 0)
+			return -ENOMEM;
+	}
 
 	attrs.i_bufsz = i_bufsz;
 	attrs.o_bufsz = o_bufsz;
 	efd = create_evl_element(EVL_XBUF_DEV, name, &attrs, flags, NULL);
-	free(name);
+	if (name)
+		free(name);
 
 	return efd;
 }

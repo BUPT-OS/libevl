@@ -87,7 +87,7 @@ int create_evl_element(const char *type, const char *name,
 	 * Turn on public mode if the user-provided name starts with a
 	 * slash.  Anonymous elements must be private by definition.
 	 */
-	if (!name) {
+	if (name == NULL) {
 		if (clone_flags & EVL_CLONE_PUBLIC)
 			return -EINVAL;
 	} else if (*name == '/') {

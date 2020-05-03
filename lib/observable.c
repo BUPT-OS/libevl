@@ -16,18 +16,21 @@
 
 int evl_create_observable(int flags, const char *fmt, ...)
 {
+	char *name = NULL;
 	int ret, efd;
 	va_list ap;
-	char *name;
 
-	va_start(ap, fmt);
-	ret = vasprintf(&name, fmt, ap);
-	va_end(ap);
-	if (ret < 0)
-		return -ENOMEM;
+	if (fmt) {
+		va_start(ap, fmt);
+		ret = vasprintf(&name, fmt, ap);
+		va_end(ap);
+		if (ret < 0)
+			return -ENOMEM;
+	}
 
 	efd = create_evl_element(EVL_OBSERVABLE_DEV, name, NULL, flags, NULL);
-	free(name);
+	if (name)
+		free(name);
 
 	return efd;
 }
