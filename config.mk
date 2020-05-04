@@ -93,7 +93,7 @@ ld-cmd = $(call run-cmd,LD,$(notdir $(1)),$(2))
 ar-cmd = $(call run-cmd,AR,$(notdir $(1)),$(2) $(if $(Q),2>/dev/null))
 inst-cmd = $(call run-cmd,INST,$(notdir $(1)),$(2))
 
-MAIN_GOALS := all clean clobber mrproper install
+MAIN_GOALS := all clean clobber mrproper install install_all
 
 _all:
 

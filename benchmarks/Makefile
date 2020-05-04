@@ -23,7 +23,7 @@ $(O_DIR)/latmus: override CFLAGS := -I zephyr/latmon/src $(CFLAGS)
 
 all: output-Makefile $(DEPFILES) $(TARGETS)
 
-install: all
+install install_all: all
 	$(call inst-cmd,benchmarks,$(Q)for bin in $(BINARIES); do	\
 		$(INSTALL) -D $(O_DIR)/$$bin -t $(DESTDIR)/$(bindir);	\
 	done)

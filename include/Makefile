@@ -32,7 +32,7 @@ clean clobber mrproper: output-Makefile
 	$(Q)$(RM) -f $(O_DIR)/.uapi_stamp $(O_UAPI)/asm $(O_UAPI)/evl
 	$(Q)test -d $(O_UAPI) && $(RMDIR_SAFE) $(O_UAPI) || :
 
-install: all
+install install_all: all
 	$(Q)$(MKDIR_P) $(DESTDIR)/$(includedir)/uapi
 	$(call inst-cmd,uapi-headers,cd $(O_UAPI) && find -L evl \! \( -name '*~' \) -type f | $(CPIO) -Lpdum --quiet $(DESTDIR)/$(includedir)/uapi)
 	$(call inst-cmd,interface-headers,find evl \! \( -name '*~' \) -type f | $(CPIO) -Lpdum --quiet $(DESTDIR)/$(includedir))

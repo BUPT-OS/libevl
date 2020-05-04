@@ -19,9 +19,12 @@ $(TARGETS):
 
 all: output-Makefile $(DEPFILES) $(TARGETS)
 
+# Install only if install_all is given
 install: all
-	$(call inst-cmd,tidbits,						\
-		for bin in $(TIDBITS); do				\
+
+install_all: all
+	$(call inst-cmd,tidbits,			\
+		for bin in $(TIDBITS); do		\
 		$(INSTALL) -D $(O_DIR)/$$bin -t $(DESTDIR)/$(tbitsdir); done)
 
 clean clobber mrproper: output-Makefile

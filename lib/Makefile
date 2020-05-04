@@ -29,7 +29,7 @@ override LDFLAGS := $(LDFLAGS) -lpthread -lrt
 
 all: output-Makefile $(DEPFILES) $(TARGETS)
 
-install: all
+install install_all: all
 	$(call inst-cmd,$(SOLIBNAME),$(INSTALL) -D $(O_DIR)/$(SOLIBNAME) -t $(DESTDIR)/$(libdir))
 	@$(LN_S) $(SOLIBNAME) $(DESTDIR)/$(libdir)/$(DTSONAME)
 	@$(LN_S) $(DTSONAME) $(DESTDIR)/$(libdir)/$(SONAME)

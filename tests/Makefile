@@ -38,7 +38,7 @@ all: output-Makefile $(DEPFILES) $(TARGETS)
 
 $(TARGETS): $(HELPOBJ) $(HELPOBJ_ESHI)
 
-install: all
+install install_all: all
 	$(call inst-cmd,tests,$(Q)for bin in $(TESTSRC:%.c=%); do		\
 		$(INSTALL) -D $(O_DIR)/$$bin -t $(DESTDIR)/$(testdir);		\
 	done)
