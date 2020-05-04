@@ -208,36 +208,28 @@ int open_evl_element(const char *type, const char *fmt, ...)
 int create_evl_file(const char *type)
 {
 	char *devname;
-	int fd, ret;
+	int efd, ret;
 
 	ret = asprintf(&devname, "/dev/evl/%s", type);
 	if (ret < 0)
 		return -ENOMEM;
 
-	fd = open(devname, O_RDWR);
-	if (fd < 0) {
+	efd = open(devname, O_RDWR);
+	if (efd < 0) {
 		ret = -errno;
 		goto fail;
 	}
 
-	ret = fcntl(fd, F_GETFD, 0);
-	if (ret < 0) {
-		ret = -errno;
+	ret = flip_fd_flags(efd, F_SETFD, O_CLOEXEC);
+	if (ret)
 		goto fail_setfd;
-	}
-
-	ret = fcntl(fd, F_SETFD, ret | O_CLOEXEC);
-	if (ret) {
-		ret = -errno;
-		goto fail_setfd;
-	}
 
 	free(devname);
 
-	return fd;
+	return efd;
 
 fail_setfd:
-	close(fd);
+	close(efd);
 fail:
 	free(devname);
 
