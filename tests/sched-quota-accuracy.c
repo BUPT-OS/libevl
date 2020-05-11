@@ -1,7 +1,7 @@
 /*
  * SPDX-License-Identifier: MIT
  *
- * Adapted from Xenomai smokey/sched-quota test (https://xenomai.org/)
+ * Adapted from Xenomai's smokey/sched-quota test (https://xenomai.org/)
  * Copyright (C) Philippe Gerum <rpm@xenomai.org>
  * Relicensed by its author from GPLv2 to MIT.
  */

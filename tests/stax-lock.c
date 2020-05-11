@@ -44,7 +44,7 @@ static sig_atomic_t done;
 
 static bool verbose;
 
-static int timeout_secs = 3;	/* Default to 5s runtime. */
+static int timeout_secs = 3;	/* Default runtime. */
 
 static void *test_thread(void *arg)
 {

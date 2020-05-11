@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: MIT
  *
  * Copyright (C) 2018 Philippe Gerum <rpm@xenomai.org>
- * Derived from Xenomai heapmem smokey test (https://xenomai.org/)
+ * Derived from Xenomai's heapmem smokey test (https://xenomai.org/)
  */
 
 #include <sys/types.h>
