@@ -679,7 +679,7 @@ static void setup_measurement_on_gpio(void)
 		ret = send(lat_sock, &req, sizeof(req), 0);
 		if (ret != sizeof(req))
 			error(1, errno, "send() start");
-		clock_gettime(CLOCK_MONOTONIC, &timeout);
+		clock_gettime(CLOCK_REALTIME, &timeout);
 		timeout.tv_sec += LATMON_TIMEOUT_SECS;
 		if (sem_timedwait(&logger_done, &timeout))
 			latmon_hung = true;
