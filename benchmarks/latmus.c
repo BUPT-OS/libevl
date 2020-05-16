@@ -677,16 +677,19 @@ static void setup_measurement_on_gpio(void)
 		req.period_usecs = 0; /* Zero means stop. */
 		req.histogram_cells = 0;
 		ret = send(lat_sock, &req, sizeof(req), 0);
-		if (ret != sizeof(req))
-			error(1, errno, "send() start");
-		clock_gettime(CLOCK_REALTIME, &timeout);
-		timeout.tv_sec += LATMON_TIMEOUT_SECS;
-		if (sem_timedwait(&logger_done, &timeout))
+		if (ret != sizeof(req)) {
+			error(0, errno, "send() stop");
 			latmon_hung = true;
+		} else {
+			clock_gettime(CLOCK_REALTIME, &timeout);
+			timeout.tv_sec += LATMON_TIMEOUT_SECS;
+			if (sem_timedwait(&logger_done, &timeout))
+				latmon_hung = true;
+		}
 	}
 
 	if (latmon_hung)
-		error(1, ETIMEDOUT, "latmon at %s is unresponsive",
+		error(0, ETIMEDOUT, "latmon at %s is unresponsive",
 			inet_ntoa(gpio_monitor_ip));
 
 	close(lat_sock);
