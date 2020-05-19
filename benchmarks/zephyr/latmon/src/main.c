@@ -161,6 +161,21 @@ static void reset_sampling_counters(void)
 	current_samples = 0;
 }
 
+static ssize_t write_socket(const void *buf, size_t count)
+{
+	ssize_t n = 0, ret;
+
+	do {
+		ret = send(client_socket, (const char *)buf + n, count, 0);
+		if (ret <= 0)
+			return ret;
+		n += ret;
+		count -= ret;
+	} while (count > 0);
+
+	return n;
+}
+
 static bool send_sample_bulk(void)
 {
 	struct latmon_net_data ndata;
@@ -172,7 +187,7 @@ static bool send_sample_bulk(void)
 	ndata.max_lat = htonl(max_lat);
 	ndata.overruns = htonl(overruns);
 	ndata.samples = htonl(current_samples);
-	ret = send(client_socket, &ndata, sizeof(ndata), 0);
+	ret = write_socket(&ndata, sizeof(ndata));
 	if (ret <= 0)
 		return false;
 
@@ -183,7 +198,8 @@ static bool send_sample_bulk(void)
 
 static bool send_trailing_data(void)
 {
-	int cell, ret;
+	int cell, count;
+	ssize_t ret;
 
 	if (current_samples > 0)
 		send_sample_bulk();
@@ -195,10 +211,11 @@ static bool send_trailing_data(void)
 	if (histogram_cells > 0) {
 		for (cell = 0; cell < histogram_cells; cell++)
 			histogram[cell] = htonl(histogram[cell]);
-		ret = send(client_socket, histogram,
-			histogram_cells * sizeof(histogram[0]), 0);
-		if (ret != histogram_cells * sizeof(histogram[0])) {
-			LOG_INF("failed sending histogram data");
+		count = histogram_cells * sizeof(histogram[0]);
+		ret = write_socket(histogram, count);
+		if (ret <= 0) {
+			LOG_INF("failed sending histogram data (ret=%d, errno %d)",
+				ret, errno);
 			return false;
 		}
 	}
@@ -228,7 +245,6 @@ static void gpio_ack_handler(struct device *port,
 static int monitor(void)
 {
 	u32_t pulse_date, delta, delta_ns, delta_usecs;
-	bool warmup = true;
 	unsigned int key;
 	int cell;
 
@@ -285,13 +301,9 @@ static int monitor(void)
 			delta_usecs -= period_usecs;
 		}
 
-		if (++current_samples >= max_samples_per_bulk) {
-			if (warmup) {
-				warmup = false;
-				reset_sampling_counters();
-			} else if (!send_sample_bulk())
-				break;
-		}
+		if (++current_samples >= max_samples_per_bulk &&
+			!send_sample_bulk())
+			break;
 	}
 
 	k_sem_give(&monitor_done);

@@ -295,7 +295,7 @@ static void log_results(struct latmus_measurement *meas,
 
 	if (verbosity > 0 && data_lines && (round % data_lines) == 0) {
 		time(&now);
-		dt = now - start_time - 1; /* -1s warmup time */
+		dt = now - start_time;
 		printf("RTT|  %.2ld:%.2ld:%.2ld  "
 			"(%s, %u us period, priority %d, CPU%d%s)\n",
 			dt / 3600, (dt / 60) % 60, dt % 60,
@@ -678,7 +678,7 @@ static void setup_measurement_on_gpio(void)
 		req.histogram_cells = 0;
 		ret = send(lat_sock, &req, sizeof(req), 0);
 		if (ret != sizeof(req)) {
-			error(0, errno, "send() stop");
+			error(1, errno, "send() stop");
 			latmon_hung = true;
 		} else {
 			clock_gettime(CLOCK_REALTIME, &timeout);
@@ -689,7 +689,7 @@ static void setup_measurement_on_gpio(void)
 	}
 
 	if (latmon_hung)
-		error(0, ETIMEDOUT, "latmon at %s is unresponsive",
+		error(1, ETIMEDOUT, "latmon at %s is unresponsive",
 			inet_ntoa(gpio_monitor_ip));
 
 	close(lat_sock);
@@ -753,6 +753,8 @@ static void dump_gnuplot(time_t duration)
 		(double)(all_sum / all_samples) / 1000.0);
 	fprintf(plot_fp, "# max latency: %.3f\n",
 		(double)all_maxlat / 1000.0);
+	fprintf(plot_fp, "# sample count: %lld\n",
+		(long long)all_samples);
 
 	for (n = 0; n < histogram_cells && histogram[n] == 0; n++)
 		;
@@ -791,9 +793,7 @@ static void do_measurement(int type)
 	if (!(responder_cpu_state & EVL_CPU_ISOL))
 		cpu_s = " (not isolated)";
 
-	if (verbosity > 0)
-		fprintf(stderr, "warming up on CPU%d%s...\n", responder_cpu, cpu_s);
-	else
+	if (verbosity <= 0)
 		fprintf(stderr, "running quietly for %ld seconds on CPU%d%s\n",
 			timeout, responder_cpu, cpu_s);
 
@@ -806,9 +806,9 @@ static void do_measurement(int type)
 		setup_measurement_on_timer();
 	}
 
-	duration = time(NULL) - start_time - 1;
+	duration = time(NULL) - start_time;
 	if (plot_fp) {
-		dump_gnuplot(duration); /* -1s warmup time */
+		dump_gnuplot(duration);
 		if (plot_fp != stdout)
 			fclose(plot_fp);
 		free(histogram);
@@ -1224,7 +1224,7 @@ int main(int argc, char *const argv[])
 				error(1, EINVAL, "invalid time modifier: '%c'",
 					*endptr);
 			}
-			alarm(timeout + 1); /* +1s warmup time */
+			alarm(timeout);
 			break;
 		case 'v':
 			verbosity = optarg ? atoi(optarg) : 1;
