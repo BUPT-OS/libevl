@@ -12,9 +12,10 @@ HELPER_SCRIPTS =	\
 	evl-gdb		\
 	evl-help	\
 	evl-test	\
-	evl-trace
+	evl-trace	\
+	kconf-checklist.evl
 
-HELPER_PROGRAMS = evl-ps
+HELPER_PROGRAMS = evl-check evl-ps
 
 CMD_CPPFLAGS := $(BASE_CPPFLAGS) -I. -I../include -I$(O_DIR)/../include
 CMD_CFLAGS := $(CMD_CPPFLAGS) $(BASE_CFLAGS)
