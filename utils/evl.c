@@ -22,7 +22,7 @@ static char *find_install_dir(const char *arg0, const char *subdir)
 	char *exepath, *bindir, *ipath;
 	int ret;
 
-	exepath = malloc(PATH_MAX);
+	exepath = malloc(PATH_MAX + 1);
 	if (exepath == NULL)
 		error(1, ENOMEM, "malloc");
 
@@ -30,6 +30,7 @@ static char *find_install_dir(const char *arg0, const char *subdir)
 	if (ret < 0)
 		error(1, errno, "readlink");
 
+	exepath[ret] = '\0';
 	bindir = dirname(exepath);
 	ret = asprintf(&ipath, "%s/%s", dirname(bindir), subdir);
 	if (ret < 0)
