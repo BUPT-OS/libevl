@@ -765,8 +765,7 @@ static void dump_gnuplot(time_t duration)
 	last = n;
 
 	for (n = first; n < last; n++)
-		/* +1: no zero value for intermediate cells. */
-		fprintf(plot_fp, "%d %d\n", n, histogram[n] + 1);
+		fprintf(plot_fp, "%d %d\n", n, histogram[n]);
 
 	/*
 	 * If we have outliers, display a '+' sign after the last cell
