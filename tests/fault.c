@@ -54,6 +54,7 @@ int main(int argc, char *argv[])
 		*blunder = 0;
 	}
 
+#ifndef __SOFTFP__	/* Right, quite ugly. */
 	if (!setjmp(recover)) {
 		/*
 		 * If we can't enable fp exceptions, skip the divzero
@@ -64,6 +65,7 @@ int main(int argc, char *argv[])
 			zero = 127.0 / zero;
 		}
 	}
+#endif
 
 	__Texpr_assert(received == expected_sigs);
 
