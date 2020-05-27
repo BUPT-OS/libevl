@@ -63,7 +63,7 @@ static time_t start_time;
 
 static unsigned int period_usecs = 1000; /* 1ms */
 
-static int responder_priority = 99;
+static int responder_priority = 98;
 
 static int responder_cpu = -1;
 
