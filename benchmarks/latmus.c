@@ -310,11 +310,12 @@ static void log_results(struct latmus_measurement *meas,
 	if (verbosity > 0 && data_lines && (round % data_lines) == 0) {
 		time(&now);
 		dt = now - start_time;
-		printf("RTT|  %.2ld:%.2ld:%.2ld  "
-			"(%s, %u us period, priority %d, CPU%d%s)\n",
+		printf("RTT|  %.2ld:%.2ld:%.2ld  (%s, %u us period,",
 			dt / 3600, (dt / 60) % 60, dt % 60,
-			context_labels[context_type], period_usecs,
-			responder_priority,
+			context_labels[context_type], period_usecs);
+		if (context_type != EVL_LAT_IRQ && context_type != EVL_LAT_SIRQ)
+			printf(" priority %d,", responder_priority);
+		printf(" CPU%d%s)\n",
 			responder_cpu,
 			responder_cpu_state & EVL_CPU_ISOL ? "" : "-noisol");
 		printf("RTH|%11s|%11s|%11s|%8s|%6s|%11s|%11s\n",
