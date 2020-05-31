@@ -47,7 +47,8 @@ static cpu_set_t isolated_cpus;
 #define LATMON_TIMEOUT_SECS  5
 
 static int test_irqlat, test_klat,
-	test_ulat, test_gpiolat;
+	test_ulat, test_sirqlat,
+	test_gpiolat;
 
 static bool reset, background,
 	abort_on_switch = true;
@@ -55,7 +56,7 @@ static bool reset, background,
 static int verbosity = 1,
 	abort_threshold;
 
-static int tuning;
+static bool tuning;
 
 static time_t timeout;
 
@@ -90,7 +91,7 @@ static sem_t logger_done;
 
 static bool c_state_restricted;
 
-#define short_optlist "ikurqbKmtp:A:T:v::l:g::H:P:c:Z:z:I:O:"
+#define short_optlist "ikusrqbKmtp:A:T:v::l:g::H:P:c:Z:z:I:O:"
 
 static const struct option options[] = {
 	{
@@ -107,6 +108,11 @@ static const struct option options[] = {
 		.name = "user",
 		.has_arg = no_argument,
 		.val = 'u'
+	},
+	{
+		.name = "sirq",
+		.has_arg = no_argument,
+		.val = 's'
 	},
 	{
 		.name = "reset",
@@ -252,13 +258,14 @@ static time_t peak_time;
 
 static FILE *plot_fp;
 
-#define EVL_LAT_OOB_GPIO      (EVL_LAT_USER + 1) /* yeah, well... */
-#define EVL_LAT_INBAND_GPIO   (EVL_LAT_OOB_GPIO + 1) /* ditto. */
+#define EVL_LAT_OOB_GPIO      (EVL_LAT_LAST + 1)
+#define EVL_LAT_INBAND_GPIO   (EVL_LAT_OOB_GPIO + 1)
 
 static int context_type = EVL_LAT_USER;
 
 const char *context_labels[] = {
 	[EVL_LAT_IRQ] = "irq",
+	[EVL_LAT_SIRQ] = "sirq",
 	[EVL_LAT_KERN] = "kernel",
 	[EVL_LAT_USER] = "user",
 	[EVL_LAT_OOB_GPIO] = "oob-gpio",
@@ -731,7 +738,7 @@ static void dump_gnuplot(time_t duration)
 	paste_file_in("/sys/devices/system/clocksource/clocksource0/vdso_clocksource",
 		"vDSO access: ");
 	fprintf(plot_fp, "# context: %s\n", context_labels[context_type]);
-	if (!test_irqlat) {
+	if (!(test_irqlat || test_sirqlat)) {
 		fprintf(plot_fp, "# thread priority: %d\n", responder_priority);
 		fprintf(plot_fp, "# thread affinity: CPU%d%s\n",
 			responder_cpu,
@@ -1119,6 +1126,7 @@ static void usage(void)
         fprintf(stderr, "-u --user               measure/tune user scheduling latency\n");
         fprintf(stderr, "    [ if none of --irq, --kernel or --user is given,\n"
                         "      tune for all contexts ]\n");
+        fprintf(stderr, "-s --sirq               measure in-band response time to synthetic irq\n");
         fprintf(stderr, "-p --period=<us>        sampling period\n");
         fprintf(stderr, "-P --priority=<prio>    responder thread priority [=90]\n");
         fprintf(stderr, "-c --cpu=<n>            pin responder thread to CPU [=0]\n");
@@ -1133,7 +1141,7 @@ static void usage(void)
         fprintf(stderr, "-H --histogram[=<nr>]   set histogram size to <nr> cells [=200]\n");
         fprintf(stderr, "-g --plot=<filename>    dump histogram data to file (gnuplot format)\n");
         fprintf(stderr, "-Z --oob-gpio=<host>    measure EVL response time to GPIO event via <host>\n");
-        fprintf(stderr, "-z --inband-gpio=<host> measure inband response time to GPIO event via <host>\n");
+        fprintf(stderr, "-z --inband-gpio=<host> measure in-band response time to GPIO event via <host>\n");
         fprintf(stderr, "-I --gpio-in=<spec>     input GPIO line configuration\n");
         fprintf(stderr, "   with <spec> = gpiochip-devname,pin-number[,rising-edge|falling-edge]\n");
         fprintf(stderr, "-O --gpio-out=<spec>    output GPIO line configuration\n");
@@ -1173,6 +1181,9 @@ int main(int argc, char *const argv[])
 		case 'u':
 			test_ulat = 1;
 			break;
+		case 's':
+			test_sirqlat = 1;
+			break;
 		case 'r':
 			reset = true;
 			break;
@@ -1186,10 +1197,10 @@ int main(int argc, char *const argv[])
 			abort_on_switch = false;
 			break;
 		case 'm':
-			tuning = 0;
+			tuning = false;
 			break;
 		case 't':
-			tuning = 1;
+			tuning = true;
 			break;
 		case 'p':
 			period_usecs = atoi(optarg);
@@ -1322,19 +1333,20 @@ int main(int argc, char *const argv[])
 	sa.sa_flags = SA_SIGINFO | SA_RESTART;
 	sigaction(SIGDEBUG, &sa, NULL);
 
-	spec = test_irqlat || test_klat || test_ulat || test_gpiolat;
+	spec = test_irqlat || test_klat || test_ulat || test_sirqlat || test_gpiolat;
 	if (!tuning) {
 		if (!spec)
 			test_ulat = 1;
-		else if (test_irqlat + test_klat + test_ulat + (!!test_gpiolat) > 1)
-			error(1, EINVAL, "only one of -u, -k, -i, -z or -Z "
+		else if (test_irqlat + test_klat + test_ulat + test_sirqlat +
+			(!!test_gpiolat) > 1)
+			error(1, EINVAL, "only one of -u, -k, -i, -s, -z or -Z "
 			      "in measurement mode");
 	} else {
 		/* Default to tune for all contexts. */
 		if (!spec)
 			test_irqlat = test_klat = test_ulat = 1;
-		else if (test_gpiolat)
-			error(1, EINVAL, "-z and -t are mutually exclusive");
+		else if (test_sirqlat || test_gpiolat)
+			error(1, EINVAL, "-s/-z and -t are mutually exclusive");
 	}
 
 	if (test_gpiolat != INBAND_GPIO_LAT) {
@@ -1375,7 +1387,9 @@ int main(int argc, char *const argv[])
 				      plot_filename);
 		}
 		type = test_irqlat ? EVL_LAT_IRQ : test_klat ?
-			EVL_LAT_KERN : EVL_LAT_USER + test_gpiolat;
+			EVL_LAT_KERN : test_sirqlat ? EVL_LAT_SIRQ :
+			test_ulat ? EVL_LAT_USER :
+			EVL_LAT_LAST + test_gpiolat;
 		do_measurement(type);
 	} else {
 		if (verbosity)
