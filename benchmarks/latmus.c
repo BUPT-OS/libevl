@@ -91,7 +91,9 @@ static sem_t logger_done;
 
 static bool c_state_restricted;
 
-#define short_optlist "ikusrqbKmtp:A:T:v::l:g::H:P:c:Z:z:I:O:"
+static bool force_cpu;
+
+#define short_optlist "ikusrqbKmtp:A:T:v::l:g::H:P:c:Z:z:I:O:C:"
 
 static const struct option options[] = {
 	{
@@ -188,6 +190,11 @@ static const struct option options[] = {
 		.name = "cpu",
 		.has_arg = required_argument,
 		.val = 'c',
+	},
+	{
+		.name = "force-cpu",
+		.has_arg = required_argument,
+		.val = 'C',
 	},
 	{
 		.name = "oob-gpio",
@@ -1068,6 +1075,9 @@ static void determine_responder_cpu(bool inband_test)
 		goto finish;
 	}
 
+	if (force_cpu)
+		goto finish;
+
 	if (inband_test)
 		goto pick_isolated;
 
@@ -1129,7 +1139,8 @@ static void usage(void)
         fprintf(stderr, "-s --sirq               measure in-band response time to synthetic irq\n");
         fprintf(stderr, "-p --period=<us>        sampling period\n");
         fprintf(stderr, "-P --priority=<prio>    responder thread priority [=90]\n");
-        fprintf(stderr, "-c --cpu=<n>            pin responder thread to CPU [=0]\n");
+        fprintf(stderr, "-c --cpu=<n>            pin responder thread to CPU [=current]\n");
+        fprintf(stderr, "-C --force-cpu=<n>      similar to -c, accept non-isolated CPU\n");
         fprintf(stderr, "-r --reset              reset core timer gravity to factory default\n");
         fprintf(stderr, "-b --background         run in the background (daemon mode)\n");
         fprintf(stderr, "-K --keep-going         keep going on unexpected switch to in-band mode\n");
@@ -1261,6 +1272,9 @@ int main(int argc, char *const argv[])
 				error(1, EINVAL, "invalid thread priority "
 				      "(0 < priority < %d)", max_prio);
 			break;
+		case 'C':
+			force_cpu = true;
+			/* fallthrough */
 		case 'c':
 			responder_cpu = atoi(optarg);
 			if (responder_cpu < 0 || responder_cpu >= CPU_SETSIZE)
