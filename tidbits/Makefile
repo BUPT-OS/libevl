@@ -6,7 +6,7 @@ include ../libversion.mk
 SRCFILES := $(wildcard *.c)
 TARGETS = $(SRCFILES:%.c=$(O_DIR)/%)
 DEPFILES = $(SRCFILES:%.c=$(O_DIR)/%.d)
-TIDBITS = oob-spi
+TIDBITS = oob-spi oob-net-icmp
 
 CMD_CPPFLAGS := $(BASE_CPPFLAGS) -I. -I../include -I$(O_DIR)/../include
 CMD_CFLAGS := $(CMD_CPPFLAGS) $(BASE_CFLAGS)
