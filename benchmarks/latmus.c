@@ -311,7 +311,7 @@ static void log_results(struct latmus_measurement *meas,
 
 	if (verbosity > 0 && data_lines && (round % data_lines) == 0) {
 		time(&now);
-		dt = now - start_time;
+		dt = now - start_time - 1; /* -1s warm-up time */
 		printf("RTT|  %.2ld:%.2ld:%.2ld  (%s, %u us period,",
 			dt / 3600, (dt / 60) % 60, dt % 60,
 			context_labels[context_type], period_usecs);
@@ -354,6 +354,12 @@ static void log_results(struct latmus_measurement *meas,
 		fprintf(stderr, "results look weird, aborting.\n");
 		exit(103);
 	}
+}
+
+static inline void notify_start(void)
+{
+	if (timeout)
+		alarm(timeout + 1); /* +1 warm-up time */
 }
 
 static void create_logger(pthread_t *tid, void *(*logger)(void *), void *arg)
@@ -444,6 +450,8 @@ static void *timer_test_sitter(void *arg)
 
 	result.data_ptr = (__u64)(uintptr_t)&mr;
 	result.len = sizeof(mr);
+
+	notify_start();
 
 	/* Run test until signal. */
 	ret = oob_ioctl(latmus_fd, EVL_LATIOC_RUN, &result);
@@ -681,6 +689,7 @@ static void setup_measurement_on_gpio(void)
 	create_responder(&responder, gpio_responder_thread);
 	create_logger(&logger, sock_logger_thread, &latmon_hung);
 
+	notify_start();
 	req.period_usecs = htonl(period_usecs); /* Non-zero, means start. */
 	req.histogram_cells = histogram ? htonl(histogram_cells) : 0;
 	ret = send(lat_sock, &req, sizeof(req), 0);
@@ -813,7 +822,9 @@ static void do_measurement(int type)
 	if (!(responder_cpu_state & EVL_CPU_ISOL))
 		cpu_s = " (not isolated)";
 
-	if (verbosity <= 0)
+	if (verbosity > 0)
+		fprintf(stderr, "warming up on CPU%d%s...\n", responder_cpu, cpu_s);
+	else
 		fprintf(stderr, "running quietly for %ld seconds on CPU%d%s\n",
 			timeout, responder_cpu, cpu_s);
 
@@ -826,7 +837,7 @@ static void do_measurement(int type)
 		setup_measurement_on_timer();
 	}
 
-	duration = time(NULL) - start_time;
+	duration = time(NULL) - start_time - 1; /* -1s warm-up time */
 	if (plot_fp) {
 		dump_gnuplot(duration);
 		if (plot_fp != stdout)
@@ -896,6 +907,8 @@ static void do_tuning(int type)
 		create_responder(&responder, timer_responder);
 
 	pthread_sigmask(SIG_UNBLOCK, &sigmask, NULL);
+
+	notify_start();
 
 	result.data_ptr = (__u64)(uintptr_t)&gravity;
 	result.len = sizeof(gravity);
@@ -1252,7 +1265,6 @@ int main(int argc, char *const argv[])
 				error(1, EINVAL, "invalid time modifier: '%c'",
 					*endptr);
 			}
-			alarm(timeout);
 			break;
 		case 'v':
 			verbosity = optarg ? atoi(optarg) : 1;
