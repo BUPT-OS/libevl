@@ -251,6 +251,8 @@ static int32_t *histogram;
 
 static unsigned int histogram_cells = 200;
 
+static struct latmus_measurement last_bulk;
+
 static unsigned int all_overruns;
 
 static unsigned int spurious_inband_switches;
@@ -425,7 +427,6 @@ static void *timer_responder(void *arg)
 static void *timer_test_sitter(void *arg)
 {
 	struct latmus_measurement_result mr;
-	struct latmus_measurement last;
 	struct latmus_result result;
 	int ret;
 
@@ -437,7 +438,7 @@ static void *timer_test_sitter(void *arg)
 	if (ret < 0)
 		error(1, -ret, "evl_attach_self() failed");
 
-	mr.last_ptr = (__u64)(uintptr_t)&last;
+	mr.last_ptr = (__u64)(uintptr_t)&last_bulk;
 	mr.histogram_ptr = (__u64)(uintptr_t)histogram;
 	mr.len = histogram ? histogram_cells * sizeof(int32_t) : 0;
 
@@ -448,10 +449,6 @@ static void *timer_test_sitter(void *arg)
 	ret = oob_ioctl(latmus_fd, EVL_LATIOC_RUN, &result);
 	if (ret)
 		error(1, errno, "measurement failed");
-
-	/* Add results from the last incomplete bulk. */
-	if (last.samples > 0)
-		__log_results(&last);
 
 	return NULL;
 }
@@ -493,6 +490,15 @@ static void setup_measurement_on_timer(void)
 	sigwait(&sigmask, &sig);
 	pthread_cancel(sitter);
 	pthread_join(sitter, NULL);
+
+	/*
+	 * Add results from the last incomplete bulk once the sitter
+	 * has returned to user-space from oob_ioctl(EVL_LATIOC_RUN)
+	 * then exited, at which point such bulk contains meaningful
+	 * data.
+	 */
+	if (last_bulk.samples > 0)
+		__log_results(&last_bulk);
 }
 
 static void setup_gpio_pins(int *fds)
