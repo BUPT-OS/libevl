@@ -244,7 +244,7 @@ static void gpio_ack_handler(struct device *port,
 
 static int monitor(void)
 {
-	u32_t pulse_date, delta, delta_ns, delta_usecs;
+	u32_t pulse_date, delta, delta_ns, delta_usecs, warmup_count = 0;
 	unsigned int key;
 	int cell;
 
@@ -274,6 +274,11 @@ static int monitor(void)
 		if (k_sem_take(&ack_event, K_SECONDS(1))) {
 			ack_wait = false;
 			overruns++;
+			continue;
+		}
+
+		if (warmup_count < max_samples_per_bulk) {
+			warmup_count++;
 			continue;
 		}
 
