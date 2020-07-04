@@ -37,13 +37,13 @@ static int timeout_secs = 3;	/* Default to 3s runtime. */
 
 static void *stress_loop(void *arg)
 {
-	int tfd;
+	int tfd, ret;
 
 	__Tcall_assert(tfd, evl_attach_self("fpu-stresser:%d", getpid()));
 
 	for (;;) {
 		evl_set_fpregs(fp_features, 0xf1f5f1f5);
-		evl_usleep(TEST_PERIOD_USEC);
+		__Tcall_assert(ret, evl_usleep(TEST_PERIOD_USEC));
 	}
 
 	return NULL;
