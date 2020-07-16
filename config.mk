@@ -61,12 +61,19 @@ endif
 
 BASE_CPPFLAGS := -D_GNU_SOURCE -D_REENTRANT $(DEBUG_CPPFLAGS)
 
+GCCVER_GTE_7 := $(shell expr `${CC} -dumpversion | cut -f1 -d.` \>= 7)
+ifeq "$(GCCVER_GTE_7)" "1"
+	WSHADOW_FLAG="-Wshadow=local"
+else
+	WSHADOW_FLAG=
+endif
+
 BASE_CFLAGS :=	-pipe -fstrict-aliasing	 					\
 		-Wall -Wstrict-prototypes -Wmissing-prototypes -Wno-long-long	\
-		-Wno-unused-parameter -Wshadow=local -Werror $(DEBUG_CFLAGS)
+		-Wno-unused-parameter ${WSHADOW_FLAG} -Werror $(DEBUG_CFLAGS)
 
 BASE_CXXFLAGS := -pipe -fstrict-aliasing -Wall -Wno-long-long	\
-		-Wno-unused-parameter -Wshadow=local -Werror $(DEBUG_CFLAGS)
+		-Wno-unused-parameter ${WSHADOW_FLAG} -Werror $(DEBUG_CFLAGS)
 
 # Easy way to hide commas in args from $(call ...) invocations
 comma := ,
