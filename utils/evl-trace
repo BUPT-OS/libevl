@@ -97,9 +97,11 @@ if test x$enable = xtrue; then
    else
        warn=" (no snapshot)"
    fi
+   echo 1 > tracing_on
    echo "tracing enabled$warn"
    print=false
 elif test x$disable = xtrue; then
+   echo 0 > tracing_on
    echo 0 > events/enable
    echo nop > current_tracer
    test -r snapshot && echo 0 > snapshot
