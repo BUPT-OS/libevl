@@ -119,6 +119,7 @@ int evl_attach_thread(int flags, const char *fmt, ...)
 
 	pthread_once(&atfork_once, do_atfork_once);
 
+	memset(&attrs, 0, sizeof(attrs));
 	attrs.sched_policy = policy;
 	attrs.sched_priority = priority;
 	ret = oob_ioctl(efd, EVL_THRIOC_SET_SCHEDPARAM, &attrs);
