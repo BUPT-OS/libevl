@@ -23,8 +23,9 @@ int main(int argc, char *argv[])
 	__Tcall_assert(tfd, evl_attach_self("thread-mode-bits:%d", getpid()));
 
 	/* Starts with no mode bit set. */
-	__Tcall_assert(ret, evl_set_thread_mode(tfd, T_WOSS|T_WOLI|T_WOSX, &oldmask));
-	__Texpr_assert(oldmask == 0);
+	__Tcall_assert(ret, evl_set_thread_mode(tfd, /*T_WOSS|*/T_WOLI|T_WOSX, &oldmask));
+	/* T_WOLI may be preset if CONFIG_EVL_DEBUG_WOLI is set. */
+	__Texpr_assert((oldmask & ~T_WOLI) == 0);
 	__Tcall_assert(ret, evl_set_thread_mode(tfd, 0, &oldmask));
 	__Texpr_assert(oldmask == (T_WOSS|T_WOLI|T_WOSX|T_HMSIG));
 	__Tcall_assert(ret, evl_clear_thread_mode(tfd, T_WOSS, &oldmask));
