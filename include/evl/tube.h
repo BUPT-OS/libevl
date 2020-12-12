@@ -132,7 +132,7 @@
 		bool __ret = false;				\
 		typeof((__tube)->pending.tail) __new;		\
 		__new = tube_pull(&(__tube)->free);		\
-		if (likely(__new)) {				\
+		if (__new) {					\
 			tube_push_item(&(__tube)->pending,	\
 				__item, __new);			\
 			__ret = true;				\
@@ -280,7 +280,7 @@
 		typeof((__tube)->pending.first[0]) *__new;	\
 		__new = (typeof(__new))				\
 			tube_pull_rel(__tube, &(__tube)->free); \
-		if (likely(__new)) {				\
+		if (__new) {					\
 			tube_push_item_rel(__tube,		\
 					&(__tube)->pending,	\
 					__item, __new);		\
