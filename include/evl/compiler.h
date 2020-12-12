@@ -24,11 +24,6 @@
 #define __stringify(x...)	__stringify_1(x)
 #endif
 
-#ifndef likely
-#define likely(x)	__builtin_expect(!!(x), 1)
-#define unlikely(x)	__builtin_expect(!!(x), 0)
-#endif
-
 #ifndef __noreturn
 #define __noreturn	__attribute__((__noreturn__))
 #endif
