@@ -46,7 +46,11 @@ int main(int argc, char *argv[])
 
 	/* Enable stage switch notifications only via observable. */
 	__Tcall_assert(ret, evl_set_thread_mode(tfd, T_WOSS|T_HMOBS, &oldmask));
-	__Texpr_assert(oldmask == 0);
+	/*
+	 * Starts with no mode bit set, except maybe T_WOLI if
+	 * CONFIG_EVL_DEBUG_WOLI is enabled.
+	 */
+	__Texpr_assert((oldmask & ~T_WOLI) == 0);
 
 	/*
 	 * We are still in-band in the wake of evl_subscribe(), switch
