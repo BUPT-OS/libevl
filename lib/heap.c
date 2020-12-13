@@ -1290,6 +1290,21 @@ int evl_extend_heap(struct evl_heap *heap, void *mem, size_t size)
 	return 0;
 }
 
+size_t evl_heap_raw_size(const struct evl_heap *heap)
+{
+	return heap->raw_size;
+}
+
+size_t evl_heap_size(const struct evl_heap *heap)
+{
+	return heap->usable_size;
+}
+
+size_t evl_heap_used(const struct evl_heap *heap)
+{
+	return heap->used_size;
+}
+
 void evl_destroy_heap(struct evl_heap *heap)
 {
 	evl_close_mutex(&heap->lock);

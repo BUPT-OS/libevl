@@ -134,23 +134,11 @@ int evl_free_block(struct evl_heap *heap,
 ssize_t evl_check_block(struct evl_heap *heap,
 			void *block);
 
-static inline
-size_t evl_heap_raw_size(const struct evl_heap *heap)
-{
-	return heap->raw_size;
-}
+size_t evl_heap_raw_size(const struct evl_heap *heap);
 
-static inline
-size_t evl_heap_size(const struct evl_heap *heap)
-{
-	return heap->usable_size;
-}
+size_t evl_heap_size(const struct evl_heap *heap);
 
-static inline
-size_t evl_heap_used(const struct evl_heap *heap)
-{
-	return heap->used_size;
-}
+size_t evl_heap_used(const struct evl_heap *heap);
 
 #ifdef __cplusplus
 }
