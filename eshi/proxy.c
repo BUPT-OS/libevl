@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <evl/thread.h>
 #include <evl/proxy.h>
+#include "internal.h"
 
 static __thread __attribute__ ((tls_model (EVL_TLS_MODEL)))
 char fmt_buf[1024];

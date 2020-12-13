@@ -12,6 +12,9 @@
 #include <pthread.h>
 #include <stdio.h>
 
+/* Enable dlopen() on libeshi.so. */
+#define EVL_TLS_MODEL	"global-dynamic"
+
 static inline
 void timespec_add(struct timespec *r, const struct timespec *t)
 {

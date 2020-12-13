@@ -169,6 +169,11 @@ int evl_get_self(void)
 	return evl_efd;
 }
 
+bool evl_is_inband(void)
+{
+	return !!(evl_get_current_mode() & T_INBAND);
+}
+
 int evl_switch_oob(void)
 {
 	int ret;

@@ -12,9 +12,6 @@
 #include <stdbool.h>
 #include <evl/syscall.h>
 
-/* Enable dlopen() on libeshi.so. */
-#define EVL_TLS_MODEL	"global-dynamic"
-
 #define EVL_STACK_DEFAULT			\
 	({					\
 		int __ret = PTHREAD_STACK_MIN;	\

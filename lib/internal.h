@@ -84,11 +84,23 @@
 		__ret ? -errno : 0;				\
 	})
 
+/* Enable dlopen() on libevl.so. */
+#define EVL_TLS_MODEL	"global-dynamic"
+
 extern __thread __attribute__ ((tls_model (EVL_TLS_MODEL)))
 fundle_t evl_current;
 
 extern __thread __attribute__ ((tls_model (EVL_TLS_MODEL)))
 int evl_efd;
+
+extern __thread __attribute__ ((tls_model (EVL_TLS_MODEL)))
+struct evl_user_window *evl_current_window;
+
+static inline int evl_get_current_mode(void)
+{
+	return evl_current_window ?
+		evl_current_window->state : T_INBAND;
+}
 
 static inline fundle_t evl_get_current(void)
 {
