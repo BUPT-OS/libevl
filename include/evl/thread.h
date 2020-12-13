@@ -36,10 +36,7 @@ int evl_attach_thread(int flags, const char *fmt, ...);
 
 int evl_detach_thread(int flags);
 
-static inline int evl_detach_self(void)
-{
-	return evl_detach_thread(0);
-}
+int evl_detach_self(void);
 
 int evl_get_self(void);
 

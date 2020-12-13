@@ -164,6 +164,11 @@ int evl_detach_thread(int flags)
 	return 0;
 }
 
+int evl_detach_self(void)
+{
+	return evl_detach_thread(0);
+}
+
 int evl_get_self(void)
 {
 	return evl_efd;
