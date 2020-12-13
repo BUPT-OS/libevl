@@ -18,19 +18,7 @@
 extern "C" {
 #endif
 
-static inline
-int evl_read_clock(int clockfd, struct timespec *tp)
-{
-	extern int (*arch_clock_gettime)(clockid_t clk_id,
-					 struct timespec *tp);
-	switch (clockfd) {
-	case -CLOCK_MONOTONIC:
-	case -CLOCK_REALTIME:
-		return arch_clock_gettime(-clockfd, tp) ? -errno : 0;
-	default:
-		return oob_ioctl(clockfd, EVL_CLKIOC_GET_TIME, tp) ? -errno : 0;
-	}
-}
+int evl_read_clock(int clockfd, struct timespec *tp);
 
 int evl_set_clock(int clockfd, const struct timespec *tp);
 
