@@ -1,0 +1,4 @@
+irq/irq_pipeline_entry
+irq/irq_pipeline_exit
+irq/irq_handler_entry
+irq/irq_handler_exit

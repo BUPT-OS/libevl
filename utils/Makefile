@@ -8,11 +8,14 @@ TARGETS = $(SRCFILES:%.c=$(O_DIR)/%)
 DEPFILES = $(SRCFILES:%.c=$(O_DIR)/%.d)
 COMMANDS = evl
 
-HELPER_SCRIPTS =	\
-	evl-gdb		\
-	evl-help	\
-	evl-test	\
-	evl-trace	\
+HELPER_SCRIPTS =		\
+	evl-gdb			\
+	evl-help		\
+	evl-test		\
+	evl-trace		\
+	trace.evl		\
+	trace.irq		\
+	trace.timer		\
 	kconf-checklist.evl
 
 HELPER_PROGRAMS = evl-check evl-ps

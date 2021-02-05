@@ -2,10 +2,10 @@
 # SPDX-License-Identifier: MIT
 
 usage() {
-   echo >&2 "usage: $(basename $1) [-e [-s <buffer_size>]] [-d] [-p] [-f] [-h] [-c <cpu>]"
+   echo >&2 "usage: $(basename $1) [-e[<trace_group>]] [-E<tracepoint_file>] [-t] [-s<buffer_size>]] [-d] [-p] [-f] [-h] [-c<cpu>]"
 }
 
-args=$(getopt -n $(basename $0) 'es:dc:pfh@' "$@")
+args=$(getopt -n $(basename $0) 'e::E:s:dc:pfht@' "$@")
 if [ $? -ne 0 ]; then
    usage $0
    exit 1
@@ -14,10 +14,13 @@ fi
 enable=false
 disable=false
 print=true
-full=false
 bufsz=128
 pcpu=
 help=false
+run_or_trace="eval "
+tracepoint_file=
+trace_groups=
+event_list=
 
 set -- $args
 for opt
@@ -25,25 +28,49 @@ do
 case "$opt" in
    -e) enable=true
        disable=false
-       shift;;
+       group=$(eval echo $2)
+       if test x$group = x; then
+	   trace_groups="all"
+       else
+	   trace_groups="$trace_groups $group"
+	   shift
+       fi
+       shift
+       ;;
+   -E) enable=true
+       disable=false
+       tracepoint_file=$(eval echo $2)
+       shift
+       ;;
    -s) bufsz=$(eval echo $2)
        shift
-       shift;;
+       shift
+       ;;
    -d) enable=false
        disable=true
-       shift;;
+       shift
+       ;;
    -p) print=true
-       shift;;
-   -f) full=true
-       shift;;
+       shift
+       ;;
+   -f) trace_groups=all
+       shift
+       ;;
    -c) pcpu=per_cpu/cpu$(eval echo $2)/
        shift
-       shift;;
+       shift
+       ;;
+   -t) run_or_trace="echo ";
+       shift
+       ;;
    -h) help=true;
-       shift;;
+       shift
+       ;;
    -@) echo "ftrace control front-end for EVL"
 	exit 0;;
-   --) shift; break;;
+   --) shift;
+       break
+       ;;
    esac
 done
 
@@ -62,42 +89,52 @@ if test \! -d $EVL_TRACEDIR/events/evl; then
    exit 2
 fi
 
+for group in $trace_groups
+do
+    if test \! -r $EVL_CMDDIR/trace.$group; then
+	    echo >&2 "no trace group '$group'"
+	    exit 1
+    fi
+    event_list="$event_list $(cat $EVL_CMDDIR/trace.$group)"
+done
+
+if test \! x$tracepoint_file = x; then
+    if test \! -r $tracepoint_file; then
+	    echo >&2 "cannot read tracepoint file '$tracepoint_file'"
+	    exit 1
+    fi
+    event_list="$event_list $(cat $tracepoint_file)"
+fi
+
 cd $EVL_TRACEDIR
 
 if test x$enable = xtrue; then
    echo nop > current_tracer
    test -r snapshot && echo 0 > snapshot
    echo $bufsz > ${pcpu}buffer_size_kb
-   if test x$full = xfalse; then
-       echo 1 > events/irq/irq_pipeline_entry/enable
-       echo 1 > events/irq/irq_pipeline_exit/enable
-       echo 1 > events/irq/irq_handler_entry/enable
-       echo 1 > events/irq/irq_handler_exit/enable
-       echo 1 > events/power/cpu_idle/enable
-       echo 1 > events/evl/enable
-       if test -r events/exceptions; then
-	   echo 1 > events/exceptions/enable
-       fi
+   if test \! x"$event_list" = x; then
+       for event in $event_list
+       do
+	   if test -r events/$event; then
+	       $run_or_trace "echo 1 > events/$event/enable"
+	   fi
+       done
    elif cat available_tracers | grep -qw function; then
-       echo function > current_tracer
-       echo 1 > events/enable
+       $run_or_trace "echo function > current_tracer"
+       $run_or_trace "echo 1 > events/enable"
    else
        echo >&2 "kernel function tracer is not available"
        exit 2
    fi
    warn=
    if test -r ${pcpu}snapshot; then
-       echo 1 > ${pcpu}snapshot
-       echo \!snapshot > events/evl/evl_trigger/trigger
-       echo snapshot > events/evl/evl_trigger/trigger
-       echo 1 > events/evl/evl_timer_shot/enable
-       echo 1 > events/evl/evl_trigger/enable
-       echo 1 > events/evl/evl_latspot/enable
-       echo 1 > events/evl/evl_fpu_corrupt/enable
+       $run_or_trace "echo 1 > ${pcpu}snapshot"
+       $run_or_trace "echo \!snapshot > events/evl/evl_trigger/trigger"
+       $run_or_trace "echo snapshot > events/evl/evl_trigger/trigger"
    else
        warn=" (no snapshot)"
    fi
-   echo 1 > tracing_on
+   $run_or_trace "echo 1 > tracing_on"
    echo "tracing enabled$warn"
    print=false
 elif test x$disable = xtrue; then
