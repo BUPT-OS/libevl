@@ -3,6 +3,7 @@ evl/evl_timer_expire
 evl/evl_flush_wait
 evl/evl_wakeup_thread
 evl/evl_schedule
+evl/evl_pick_next
 evl/evl_switch_context
 evl/evl_switch_tail
 evl/evl_finish_wait
