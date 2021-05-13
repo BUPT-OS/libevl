@@ -6,14 +6,20 @@
  * SPIDEV interface. Typical use case: closed-loop control systems
  * having stringent requirements, i.e. high frequency and/or low
  * jitter.  The magic starts with the ioctl(SPI_IOC_ENABLE_OOB_MODE)
- * request, check out the code.
+ * request, check out the code below.
  *
  * Using a Raspberry PI2/3/4, you can easily demo this code with a
  * simple loopback test, by shorting PIN #19 (SPI_MOSI) and #21
- * (SPI_MISO) on the GPIO 40 pin header. You will need
- * CONFIG_DMA_BCM2835_OOB, CONFIG_SPI_BCM2835_OOB and
- * CONFIG_SPI_SPIDEV_OOB to be turned on in your PI kernel
- * configuration.
+ * (SPI_MISO) on the GPIO 40 pin header, using the SPI0 controller
+ * (bcm2835). You need the following features to be enabled in your PI
+ * kernel configuration:
+ *
+ * - CONFIG_SPI=[y|m]
+ * - CONFIG_SPI_OOB=y
+ * - CONFIG_SPI_SPIDEV=[y|m]
+ * - CONFIG_SPI_SPIDEV_OOB=y
+ * - CONFIG_DMA_BCM2835=[y|m]
+ * - CONFIG_DMA_BCM2835_OOB=y
  *
  * Usage:
  * ~# oob-spi [/dev/spidevX.Y]
@@ -24,6 +30,31 @@
  *
  * ~# dd if=/dev/zero of=/dev/null bs=128M &
  * ~# while :; do hackbench; done&
+ *
+ * TROUBLESHOOTING:
+ *
+ * - if you get -ENODEV on return to ioctl(SPI_IOC_ENABLE_OOB_MODE),
+ * then you should suspect the DMA settings for the SPI
+ * controller. DMA support is required for out-of-band transfers.
+ *
+ * - if you have no /dev/spidev* devices listed although the proper
+ * SPI driver is enabled in the kernel configuration, then the device
+ * tree for the SoC may be missing a SPI(dev) slave device declaration
+ * in the proper SPI bus stanza. You may want to set the compatible
+ * string to "spidev,loopback", which is detected by the EVL-enabled
+ * spidev driver.
+ *
+ * spi0 {
+ *      ...
+ * 	spidev_0: spidev@0{
+ * 	       compatible = "spidev,loopback";
+ * 	       reg = <0>;
+ * 	       #address-cells = <1>;
+ * 	       #size-cells = <0>;
+ * 	       spi-max-frequency = <12500000>;
+ * 	       status = "okay";
+ * 	};
+ * };
  */
 
 #include <sys/ioctl.h>
@@ -114,7 +145,7 @@ int main(int argc, char *argv[])
 
 	/*
 	 * We may map the I/O area now, it is composed of two adjacent
-	 * buffers of @len bytes (plus alignment). CUATION: the
+	 * buffers of @len bytes (plus alignment). CAUTION: the
 	 * mapping is always on coherent DMA memory (i.e. non-cached).
 	 */
 	iobuf = mmap(NULL, oob_setup.iobuf_len, PROT_READ|PROT_WRITE,
