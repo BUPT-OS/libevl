@@ -47,6 +47,14 @@ int main(int argc, char *argv[])
 				SCHED_FIFO, &param) == 0);
 	__Tcall_assert(tfd, evl_attach_self("fault:%d", getpid()));
 
+	/*
+	 * Make the kernel fault on behalf of us, passing a b0rken
+	 * pointer.
+	 */
+	evl_get_state(tfd, (struct evl_thread_state *)-1L);
+
+	/* Next, fault from user space directly. */
+
 	expected_sigs = 1 << (SIGSEGV-1);
 
 	if (!setjmp(recover)) {
