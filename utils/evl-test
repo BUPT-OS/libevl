@@ -51,7 +51,7 @@ for t in "$@"; do
 done
 
 if test -z "$test_list"; then
-   test_list="$(find $EVL_TESTDIR -type f -maxdepth 1 | sort)"
+   test_list="$(find $EVL_TESTDIR -maxdepth 1 -type f | sort)"
    test_list="$test_list $(find $EVL_TESTDIR/eshi -type f | sort)"
    if test -z "$test_list"; then
       echo >&2 "$EVL_TESTDIR is empty - broken installation?"
