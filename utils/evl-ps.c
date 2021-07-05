@@ -28,6 +28,7 @@ static cpu_set_t cpu_restrict;
 #define DISPLAY_STATE  1
 #define DISPLAY_TIMES  2
 #define DISPLAY_SCHED  4
+#define DISPLAY_WAIT   8
 
 #define DISPLAY_NUMERIC    32
 #define DISPLAY_MODIFIERS  DISPLAY_NUMERIC
@@ -53,7 +54,7 @@ static int sort_key;
 	for (__cpu = 0; __cpu < CPU_SETSIZE; __cpu++)	\
 		if (CPU_ISSET(__cpu, &cpu_restrict))
 
-#define short_optlist "@hnlstpc:S:"
+#define short_optlist "@hnlstwpc:S:"
 
 static const struct option options[] = {
 	{
@@ -70,6 +71,11 @@ static const struct option options[] = {
 		.name = "times",
 		.has_arg = no_argument,
 		.val = 't',
+	},
+	{
+		.name = "wait",
+		.has_arg = no_argument,
+		.val = 'w',
 	},
 	{
 		.name = "policy",
@@ -114,6 +120,7 @@ static struct thread_info {
 	unsigned long nr_rwakeups;
 	unsigned long long cpu_time;
 	unsigned long long timeout;
+	char *wchan;
 	int percent_cpu;
 	unsigned int state;
 	pid_t pid;
@@ -166,6 +173,13 @@ static bool collect_timeout(struct thread_info *ti, char *buf)
 	return ret == 1;
 }
 
+static bool collect_wchan(struct thread_info *ti, char *buf)
+{
+	int ret = sscanf(buf, "%ms", &ti->wchan);
+
+	return ret == 1;
+}
+
 static struct collect_handler {
 	const char *name;
 	bool (*handle)(struct thread_info *ti, char *buf);
@@ -189,6 +203,10 @@ static struct collect_handler {
 	{
 		.name = "timeout",
 		.handle = collect_timeout,
+	},
+	{
+		.name = "wchan",
+		.handle = collect_wchan,
 	},
 };
 
@@ -591,6 +609,17 @@ static struct display_handler rwakeups_handler = {
 	.display_data = display_rwakeups,
 };
 
+static void display_wchan(struct thread_info *ti)
+{
+	printf("%-15s", ti->wchan);
+}
+
+static struct display_handler wchan_handler = {
+	.header = "WCHAN",
+	.header_fmt = "%-15s",
+	.display_data = display_wchan,
+};
+
 static void print_thread_info(void)
 {
 	int nr_restrict = CPU_COUNT(&cpu_restrict);
@@ -630,6 +659,16 @@ static void print_thread_info(void)
 		h->next = &time_handler;
 		h = &time_handler;
 	}
+	if (display_format & DISPLAY_WAIT) {
+		h->next = &timeout_handler;
+		h = &timeout_handler;
+		h->next = &rwakeups_handler;
+		h = &rwakeups_handler;
+		h->next = &state_handler;
+		h = &state_handler;
+		h->next = &wchan_handler;
+		h = &wchan_handler;
+	}
 	h->next = &name_handler;
 
 	for (h = chain; h; h = h->next)
@@ -654,6 +693,7 @@ static void usage(char *arg0)
         fprintf(stderr, "-s --state             display thread state\n");
         fprintf(stderr, "-t --times             display CPU utilization\n");
         fprintf(stderr, "-p --policy            display scheduling policy\n");
+        fprintf(stderr, "-w --wait              display wait channel\n");
         fprintf(stderr, "-l --long              long format, same as -stp\n");
         fprintf(stderr, "-n --numeric           numeric output for STAT\n");
         fprintf(stderr, "-S --sort=<c|i|t|x|w>  sort key: c=%%CPU, i=ISW, t=CPUTIME, x=CTXSW, w=RWA\n");
@@ -749,6 +789,9 @@ int main(int argc, char *const argv[])
 			break;
 		case 'n':
 			display_format |= DISPLAY_NUMERIC;
+			break;
+		case 'w':
+			display_format = DISPLAY_WAIT;
 			break;
 		case 'S':
 			for (p = optarg; *p; p++) {
