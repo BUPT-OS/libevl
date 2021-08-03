@@ -91,6 +91,10 @@ fi
 
 for group in $trace_groups
 do
+    if test $group = all; then
+	event_list=""
+	break
+    fi
     if test \! -r $EVL_CMDDIR/trace.$group; then
 	    echo >&2 "no trace group '$group'"
 	    exit 1
