@@ -93,7 +93,7 @@ static unsigned long elf_hash(const char *name)
 	return h;
 }
 
-static void vdso_init_from_sysinfo_ehdr(uintptr_t base)
+static __attribute__((unused)) void vdso_init_from_sysinfo_ehdr(uintptr_t base)
 {
 	size_t i;
 	bool found_vaddr = false;
@@ -259,22 +259,27 @@ void *evl_lookup_vdso(const char *version, const char *name)
 
 void *evl_request_vdso(const char *version, const char *name)
 {
+#if 0
 	void *sym = evl_lookup_vdso(version, name);
 
 	if (!sym)
 		error(1, ENOENT, "%s not found in vDSO", name);
 
 	return sym;
+#endif
+	return &clock_gettime;
 }
 
 static void parse_vdso(void)
 {
+#if 0
 	uintptr_t vdso = (uintptr_t)getauxval(AT_SYSINFO_EHDR);
 
 	if (!vdso)
 		error(1, ENOENT, "vDSO signature not found");
 
 	vdso_init_from_sysinfo_ehdr(vdso);
+#endif
 }
 
 void evl_init_vdso(void)

@@ -14,12 +14,14 @@
 #include <pthread.h>
 #include <string.h>
 #include <stdio.h>
+#include <linux/types.h>
 #include <evl/evl.h>
 #include <evl/syscall.h>
 #include <evl/thread.h>
-#include <linux/types.h>
+#include <asm/evl/vdso.h>
 #include <uapi/evl/control.h>
 #include <uapi/evl/signal.h>
+#include "parse_vdso.h"
 #include "internal.h"
 
 #ifndef EVL_ABI_BASE
@@ -178,13 +180,19 @@ void evl_sigdebug_handler(int sig, siginfo_t *si, void *ctxt)
 	}
 }
 
-static inline int do_init(void)
+static void resolve_vdso_calls(void)
+{
+	evl_init_vdso();
+
+	__evl_clock_gettime = evl_request_vdso(__EVL_VDSO_KVERSION,
+					__EVL_VDSO_GETTIME);
+}
+
+static int do_init(void)
 {
 	int ret;
 
-	ret = arch_evl_init();
-	if (ret)
-		return ret;
+	resolve_vdso_calls();
 
 	ret = mlockall(MCL_CURRENT | MCL_FUTURE);
 	if (ret)

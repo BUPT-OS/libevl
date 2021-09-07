@@ -9,7 +9,7 @@ SOLIBNAME := libevl-$(EVL_SERIAL).so.$(EVL_IVERSION)
 ARLIBNAME := libevl-$(EVL_SERIAL).a
 TARGETS := $(O_DIR)/$(SOLIBNAME) $(O_DIR)/$(ARLIBNAME)
 
-SRCFILES := $(wildcard *.c arch/$(ARCH)/*.c)
+SRCFILES := $(wildcard *.c)
 PIC_OBJFILES = $(SRCFILES:%.c=$(O_DIR)/%-pic.o)
 OBJFILES = $(SRCFILES:%.c=$(O_DIR)/%.o)
 DEPFILES = $(SRCFILES:%.c=$(O_DIR)/%.d)
@@ -21,7 +21,7 @@ LIB_CPPFLAGS :=  $(BASE_CPPFLAGS)		\
 		 -I$(O_DIR)/../include		\
 		 -I$(O_DIR)
 
-LIB_CFLAGS := $(LIB_CPPFLAGS) $(BASE_CFLAGS)
+LIB_CFLAGS := $(LIB_CPPFLAGS) $(BASE_CFLAGS) -idirafter ../include/placeholders
 
 override CFLAGS := $(LIB_CFLAGS) $(CFLAGS)
 

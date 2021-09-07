@@ -18,12 +18,20 @@
 int evl_mono_clockfd = -ENXIO,
 	evl_real_clockfd = -ENXIO;
 
+static int gettime_fallback(clockid_t clk_id, struct timespec *tp)
+{
+	return clock_gettime(clk_id, tp);
+}
+
+int (*__evl_clock_gettime)(clockid_t clk_id,
+			struct timespec *tp) = gettime_fallback;
+
 int evl_read_clock(int clockfd, struct timespec *tp)
 {
 	switch (clockfd) {
 	case -CLOCK_MONOTONIC:
 	case -CLOCK_REALTIME:
-		return arch_clock_gettime(-clockfd, tp) ? -errno : 0;
+		return __evl_clock_gettime(-clockfd, tp) ? -errno : 0;
 	default:
 		return oob_ioctl(clockfd, EVL_CLKIOC_GET_TIME, tp) ? -errno : 0;
 	}

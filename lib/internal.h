@@ -135,8 +135,8 @@ int open_evl_element(const char *type,
 
 int create_evl_file(const char *type);
 
-extern int (*arch_clock_gettime)(clockid_t clk_id,
-				 struct timespec *tp);
+extern int (*__evl_clock_gettime)(clockid_t clk_id,
+				struct timespec *tp);
 
 extern void *evl_shared_memory;
 
