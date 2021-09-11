@@ -72,6 +72,9 @@ int evl_open_sem(struct evl_sem *sem, const char *fmt, ...)
 	int ret, efd;
 	va_list ap;
 
+	if (evl_shared_memory == NULL)
+		return -ENXIO;
+
 	va_start(ap, fmt);
 	efd = open_evl_element_vargs(EVL_MONITOR_DEV, fmt, ap);
 	va_end(ap);
