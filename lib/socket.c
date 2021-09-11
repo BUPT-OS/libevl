@@ -19,11 +19,12 @@
 #include <evl/net/socket.h>
 #include "internal.h"
 
+static const struct timespec zerotime;
+
 ssize_t oob_recvmsg(int s, struct oob_msghdr *msghdr,
 		const struct timespec *timeout,
 		int flags)
 {
-	struct timespec zerotime = { .tv_sec = 0, .tv_nsec = 0 };
 	struct user_oob_msghdr u_msghdr;
 	struct __evl_timespec kts;
 	long ret;
@@ -57,7 +58,6 @@ ssize_t oob_sendmsg(int s, const struct oob_msghdr *msghdr,
 		const struct timespec *timeout,
 		int flags)
 {
-	struct timespec zerotime = { .tv_sec = 0, .tv_nsec = 0 };
 	struct user_oob_msghdr u_msghdr;
 	struct __evl_timespec kts;
 	long ret;
