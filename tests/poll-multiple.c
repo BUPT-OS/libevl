@@ -88,8 +88,8 @@ static void *flags_feeder(void *arg)
 
 int main(int argc, char *argv[])
 {
+	int tfd, ret, n, m, pollfd, tmfd, bits, nr;
 	struct evl_poll_event pollset[NR_FEEDERS];
-	int tfd, ret, n, m, pollfd, tmfd, bits;
 	struct itimerspec value, ovalue;
 	pthread_t feeders[NR_FEEDERS];
 	struct sched_param param;
@@ -137,8 +137,8 @@ int main(int argc, char *argv[])
 	__Tcall_assert(ret, evl_unlock_mutex(&lock));
 
 	for (n = 0; n < FEED_COUNT; n++) {
-		__Tcall_assert(ret, evl_poll(pollfd, pollset, NR_FEEDERS));
-		for (m = 0; m < ret; m++) {
+		__Tcall_assert(nr, evl_poll(pollfd, pollset, NR_FEEDERS));
+		for (m = 0; m < nr; m++) {
 			if (pollset[m].fd == tmfd) {
 				__Tcall_errno_assert(ret,
 					oob_read(tmfd, &ticks, sizeof(ticks)));
