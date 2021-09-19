@@ -11,6 +11,8 @@ COMMANDS = evl
 HELPER_SCRIPTS =		\
 	evl-gdb			\
 	evl-help		\
+	evl-start		\
+	evl-stop		\
 	evl-test		\
 	evl-trace		\
 	trace.evl		\

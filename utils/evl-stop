@@ -1,0 +1,30 @@
+#! /bin/sh
+# SPDX-License-Identifier: MIT
+
+if test \! -w $EVL_SYSDIR/evl/control/state; then
+   echo >&2 "no EVL core in kernel"
+   exit 2
+fi
+
+usage() {
+   echo >&2 "usage: $(basename $1)"
+}
+
+args=$(getopt -n $(basename $0) '@' "$@")
+if [ $? -ne 0 ]; then
+   usage $0
+   exit 1
+fi
+
+set -- $args
+for opt
+do
+case "$opt" in
+   -@) echo "stop EVL core"
+       exit 0;;
+   esac
+done
+
+echo stop > $EVL_SYSDIR/evl/control/state
+
+exit 0
