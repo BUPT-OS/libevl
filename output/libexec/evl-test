@@ -1,0 +1,85 @@
+#! /bin/sh
+# SPDX-License-Identifier: MIT
+
+if test \! -d $EVL_TESTDIR; then
+   echo >&2 "$EVL_TESTDIR not found - broken installation?"
+   exit 2
+fi
+
+usage() {
+   echo >&2 "usage: $(basename $1) [-l][-L][-k][-h] [test-list]"
+}
+
+args=$(getopt -n $(basename $0) 'h@klL' "$@")
+if [ $? -ne 0 ]; then
+   usage $0
+   exit 1
+fi
+
+help=false
+keep_going=false
+do_list=false
+full_path=false
+
+set -- $args
+for opt
+do
+case "$opt" in
+   -k) keep_going=true;
+       shift;;
+   -h) help=true;
+       shift;;
+   -l) do_list=true;
+       shift;;
+   -L) full_path=true;
+       do_list=true;
+       shift;;
+   -@) echo "run EVL tests"
+       exit 0;;
+   --) shift; break;;
+   esac
+done
+
+if test x$help = xtrue; then
+   usage $0
+   exit 0
+fi
+
+test_list=
+for t in "$@"; do
+    test_list="$test_list $(eval echo $EVL_TESTDIR/$t)"
+done
+
+if test -z "$test_list"; then
+   test_list="$(find $EVL_TESTDIR -type f -maxdepth 1 | sort)"
+   test_list="$test_list $(find $EVL_TESTDIR/eshi -type f | sort)"
+   if test -z "$test_list"; then
+      echo >&2 "$EVL_TESTDIR is empty - broken installation?"
+      exit 2
+   fi
+fi
+
+if test x$do_list = xtrue; then
+   for t in $test_list; do
+       if test x$full_path = xtrue; then
+	   echo "$t";
+       else
+	   echo "$(basename $t)"
+       fi
+   done
+   exit 0
+fi
+
+for t in $test_list; do
+    test \! -x $t && echo "$(basename $t): no such test" && exit 2
+    $t && echo "$(basename $t): OK" && continue
+    c=$?
+    if test $c = 42; then
+	echo "$(basename $t): no kernel support"
+    else
+	echo "** $(basename $t): BROKEN"
+	test x$keep_going = xfalse && exit $c
+    fi
+done
+
+exit 0

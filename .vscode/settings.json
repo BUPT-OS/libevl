@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "ioctls.h": "c",
+        "ioctl.h": "c",
+        "syscall.h": "c",
+        "internal.h": "c"
+    }
+}

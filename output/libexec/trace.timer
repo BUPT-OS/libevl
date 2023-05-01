@@ -1,0 +1,15 @@
+irq/irq_pipeline_entry
+evl/evl_timer_expire
+evl/evl_flush_wait
+evl/evl_wakeup_thread
+evl/evl_schedule
+evl/evl_pick_next
+evl/evl_switch_context
+evl/evl_switch_tail
+evl/evl_finish_wait
+evl/evl_oob_sysexit
+evl/evl_timer_shot
+evl/evl_trigger
+evl/evl_latspot
+mm/switch_mm_entry
+mm/switch_mm_exit

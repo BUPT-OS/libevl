@@ -1,0 +1,25 @@
+#! /bin/sh
+# SPDX-License-Identifier: MIT
+
+if test \! -d $EVL_CMDDIR; then
+   echo >&2 "EVL_CMDDIR unset -- use 'evl --help' instead"
+   exit 2
+fi
+
+cd $EVL_CMDDIR || exit 1
+
+echo
+echo "available commands:"
+echo
+for cmd in evl-*; do
+    case "$cmd" in
+         evl-help)
+		;;
+	 evl-*)
+		action=$(echo $cmd | cut -d'-' -f2)
+		printf '%-12s %s\n' $action "`./$cmd \-@`"
+		;;
+    esac
+done
+
+exit 0

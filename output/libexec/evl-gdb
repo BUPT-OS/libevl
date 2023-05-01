@@ -1,0 +1,50 @@
+#! /bin/sh
+# SPDX-License-Identifier: MIT
+
+usage() {
+   echo >&2 "usage: $(basename $1) <cmd> -- <gdb-args>"
+}
+
+args=$(getopt -n $(basename $0) 'h@' "$@")
+if [ $? -ne 0 ]; then
+   usage $0
+   exit 1
+fi
+
+help=false
+
+set -- $(eval echo $args)
+for opt
+do
+case "$opt" in
+   -h) help=true;
+       shift;;
+   -@) echo "debug EVL command plugin with GDB"
+       exit 0;;
+   --) shift; break;;
+   esac
+done
+
+if test x$help = xtrue; then
+   usage $0
+   exit 0
+fi
+
+if test x$1 = x; then
+   usage $0
+   exit 2
+fi
+
+program=$EVL_CMDDIR/evl-$1
+if test \! -f $program; then
+   echo >&2 "$(basename $0): cannot find $program"
+   exit 2
+fi
+
+export EVL_CMDDIR
+export EVL_TESTDIR
+export EVL_SYSDIR
+export EVL_TRACEDIR
+shift
+
+gdb $program "$@"

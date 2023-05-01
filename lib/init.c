@@ -190,11 +190,11 @@ static inline int do_init(void)
 	if (ret)
 		return -errno;
 
-	ret = generic_init();
-	if (ret)
-		return ret;
+	// ret = generic_init();
+	// if (ret)
+		// return ret;
 
-	init_proxy_streams();
+	// init_proxy_streams();
 
 	return 0;
 }
