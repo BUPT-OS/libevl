@@ -65,9 +65,16 @@ int evl_attach_thread(int flags, const char *fmt, ...)
 	 * thread to the core as the first EVL call of the process
 	 * enables all services.
 	 */
+	fprintf(stderr, "go to the dev evl clone devic FPU corruption detected");
+
+	printf("before evl init\n");
+
 	ret = evl_init();
 	if (ret)
 		return ret;
+
+	fprintf(stderr, "go to the dev evl clone devic FPU corruption detected");
+	printf("after evl init\n");
 
 	/*
 	 * Cannot bind twice. Although the core would catch it, we can
@@ -122,12 +129,13 @@ int evl_attach_thread(int flags, const char *fmt, ...)
 	memset(&attrs, 0, sizeof(attrs));
 	attrs.sched_policy = policy;
 	attrs.sched_priority = priority;
-	ret = oob_ioctl(efd, EVL_THRIOC_SET_SCHEDPARAM, &attrs);
-	if (ret) {
-		ret = -errno;
-		goto fail;
-	}
+	// ret = oob_ioctl(efd, EVL_THRIOC_SET_SCHEDPARAM, &attrs);
+	// if (ret) {
+		// ret = -errno;
+		// goto fail;
+	// }
 
+	fprintf(stderr,	"rros: You are touching the lastest one\n");
 	return efd;
 fail:
 	close(efd);
