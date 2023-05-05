@@ -147,10 +147,10 @@ static void dump_packet(const char *title,
 {
 	int n = 0;
 
-	evl_printf("== dumping %s, length=%d\n", title, len);
+	printf("== dumping %s, length=%d\n", title, len);
 
 	while (len-- > 0) {
-		evl_printf("%.2x ", *buf++);
+		printf("%.2x ", *buf++);
 		if ((++n % 16) == 0)
 			putchar('\n');
 	}
@@ -161,11 +161,11 @@ static void dump_packet(const char *title,
 
 static void print_ip_header(const struct ip *iphdr)
 {
-	evl_printf("iphdr.ip_hl=%d\n", iphdr->ip_hl);
-	evl_printf("iphdr.ip_v=%d\n", iphdr->ip_v);
-	evl_printf("iphdr.ip_len=%d\n", ntohs(iphdr->ip_len));
-	evl_printf("iphdr.ip_p=%d\n", iphdr->ip_p);
-	evl_printf("iphdr.ip_sum=%#x\n", iphdr->ip_sum);
+	printf("iphdr.ip_hl=%d\n", iphdr->ip_hl);
+	printf("iphdr.ip_v=%d\n", iphdr->ip_v);
+	printf("iphdr.ip_len=%d\n", ntohs(iphdr->ip_len));
+	printf("iphdr.ip_p=%d\n", iphdr->ip_p);
+	printf("iphdr.ip_sum=%#x\n", iphdr->ip_sum);
 }
 
 static void print_icmp_request(const void *etherbuf, size_t len)
@@ -179,9 +179,9 @@ static void print_icmp_request(const void *etherbuf, size_t len)
 	icmphdr = (const struct icmphdr *)(iphdr + 1);
 	icmpdata = icmphdr + 1;
 	(void)icmpdata;
-	evl_printf("icmp.icmp_type=%d\n", icmphdr->type);
-	evl_printf("icmp.icmp_id=%d\n", ntohs(icmphdr->un.echo.id));
-	evl_printf("icmp.icmp_seq=%d\n", ntohs(icmphdr->un.echo.sequence));
+	printf("icmp.icmp_type=%d\n", icmphdr->type);
+	printf("icmp.icmp_id=%d\n", ntohs(icmphdr->un.echo.id));
+	printf("icmp.icmp_seq=%d\n", ntohs(icmphdr->un.echo.sequence));
 
 	print_ip_header(iphdr);
 }
@@ -231,7 +231,7 @@ static size_t build_icmp_reply(uint8_t *o_frame, uint8_t *i_frame,
 	datalen = ntohs(s_iphdr->ip_len) - (sizeof(iphdr) + sizeof(icmphdr));
 
 	if (verbosity > 1)
-		evl_printf("ip_len=%zd, icmp_len=%zd, ip_len=%d, datalen=%d\n",
+		printf("ip_len=%zd, icmp_len=%zd, ip_len=%d, datalen=%d\n",
 			sizeof(iphdr), sizeof(struct icmphdr),
 			ntohs(s_iphdr->ip_len), datalen);
 
@@ -350,7 +350,7 @@ int main(int argc, char *argv[])
 	hwaddr = ifr.ifr_hwaddr;
 
 	if (verbosity > 1)
-		evl_printf("sending via %s (if%d), mac=%.2x:%.2x:%.2x:%.2x:%.2x:%.2x\n",
+		printf("sending via %s (if%d), mac=%.2x:%.2x:%.2x:%.2x:%.2x:%.2x\n",
 			ifr.ifr_name, ifindex,
 			(uint8_t)hwaddr.sa_data[0],
 			(uint8_t)hwaddr.sa_data[1],
@@ -371,9 +371,8 @@ int main(int argc, char *argv[])
 	ret = bind(s, (struct sockaddr *)&addr, sizeof(addr));
 	if (ret)
 		error(1, errno, "cannot bind packet socket");
-
 	if (verbosity)
-		evl_printf("listening to interface %s\n", netif);
+		printf("listening to interface %s\n", netif);
 
 	for (;;) {
 		iov.iov_base = i_frame;
@@ -390,7 +389,7 @@ int main(int argc, char *argv[])
 			error(1, errno, "oob_recvmsg() failed");
 
 		if (verbosity)
-			evl_printf("[%d] count=%zd, proto=%#hx, ifindex=%d, type=%u, halen=%u, "
+			printf("[%d] count=%zd, proto=%#hx, ifindex=%d, type=%u, halen=%u, "
 				"mac=%.2x:%.2x:%.2x:%.2x:%.2x:%.2x\n",
 				n, count,
 				ntohs(addr.sll_protocol),
@@ -408,7 +407,7 @@ int main(int argc, char *argv[])
 					(struct ether_addr *)addr.sll_addr,
 					(struct ether_addr *)hwaddr.sa_data);
 		if (count < 0) {
-			evl_printf("  *** not an ICMP request - dropped\n");
+			printf("  *** not an ICMP request - dropped\n");
 			continue;
 		}
 
@@ -430,7 +429,7 @@ int main(int argc, char *argv[])
 			error(1, errno, "oob_sendmsg() failed");
 
 		if (verbosity > 1)
-			evl_printf("  .. ICMP reply sent: %d\n", count);
+			printf("  .. ICMP reply sent: %d\n", (int)count);
 		n++;
 	}
 

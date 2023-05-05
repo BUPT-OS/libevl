@@ -77,18 +77,13 @@ int create_evl_element(const char *type, const char *name,
 	if (ret < 0)
 		return -ENOMEM;
 
-fprintf(stderr, "go to the dev evl clone devic FPU corruption detected");
-	printf("before opening clone device\n");
 
 	ffd = open(fdevname, O_RDWR);
-fprintf(stderr, "go to the dev evl clone devic FPU corruption detected");
-	printf("after opening clone device\n");
 	if (ffd < 0) {
 		ret = -errno;
 		goto out_factory;
 	}
 
-	printf("after opening clone device\n");
 
 	/*
 	 * Turn on public mode if the user-provided name starts with a
@@ -101,8 +96,6 @@ fprintf(stderr, "go to the dev evl clone devic FPU corruption detected");
 		clone_flags |= EVL_CLONE_PUBLIC;
 		name++;
 	}
-	fprintf(stderr, "go to the dev evl clone devic FPU corruption detected");
-	printf("go to the dev evl clone devic\n");
 
 	clone.name_ptr = __evl_ptr64(name);
 	clone.attrs_ptr = __evl_ptr64(attrs);
@@ -114,9 +107,6 @@ fprintf(stderr, "go to the dev evl clone devic FPU corruption detected");
 			lart_once();
 		goto out_new;
 	}
-	fprintf(stderr, "after the dev evl clone devic FPU corruption detected");
-
-	printf("after the dev evl clone devic\n");
 
 	if (clone_flags & EVL_CLONE_PUBLIC) {
 		ret = asprintf(&edevname, "/dev/evl/%s/%s", type, name);
