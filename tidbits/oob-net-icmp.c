@@ -287,7 +287,7 @@ static void usage(void)
 int main(int argc, char *argv[])
 {
 	uint8_t i_frame[ETHER_MAX_LEN], o_frame[ETHER_MAX_LEN];
-	int ret, tfd, s, n = 0, c, ifindex;
+	int ret, s, n = 0, c, ifindex;
 	const char *netif = NULL;
 	struct oob_msghdr msghdr;
 	struct sched_param param;
@@ -324,9 +324,9 @@ int main(int argc, char *argv[])
 	if (ret)
 		error(1, ret, "pthread_setschedparam()");
 
-	tfd = evl_attach_self("oob-net-icmp:%d", getpid());
-	if (tfd < 0)
-		error(1, -tfd, "cannot attach to the EVL core");
+	evl_attach_self("oob-net-icmp:%d", getpid());
+	// if (tfd < 0)
+	// 	error(1, -tfd, "cannot attach to the EVL core");
 
 	/*
 	 * Get a raw socket with out-of-band capabilities.

@@ -182,8 +182,7 @@ void evl_sigdebug_handler(int sig, siginfo_t *si, void *ctxt)
 
 static void resolve_vdso_calls(void)
 {
-	evl_init_vdso();
-
+	// evl_init_vdso();
 	__evl_clock_gettime = evl_request_vdso(__EVL_VDSO_KVERSION,
 					__EVL_VDSO_GETTIME);
 }
@@ -214,8 +213,8 @@ static void do_init_once(void)
 
 int evl_init(void)
 {
-	pthread_once(&init_once, do_init_once);
-
+	// pthread_once(&init_once, do_init_once);
+	do_init_once();
 	return init_status;
 }
 

@@ -77,7 +77,7 @@ int create_evl_element(const char *type, const char *name,
 	if (ret < 0)
 		return -ENOMEM;
 
-
+	printf("fdevname: %s\n", fdevname);
 	ffd = open(fdevname, O_RDWR);
 	if (ffd < 0) {
 		ret = -errno;
@@ -102,6 +102,8 @@ int create_evl_element(const char *type, const char *name,
 	clone.clone_flags = clone_flags;
 	ret = ioctl(ffd, EVL_IOC_CLONE, &clone);
 	if (ret) {
+		printf("ffd failed, ret=%d\n", ret);
+		fflush(stdout);
 		ret = -errno;
 		if (ret == -ENXIO)
 			lart_once();
@@ -114,9 +116,10 @@ int create_evl_element(const char *type, const char *name,
 			ret = -ENOMEM;
 			goto out_new;
 		}
-
+		printf("edevname: %s\n", edevname);
 		efd = open(edevname, O_RDWR);
 		if (efd < 0) {
+			printf("edevname: %s failed\n", edevname);
 			ret = -errno;
 			goto out_element;
 		}
@@ -125,6 +128,8 @@ int create_evl_element(const char *type, const char *name,
 	}
 
 	ret = flip_fd_flags(efd, F_SETFD, O_CLOEXEC);
+	// printf("flip_fd_flags, ret=%d\n", ret);
+	// fflush(stdout);
 	if (ret)
 		goto out_element;
 

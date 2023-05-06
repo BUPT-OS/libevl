@@ -65,7 +65,6 @@ int evl_attach_thread(int flags, const char *fmt, ...)
 	 * thread to the core as the first EVL call of the process
 	 * enables all services.
 	 */
-
 	ret = evl_init();
 	if (ret)
 		return ret;
@@ -75,6 +74,7 @@ int evl_attach_thread(int flags, const char *fmt, ...)
 	 * Cannot bind twice. Although the core would catch it, we can
 	 * detect this issue early.
 	 */
+
 	if (evl_current != EVL_NO_HANDLE)
 		return -EBUSY;
 
@@ -89,8 +89,8 @@ int evl_attach_thread(int flags, const char *fmt, ...)
 	efd = create_evl_element(EVL_THREAD_DEV, name, NULL, flags, &eids);
 	if (name)
 		free(name);
-	if (efd < 0)
-		return efd;
+	// if (efd < 0)
+	// 	return efd;
 
 	evl_current = eids.fundle;
 	evl_current_window = evl_shared_memory + eids.state_offset;
@@ -134,7 +134,7 @@ int evl_attach_thread(int flags, const char *fmt, ...)
 	fflush(stdout);
 	return efd;
 fail:
-	close(efd);
+	// close(efd);
 	clear_tls();
 
 	return ret;
