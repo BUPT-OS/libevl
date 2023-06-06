@@ -50,10 +50,10 @@ int main(int argc, char *argv[])
 	__Tcall_assert(ret, pipe(m2p_pipefd));
 	__Tcall_assert(m2p_proxy, evl_create_proxy(m2p_pipefd[0], BUFFER_SIZE,
 						0, EVL_CLONE_INPUT,
-						"pipe-m2p:%d", getpid()));
+						"Pipe-m2p:%d", getpid()));
 	__Tcall_assert(p2m_proxy, evl_create_proxy(p2m_pipefd[1], BUFFER_SIZE,
 						0, EVL_CLONE_OUTPUT,
-						"pipe-p2m:%d", getpid()));
+						"Pipe-p2m:%d", getpid()));
 	new_thread(&tid, SCHED_FIFO, 1, peer, NULL);
 
 	for (n = 0; n < TEST_COUNT; n++) {

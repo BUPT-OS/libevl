@@ -32,11 +32,17 @@ static int flip_fd_flags(int efd, int cmd, int flags)
 {
 	int ret;
 
+	printf("clone flags %d\n", 1);
 	ret = fcntl(efd, cmd == F_SETFD ? F_GETFD : F_GETFL, 0);
+
+	printf("clone flags %d\n", 2);
 	if (ret < 0)
 		return -errno;
 
+	printf("clone flags %d\n", 4);
 	ret = fcntl(efd, cmd, ret | flags);
+
+	printf("clone flags %d\n", 3);
 	if (ret)
 		return -errno;
 
@@ -84,6 +90,8 @@ int create_evl_element(const char *type, const char *name,
 		goto out_factory;
 	}
 
+	printf("ffd = %d\n",ffd);
+	printf("fdevname: %s\n", fdevname);
 
 	/*
 	 * Turn on public mode if the user-provided name starts with a
@@ -97,6 +105,7 @@ int create_evl_element(const char *type, const char *name,
 		name++;
 	}
 
+	printf("fdevname: %s\n", fdevname);
 	clone.name_ptr = __evl_ptr64(name);
 	clone.attrs_ptr = __evl_ptr64(attrs);
 	clone.clone_flags = clone_flags;
@@ -109,7 +118,7 @@ int create_evl_element(const char *type, const char *name,
 			lart_once();
 		goto out_new;
 	}
-
+	printf("clone flags %d\n", clone_flags);
 	if (clone_flags & EVL_CLONE_PUBLIC) {
 		ret = asprintf(&edevname, "/dev/evl/%s/%s", type, name);
 		if (ret < 0) {
@@ -126,19 +135,25 @@ int create_evl_element(const char *type, const char *name,
 	} else {
 		efd = clone.efd;
 	}
-
+	printf("efd is in the user space %d %d \n ", clone.efd, efd);
+	printf("clone flags %d\n", clone_flags);
 	ret = flip_fd_flags(efd, F_SETFD, O_CLOEXEC);
-	// printf("flip_fd_flags, ret=%d\n", ret);
-	// fflush(stdout);
+
+	printf("clone flags %d\n", clone_flags);
+	printf("flip_fd_flags, ret=%d\n", ret);
+	fflush(stdout);
 	if (ret)
 		goto out_element;
 
+	printf("flip_fd_flags, ret=%d\n", ret);
 	if (nonblock) {
 		ret = flip_fd_flags(efd, F_SETFL, O_NONBLOCK);
+		printf("flip_fd_flags, ret=%d\n", ret);
 		if (ret)
 			goto out_element;
 	}
 
+	printf("flip_fd_flags, ret=%d\n", ret);
 	if (eids)
 		*eids = clone.eids;
 

@@ -49,6 +49,7 @@ int evl_create_proxy(int targetfd, size_t bufsz, size_t granularity,
 	}
 
 	attrs.fd = targetfd;
+	printf("the attrs.fd = %d\n", targetfd);
 	attrs.bufsz = bufsz;
 	attrs.granularity = granularity;
 	efd = create_evl_element(EVL_PROXY_DEV, name, &attrs, flags, NULL);

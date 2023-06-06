@@ -778,7 +778,7 @@ int main(int argc, char *argv[])
 	param.sched_priority = 1;
 	pthread_setschedparam(pthread_self(), SCHED_FIFO, &param);
 	__Tcall_assert(ret, evl_attach_self("heap-torture:%d", getpid()));
-
+	printf("the attach self is successful");
 	/*
 	 * Create a series of heaps of increasing size, allocating
 	 * then freeing all blocks sequentially from them, ^2 block

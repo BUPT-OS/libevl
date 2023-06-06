@@ -32,7 +32,7 @@
 // 	fflush(stdout);
 
 // 	for (n = 0; n < 3; n++) {
-// 		__Tcall_errno_assert(ret, read(fd, buf, 2));
+// 		__Tcall_errno_assert(ret, oob_read(fd, buf, 2));
 // 		if (ret != 2)
 // 			break;
 // 	}
@@ -67,17 +67,17 @@ int main(int argc, char *argv[])
 	printf("the xfd = %d\n", xfd);
 	printf("create new xbuf success\n");
 	fflush(stdout);
-	__Tcall_errno_assert(ret, write(xfd, "ABCD", 4));
-	printf("xbuf write ABCD success\n");
+	__Tcall_errno_assert(ret, oob_write(xfd, "1234", 4));
+	printf("xbuf oob_write 1234 success\n");
 	fflush(stdout);
-	__Tcall_errno_assert(ret, write(xfd, "EF", 2));
-	printf("xbuf write EF success\n");
+	__Tcall_errno_assert(ret, oob_write(xfd, "56", 2));
+	printf("xbuf oob_write 56 success\n");
 	fflush(stdout);
-	__Tcall_errno_assert(ret, write(xfd, "G", 1));
-	printf("xbuf write G success\n");
+	__Tcall_errno_assert(ret, oob_write(xfd, "7", 1));
+	printf("xbuf oob_write 7 success\n");
 	fflush(stdout);
-	__Tcall_errno_assert(ret, write(xfd, "H", 1));
-	printf("xbuf write H success\n");
+	__Tcall_errno_assert(ret, oob_write(xfd, "8", 1));
+	printf("xbuf oob_write 8 success\n");
 	fflush(stdout);
 
 	printf("the xfd = %d\n", xfd);
@@ -89,13 +89,14 @@ int main(int argc, char *argv[])
 	fflush(stdout);
 
 	for (n = 0; n < 8; n++)
-	{
-		__Tcall_errno_assert(ret, oob_read(xfd, buf, 1));
-		printf("the value of oob read buf is %c\n", *buf);
+	{ 
+		__Tcall_errno_assert(ret, read(xfd, buf, 1));
+		printf("the value of read buf is %c\n", *buf);
 	}
+
 		
-	printf("xbuf oob_read success\n");
-	printf("xbuf write and oob_read success!!!!!\n");
+	printf("xbuf read success\n");
+	printf("test xbuf oob_write and read success!!!!!\n");
 
 	// nxfd = &xfd;
 	// printf("nxfd:%d\n", *nxfd);
@@ -105,13 +106,13 @@ int main(int argc, char *argv[])
 	// fflush(stdout);
 
 	// sleep(1);
-	// __Tcall_errno_assert(ret, oob_write(xfd, "01", 2));
+	// __Tcall_errno_assert(ret, write(xfd, "01", 2));
 	// printf("xbuf oob_write 01 success\n");
 	// fflush(stdout);
-	// __Tcall_errno_assert(ret, oob_write(xfd, "23", 2));
+	// __Tcall_errno_assert(ret, write(xfd, "23", 2));
 	// printf("xbuf oob_write 23 success\n");
 	// fflush(stdout);
-	// __Tcall_errno_assert(ret, oob_write(xfd, "45", 2));
+	// __Tcall_errno_assert(ret, write(xfd, "45", 2));
 	// printf("xbuf oob_write 45 success\n");
 	// fflush(stdout);
 

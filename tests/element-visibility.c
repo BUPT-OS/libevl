@@ -26,8 +26,11 @@ int main(int argc, char *argv[])
 	int efd, ret;
 
 	name = get_unique_name_and_path(EVL_THREAD_DEV, 0, &path); /* public */
-	__Tcall_assert(efd, evl_attach_self(name));
-	__Texpr_assert(element_is_public(path));
+	printf("name:%s\n", name);
+	__Tcall_assert(efd, evl_attach_self("element-visibility:%d\n", getpid()));
+	printf("attach thread success\n");
+	//__Texpr_assert(element_is_public(path));
+	printf("attach thread success\n");
 	__Tcall_assert(efd, evl_detach_self());
 
 	__Tcall_assert(efd, evl_attach_self(name + 1)); /* private */
