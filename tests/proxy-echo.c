@@ -12,6 +12,7 @@
 #include "helpers.h"
 
 #define TEST_COUNT  2048
+// #define TEST_COUNT  2
 #define BUFFER_SIZE 8
 
 static int p2m_pipefd[2], p2m_proxy;
@@ -31,11 +32,13 @@ static void *peer(void *arg)
 		__Tcall_errno_assert(ret, oob_read(m2p_proxy, &c, 1));
 		if (ret == 0) {	/* End of test. */
 			__Texpr_assert(n == TEST_COUNT);
+			printf("out of for loop\n");
 			break;
 		}
 		__Texpr_assert(c == cmp);
 		n++;
 	}
+	printf("here has been called\n");
 
 	return NULL;
 }
@@ -68,5 +71,6 @@ int main(int argc, char *argv[])
 
 	pthread_join(tid, NULL);
 
+	printf("proxy-echo success!!!!!\n");
 	return 0;
 }
