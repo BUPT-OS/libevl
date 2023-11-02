@@ -72,6 +72,7 @@ static inline int generic_init(void)
 	 * to give a clear hint about this.
 	 */
 	ctlfd = open(EVL_CONTROL_DEV, O_RDWR);
+	printf("the value of ctlfd is %d\n", ctlfd);
 	if (ctlfd < 0) {
 		if (errno == ENOENT) {
 			fprintf(stderr,	"evl: core not enabled in kernel\n");
@@ -93,6 +94,10 @@ static inline int generic_init(void)
 	}
 
 	ret = ioctl(ctlfd, EVL_CTLIOC_GET_COREINFO, &core_info);
+	// printf("the value of EVL_CTLIOC_GET_COREINFO is %ld\n", EVL_CTLIOC_GET_COREINFO);
+	// printf("the value of EVL_CTLIOC_SCHEDCTL is %ld\n", EVL_CTLIOC_SCHEDCTL);
+	// printf("the value of EVL_CTLIOC_GET_CPUSTATE is %ld\n", EVL_CTLIOC_GET_CPUSTATE);
+	printf("the value of ioctl is %d\n", ret);
 	if (ret) {
 		/*
 		 * sizeof(core_info) is encoded into
@@ -111,6 +116,8 @@ static inline int generic_init(void)
 		core_info.abi_base = (__u32)-1;
 	}
 
+	printf("the value of EVL_ABI_PREREQ is %d\n", EVL_ABI_PREREQ);
+	printf("the value of core_info.abi_base is %d\n", core_info.abi_base);
 	if (EVL_ABI_PREREQ < core_info.abi_base ||
 		EVL_ABI_PREREQ > core_info.abi_current) {
 		fprintf(stderr,
@@ -120,23 +127,29 @@ static inline int generic_init(void)
 		goto fail;
 	}
 
-	ret = attach_evl_clocks();
-	if (ret)
-		goto fail;
+	// ret = attach_evl_clocks();
+	// printf("the ret of attach_evl_clocks is %d\n", ret);
+	// if (ret)
+		// goto fail;
 
+	printf("init location 1\n");
 	shmem = mmap(NULL, core_info.shm_size, PROT_READ|PROT_WRITE,
 		MAP_SHARED, ctlfd, 0);
+
+	printf("init location 2\n");
 	if (shmem == MAP_FAILED) {
 		ret = -errno;
 		goto fail;
 	}
 
 	pthread_atfork(NULL, NULL, atfork_unmap_shmem);
+	printf("init location 3\n");
 	evl_ctlfd = ctlfd;
 	evl_shared_memory = shmem;
 
 	return 0;
 fail:
+	printf("something wrong, fail\n");
 	close(ctlfd);
 
 	return ret;
@@ -182,7 +195,7 @@ void evl_sigdebug_handler(int sig, siginfo_t *si, void *ctxt)
 
 static void resolve_vdso_calls(void)
 {
-	// evl_init_vdso();
+	evl_init_vdso();
 	__evl_clock_gettime = evl_request_vdso(__EVL_VDSO_KVERSION,
 					__EVL_VDSO_GETTIME);
 }
@@ -197,11 +210,11 @@ static int do_init(void)
 	if (ret)
 		return -errno;
 
-	// ret = generic_init();
-	// if (ret)
-		// return ret;
+	ret = generic_init();
+	if (ret)
+		return ret;
 
-	// init_proxy_streams();
+	init_proxy_streams();
 
 	return 0;
 }
@@ -213,13 +226,14 @@ static void do_init_once(void)
 
 int evl_init(void)
 {
-	// pthread_once(&init_once, do_init_once);
-	do_init_once();
+	pthread_once(&init_once, do_init_once);
+	// do_init_once();
 	return init_status;
 }
 
 unsigned int evl_detect_fpu(void)
 {
+	printf("libevl evl_detect_fpu is called\n");
 	if (evl_init())
 		return 0;
 

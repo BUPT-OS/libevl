@@ -50,6 +50,7 @@ int main(int argc, char *argv[])
 	ssize_t ret;
 
 	__Tcall_assert(tfd, evl_attach_self("basic-xbuf:%d", getpid()));
+	fflush(stdout);
 	printf("attach basic-xbuf success\n");
 
 	name = get_unique_name_and_path(EVL_XBUF_DEV, 0, &path);

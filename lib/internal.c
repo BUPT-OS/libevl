@@ -86,6 +86,7 @@ int create_evl_element(const char *type, const char *name,
 	printf("fdevname: %s\n", fdevname);
 	ffd = open(fdevname, O_RDWR);
 	if (ffd < 0) {
+		printf("open fdevname failed, the ffd is %d\n", ffd);
 		ret = -errno;
 		goto out_factory;
 	}
@@ -154,8 +155,13 @@ int create_evl_element(const char *type, const char *name,
 	}
 
 	printf("flip_fd_flags, ret=%d\n", ret);
-	if (eids)
+	printf("the filp of fdevname is %p, the fdevname is %s\n", fdevname, fdevname);
+	fflush(stdout);
+
+	if (eids) {
+		printf("the filp of eids is %p\n", eids);
 		*eids = clone.eids;
+	}
 
 	ret = efd;
 
@@ -163,9 +169,18 @@ out_element:
 	if (edevname)
 		free(edevname);
 out_new:
+	printf("before close ffd\n");
+	printf("ffd = %d\n",ffd);
+	fflush(stdout);
 	close(ffd);
+	printf("after close ffd\n");
+	fflush(stdout);
 out_factory:
+	printf("before free fdevname\n");
+	fflush(stdout);
 	free(fdevname);
+	printf("free fdevname success\n");
+	fflush(stdout);
 
 	return ret;
 }

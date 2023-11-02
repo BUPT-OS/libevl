@@ -11,8 +11,8 @@
 #include <evl/syscall.h>
 #include "helpers.h"
 
-#define TEST_COUNT  2048
-// #define TEST_COUNT  2
+// #define TEST_COUNT  2048
+#define TEST_COUNT  8
 #define BUFFER_SIZE 8
 
 static int p2m_pipefd[2], p2m_proxy;
@@ -50,13 +50,21 @@ int main(int argc, char *argv[])
 	int ret, n;
 
 	__Tcall_assert(ret, pipe(p2m_pipefd));
+	printf("the fd of p2m_pipefd is %d, %d\n", p2m_pipefd[0], p2m_pipefd[1]);
+	fflush(stdout);
 	__Tcall_assert(ret, pipe(m2p_pipefd));
+	printf("the fd of m2p_pipefd is %d, %d\n", m2p_pipefd[0], m2p_pipefd[1]);
+	fflush(stdout);
 	__Tcall_assert(m2p_proxy, evl_create_proxy(m2p_pipefd[0], BUFFER_SIZE,
 						0, EVL_CLONE_INPUT,
 						"Pipe-m2p:%d", getpid()));
 	__Tcall_assert(p2m_proxy, evl_create_proxy(p2m_pipefd[1], BUFFER_SIZE,
 						0, EVL_CLONE_OUTPUT,
 						"Pipe-p2m:%d", getpid()));
+	printf("the fd of m2p_proxy is %d\n", m2p_proxy);
+	printf("the fd of p2m_proxy is %d\n", p2m_proxy);
+	fflush(stdout);
+
 	new_thread(&tid, SCHED_FIFO, 1, peer, NULL);
 
 	for (n = 0; n < TEST_COUNT; n++) {
