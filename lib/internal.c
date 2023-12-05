@@ -16,6 +16,7 @@
 #include <linux/types.h>
 #include <uapi/evl/factory.h>
 #include "internal.h"
+#include <evl/rros.h>
 
 static void do_lart_once(void)
 {
@@ -32,17 +33,17 @@ static int flip_fd_flags(int efd, int cmd, int flags)
 {
 	int ret;
 
-	printf("clone flags %d\n", 1);
+	DEBUG_PRINT("clone flags %d\n", 1);
 	ret = fcntl(efd, cmd == F_SETFD ? F_GETFD : F_GETFL, 0);
 
-	printf("clone flags %d\n", 2);
+	DEBUG_PRINT("clone flags %d\n", 2);
 	if (ret < 0)
 		return -errno;
 
-	printf("clone flags %d\n", 4);
+	DEBUG_PRINT("clone flags %d\n", 4);
 	ret = fcntl(efd, cmd, ret | flags);
 
-	printf("clone flags %d\n", 3);
+	DEBUG_PRINT("clone flags %d\n", 3);
 	if (ret)
 		return -errno;
 
@@ -83,16 +84,16 @@ int create_evl_element(const char *type, const char *name,
 	if (ret < 0)
 		return -ENOMEM;
 
-	printf("fdevname: %s\n", fdevname);
+	DEBUG_PRINT("fdevname: %s\n", fdevname);
 	ffd = open(fdevname, O_RDWR);
 	if (ffd < 0) {
-		printf("open fdevname failed, the ffd is %d\n", ffd);
+		DEBUG_PRINT("open fdevname failed, the ffd is %d\n", ffd);
 		ret = -errno;
 		goto out_factory;
 	}
 
-	printf("ffd = %d\n",ffd);
-	printf("fdevname: %s\n", fdevname);
+	DEBUG_PRINT("ffd = %d\n",ffd);
+	DEBUG_PRINT("fdevname: %s\n", fdevname);
 
 	/*
 	 * Turn on public mode if the user-provided name starts with a
@@ -106,60 +107,60 @@ int create_evl_element(const char *type, const char *name,
 		name++;
 	}
 
-	printf("fdevname: %s\n", fdevname);
+	DEBUG_PRINT("fdevname: %s\n", fdevname);
 	clone.name_ptr = __evl_ptr64(name);
 	clone.attrs_ptr = __evl_ptr64(attrs);
 	clone.clone_flags = clone_flags;
 	ret = ioctl(ffd, EVL_IOC_CLONE, &clone);
 	if (ret) {
-		printf("ffd failed, ret=%d\n", ret);
+		DEBUG_PRINT("ffd failed, ret=%d\n", ret);
 		fflush(stdout);
 		ret = -errno;
 		if (ret == -ENXIO)
 			lart_once();
 		goto out_new;
 	}
-	printf("clone flags %d\n", clone_flags);
+	DEBUG_PRINT("clone flags %d\n", clone_flags);
 	if (clone_flags & EVL_CLONE_PUBLIC) {
 		ret = asprintf(&edevname, "/dev/evl/%s/%s", type, name);
 		if (ret < 0) {
 			ret = -ENOMEM;
 			goto out_new;
 		}
-		printf("edevname: %s\n", edevname);
+		DEBUG_PRINT("edevname: %s\n", edevname);
 		efd = open(edevname, O_RDWR);
 		if (efd < 0) {
-			printf("edevname: %s failed\n", edevname);
+			DEBUG_PRINT("edevname: %s failed\n", edevname);
 			ret = -errno;
 			goto out_element;
 		}
 	} else {
 		efd = clone.efd;
 	}
-	printf("efd is in the user space %d %d \n ", clone.efd, efd);
-	printf("clone flags %d\n", clone_flags);
+	DEBUG_PRINT("efd is in the user space %d %d \n ", clone.efd, efd);
+	DEBUG_PRINT("clone flags %d\n", clone_flags);
 	ret = flip_fd_flags(efd, F_SETFD, O_CLOEXEC);
 
-	printf("clone flags %d\n", clone_flags);
-	printf("flip_fd_flags, ret=%d\n", ret);
+	DEBUG_PRINT("clone flags %d\n", clone_flags);
+	DEBUG_PRINT("flip_fd_flags, ret=%d\n", ret);
 	fflush(stdout);
 	if (ret)
 		goto out_element;
 
-	printf("flip_fd_flags, ret=%d\n", ret);
+	DEBUG_PRINT("flip_fd_flags, ret=%d\n", ret);
 	if (nonblock) {
 		ret = flip_fd_flags(efd, F_SETFL, O_NONBLOCK);
-		printf("flip_fd_flags, ret=%d\n", ret);
+		DEBUG_PRINT("flip_fd_flags, ret=%d\n", ret);
 		if (ret)
 			goto out_element;
 	}
 
-	printf("flip_fd_flags, ret=%d\n", ret);
-	printf("the filp of fdevname is %p, the fdevname is %s\n", fdevname, fdevname);
+	DEBUG_PRINT("flip_fd_flags, ret=%d\n", ret);
+	DEBUG_PRINT("the filp of fdevname is %p, the fdevname is %s\n", fdevname, fdevname);
 	fflush(stdout);
 
 	if (eids) {
-		printf("the filp of eids is %p\n", eids);
+		DEBUG_PRINT("the filp of eids is %p\n", eids);
 		*eids = clone.eids;
 	}
 
@@ -169,17 +170,17 @@ out_element:
 	if (edevname)
 		free(edevname);
 out_new:
-	printf("before close ffd\n");
-	printf("ffd = %d\n",ffd);
+	DEBUG_PRINT("before close ffd\n");
+	DEBUG_PRINT("ffd = %d\n",ffd);
 	fflush(stdout);
 	close(ffd);
-	printf("after close ffd\n");
+	DEBUG_PRINT("after close ffd\n");
 	fflush(stdout);
 out_factory:
-	printf("before free fdevname\n");
+	DEBUG_PRINT("before free fdevname\n");
 	fflush(stdout);
 	free(fdevname);
-	printf("free fdevname success\n");
+	DEBUG_PRINT("free fdevname success\n");
 	fflush(stdout);
 
 	return ret;

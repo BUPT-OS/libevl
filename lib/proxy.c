@@ -12,7 +12,7 @@
 #include <evl/thread.h>
 #include <evl/syscall.h>
 #include "internal.h"
-
+#include <evl/rros.h>
 #define STDSTREAM_BUFSZ  16384
 
 static __thread __attribute__ ((tls_model (EVL_TLS_MODEL)))
@@ -49,7 +49,7 @@ int evl_create_proxy(int targetfd, size_t bufsz, size_t granularity,
 	}
 
 	attrs.fd = targetfd;
-	printf("the attrs.fd = %d\n", targetfd);
+	DEBUG_PRINT("the attrs.fd = %d\n", targetfd);
 	attrs.bufsz = bufsz;
 	attrs.granularity = granularity;
 	efd = create_evl_element(EVL_PROXY_DEV, name, &attrs, flags, NULL);

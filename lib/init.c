@@ -23,6 +23,7 @@
 #include <uapi/evl/signal.h>
 #include "parse_vdso.h"
 #include "internal.h"
+#include <evl/rros.h>
 
 #ifndef EVL_ABI_BASE
 /*
@@ -72,7 +73,7 @@ static inline int generic_init(void)
 	 * to give a clear hint about this.
 	 */
 	ctlfd = open(EVL_CONTROL_DEV, O_RDWR);
-	printf("the value of ctlfd is %d\n", ctlfd);
+	DEBUG_PRINT("the value of ctlfd is %d\n", ctlfd);
 	if (ctlfd < 0) {
 		if (errno == ENOENT) {
 			fprintf(stderr,	"evl: core not enabled in kernel\n");
@@ -94,10 +95,10 @@ static inline int generic_init(void)
 	}
 
 	ret = ioctl(ctlfd, EVL_CTLIOC_GET_COREINFO, &core_info);
-	// printf("the value of EVL_CTLIOC_GET_COREINFO is %ld\n", EVL_CTLIOC_GET_COREINFO);
-	// printf("the value of EVL_CTLIOC_SCHEDCTL is %ld\n", EVL_CTLIOC_SCHEDCTL);
-	// printf("the value of EVL_CTLIOC_GET_CPUSTATE is %ld\n", EVL_CTLIOC_GET_CPUSTATE);
-	printf("the value of ioctl is %d\n", ret);
+	// DEBUG_PRINT("the value of EVL_CTLIOC_GET_COREINFO is %ld\n", EVL_CTLIOC_GET_COREINFO);
+	// DEBUG_PRINT("the value of EVL_CTLIOC_SCHEDCTL is %ld\n", EVL_CTLIOC_SCHEDCTL);
+	// DEBUG_PRINT("the value of EVL_CTLIOC_GET_CPUSTATE is %ld\n", EVL_CTLIOC_GET_CPUSTATE);
+	DEBUG_PRINT("the value of ioctl is %d\n", ret);
 	if (ret) {
 		/*
 		 * sizeof(core_info) is encoded into
@@ -116,8 +117,8 @@ static inline int generic_init(void)
 		core_info.abi_base = (__u32)-1;
 	}
 
-	printf("the value of EVL_ABI_PREREQ is %d\n", EVL_ABI_PREREQ);
-	printf("the value of core_info.abi_base is %d\n", core_info.abi_base);
+	DEBUG_PRINT("the value of EVL_ABI_PREREQ is %d\n", EVL_ABI_PREREQ);
+	DEBUG_PRINT("the value of core_info.abi_base is %d\n", core_info.abi_base);
 	if (EVL_ABI_PREREQ < core_info.abi_base ||
 		EVL_ABI_PREREQ > core_info.abi_current) {
 		fprintf(stderr,
@@ -128,28 +129,28 @@ static inline int generic_init(void)
 	}
 
 	// ret = attach_evl_clocks();
-	// printf("the ret of attach_evl_clocks is %d\n", ret);
+	// DEBUG_PRINT("the ret of attach_evl_clocks is %d\n", ret);
 	// if (ret)
 		// goto fail;
 
-	printf("init location 1\n");
+	DEBUG_PRINT("init location 1\n");
 	shmem = mmap(NULL, core_info.shm_size, PROT_READ|PROT_WRITE,
 		MAP_SHARED, ctlfd, 0);
 
-	printf("init location 2\n");
+	DEBUG_PRINT("init location 2\n");
 	if (shmem == MAP_FAILED) {
 		ret = -errno;
 		goto fail;
 	}
 
 	pthread_atfork(NULL, NULL, atfork_unmap_shmem);
-	printf("init location 3\n");
+	DEBUG_PRINT("init location 3\n");
 	evl_ctlfd = ctlfd;
 	evl_shared_memory = shmem;
 
 	return 0;
 fail:
-	printf("something wrong, fail\n");
+	DEBUG_PRINT("something wrong, fail\n");
 	close(ctlfd);
 
 	return ret;
@@ -233,7 +234,7 @@ int evl_init(void)
 
 unsigned int evl_detect_fpu(void)
 {
-	printf("libevl evl_detect_fpu is called\n");
+	DEBUG_PRINT("libevl evl_detect_fpu is called\n");
 	if (evl_init())
 		return 0;
 
