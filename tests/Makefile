@@ -21,7 +21,8 @@ TEST_CPPFLAGS := $(BASE_CPPFLAGS)	\
 TEST_CFLAGS := $(TEST_CPPFLAGS) $(BASE_CFLAGS)
 override CFLAGS := $(TEST_CFLAGS) $(CFLAGS)
 
-TEST_LDFLAGS := $(O_DIR)/../lib/libevl.so.$(EVL_IVERSION) -lpthread -lrt $(LDFLAGS)
+# FIXME: Temporarily use static linking
+TEST_LDFLAGS := $(O_DIR)/../lib/libevl-$(EVL_IVERSION).a -lpthread -lrt -static $(LDFLAGS)
 $(NEEDLIBM): override TEST_LDFLAGS += -lm
 ESHI_LDFLAGS := $(O_DIR)/../eshi/libeshi.so.$(EVL_IVERSION) -lpthread -lrt $(LDFLAGS)
 

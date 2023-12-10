@@ -12,7 +12,8 @@ CMD_CPPFLAGS := $(BASE_CPPFLAGS) -I. -I../include -I$(O_DIR)/../include
 CMD_CFLAGS := $(CMD_CPPFLAGS) $(BASE_CFLAGS)
 override CFLAGS := $(CMD_CFLAGS) $(CFLAGS)
 
-CMD_LDFLAGS := $(O_DIR)/../lib/libevl.so.$(EVL_IVERSION) -lpthread -lrt
+# FIXME:Temporarily use static linking
+CMD_LDFLAGS := $(O_DIR)/../lib/libevl-$(EVL_IVERSION).a -lpthread -lrt -static
 override LDFLAGS := $(CMD_LDFLAGS) $(LDFLAGS)
 
 $(TARGETS):
