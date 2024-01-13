@@ -72,7 +72,7 @@ static inline int generic_init(void)
 	 * sign that we have no EVL core in there. Return with -ENOSYS
 	 * to give a clear hint about this.
 	 */
-	ctlfd = open(EVL_CONTROL_DEV, O_RDWR);
+	ctlfd = open(RROS_CONTROL_DEV, O_RDWR);
 	DEBUG_PRINT("the value of ctlfd is %d\n", ctlfd);
 	if (ctlfd < 0) {
 		if (errno == ENOENT) {

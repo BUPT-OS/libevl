@@ -24,7 +24,7 @@ char *get_unique_name_and_path(const char *type,
 	char *path;
 	int ret;
 
-	ret = asprintf(&path, "/dev/evl/%s/test%d.%d",
+	ret = asprintf(&path, "/dev/rros/%s/test%d.%d",
 		       type, getpid(), serial);
 	if (ret < 0)
 		error(1, ENOMEM, "malloc");

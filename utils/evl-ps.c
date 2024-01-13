@@ -836,7 +836,7 @@ int main(int argc, char *const argv[])
 		return 1;
 	}
 
-	if (access(EVL_CONTROL_DEV, 0) && errno == ENOENT)
+	if (access(RROS_CONTROL_DEV, 0) && errno == ENOENT)
 		error(1, ENOSYS, "EVL core is not present/enabled");
 
 	if (!(display_format & ~DISPLAY_MODIFIERS))

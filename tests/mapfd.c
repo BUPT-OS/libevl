@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
 	void *p;
 
 	if (argc > 1) {
-		ret = chdir("/dev/evl/proxy");
+		ret = chdir("/dev/rros/proxy");
 		(void)ret;
 		efd = open(argv[1], O_RDWR);
 		if (efd < 0)

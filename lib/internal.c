@@ -80,7 +80,7 @@ int create_evl_element(const char *type, const char *name,
 	clone_flags &= EVL_CLONE_MASK;
 	clone_flags &= ~EVL_CLONE_NONBLOCK;
 
-	ret = asprintf(&fdevname, "/dev/evl/%s/clone", type);
+	ret = asprintf(&fdevname, "/dev/rros/%s/clone", type);
 	if (ret < 0)
 		return -ENOMEM;
 
@@ -122,7 +122,7 @@ int create_evl_element(const char *type, const char *name,
 	}
 	DEBUG_PRINT("clone flags %d\n", clone_flags);
 	if (clone_flags & EVL_CLONE_PUBLIC) {
-		ret = asprintf(&edevname, "/dev/evl/%s/%s", type, name);
+		ret = asprintf(&edevname, "/dev/rros/%s/%s", type, name);
 		if (ret < 0) {
 			ret = -ENOMEM;
 			goto out_new;
@@ -196,7 +196,7 @@ int open_evl_element_vargs(const char *type,
 	if (ret < 0)
 		return -ENOMEM;
 
-	ret = asprintf(&path, "/dev/evl/%s/%s", type, name);
+	ret = asprintf(&path, "/dev/rros/%s/%s", type, name);
 	free(name);
 	if (ret < 0)
 		return -ENOMEM;
@@ -248,7 +248,7 @@ int create_evl_file(const char *type)
 	char *devname;
 	int efd, ret;
 
-	ret = asprintf(&devname, "/dev/evl/%s", type);
+	ret = asprintf(&devname, "/dev/rros/%s", type);
 	if (ret < 0)
 		return -ENOMEM;
 
